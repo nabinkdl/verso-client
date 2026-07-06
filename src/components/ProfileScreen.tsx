@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Heart, MessageCircle, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, MoreHorizontal, Play } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
 
@@ -10,7 +10,10 @@ interface ProfileScreenProps {
   posts: Post[];
   onNewPost: () => void;
   onEditName: (newName: string) => void;
-  onLogout: () => void; // Add this line
+  onLogout: () => void;
+  onEditPost: (postId: string, caption: string) => void;
+  onDeletePost: (postId: string) => void;
+  onMessage: () => void;
 }
 
 export default function ProfileScreen({
@@ -20,11 +23,17 @@ export default function ProfileScreen({
   posts,
   // onNewPost,
   onEditName,
-  onLogout, // Add this line
+  onLogout,
+  onEditPost,
+  onDeletePost,
+  onMessage,
 }: ProfileScreenProps) {
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editCaption, setEditCaption] = useState("");
 
   const user = users.find((u) => u.id === profileUserId);
   const userPosts = useMemo(
@@ -157,42 +166,62 @@ export default function ProfileScreen({
             )}
 
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button
-                onClick={() => {
-                  setEditing(true);
-                  setNameInput(user.name);
-                }}
-                style={{
-                  flex: 1,
-                  background: "#fff",
-                  color: "#000",
-                  border: "none",
-                  padding: "10px 14px",
-                  borderRadius: 999,
-                  fontWeight: 700,
-                  fontSize: 12,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                Edit Profile
-              </button>
-              {isOwn && (
+              {isOwn ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setEditing(true);
+                      setNameInput(user.name);
+                    }}
+                    style={{
+                      flex: 1,
+                      background: "#fff",
+                      color: "#000",
+                      border: "none",
+                      padding: "10px 14px",
+                      borderRadius: 999,
+                      fontWeight: 700,
+                      fontSize: 12,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={onLogout}
+                    style={{
+                      background: "transparent",
+                      color: "#cfcfcf",
+                      border: "0.5px solid #2b2b2b",
+                      padding: "10px 14px",
+                      borderRadius: 999,
+                      fontWeight: 600,
+                      fontSize: 12,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
                 <button
-                  onClick={onLogout}
+                  onClick={onMessage}
                   style={{
-                    background: "transparent",
-                    color: "#cfcfcf",
-                    border: "0.5px solid #2b2b2b",
+                    flex: 1,
+                    background: "#fff",
+                    color: "#000",
+                    border: "none",
                     padding: "10px 14px",
                     borderRadius: 999,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     fontSize: 12,
                     cursor: "pointer",
                     fontFamily: "inherit",
                   }}
                 >
-                  Logout
+                  Message
                 </button>
               )}
             </div>
@@ -230,8 +259,7 @@ export default function ProfileScreen({
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-            gap: 3,
-            padding: "0 16px",
+            gap: 2,
           }}
         >
           {userPosts.map((post) => (
@@ -243,27 +271,37 @@ export default function ProfileScreen({
                 aspectRatio: "1 / 1",
                 border: "none",
                 padding: 0,
-                borderRadius: 12,
-                overflow: "hidden",
                 position: "relative",
-                background: "#0c0c0c",
+                background: "#1a1a1a",
                 cursor: "pointer",
-                boxShadow: "inset 0 0 0 0.5px rgba(255,255,255,0.08)",
+                display: "block",
               }}
             >
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  backgroundImage: post.imageUrl
-                    ? `url(${post.imageUrl})`
-                    : undefined,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  filter: post.imageUrl ? "grayscale(100%)" : undefined,
-                  opacity: post.imageUrl ? 0.96 : 1,
-                }}
-              />
+              {post.mediaType === "video" && post.mediaUrl ? (
+                <video
+                  src={post.mediaUrl}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  muted
+                  playsInline
+                />
+              ) : (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    backgroundImage: post.imageUrl
+                      ? `url(${post.imageUrl})`
+                      : undefined,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                />
+              )}
+              {post.mediaType === "video" && (
+                <div style={{ position: "absolute", top: 8, right: 8 }}>
+                  <Play size={16} color="#fff" fill="#fff" />
+                </div>
+              )}
             </button>
           ))}
         </div>
@@ -285,93 +323,72 @@ export default function ProfileScreen({
         <div
           onClick={() => setSelectedPostId(null)}
           style={{
-            position: "fixed",
+            position: "absolute",
             inset: 0,
             zIndex: 50,
-            background: "rgba(0,0,0,0.92)",
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(8px)",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
+            flexDirection: "column",
+            justifyContent: "flex-end",
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
               width: "100%",
-              maxWidth: 420,
-              maxHeight: "92vh",
-              background: "#080808",
-              border: "0.5px solid #232323",
-              borderRadius: 18,
+              height: "85%",
+              background: "#0c0c0c",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
+              boxShadow: "0 -4px 30px rgba(0,0,0,0.5)",
+              borderTop: "1px solid rgba(255,255,255,0.1)",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "12px 14px",
-                borderBottom: "0.5px solid #202020",
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setSelectedPostId(null)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#fff",
-                  cursor: "pointer",
-                  padding: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                <ArrowLeft size={18} />
-              </button>
-              <button
-                type="button"
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#fff",
-                  cursor: "pointer",
-                  padding: 0,
-                }}
-              >
-                <MoreHorizontal size={18} />
-              </button>
+            <div style={{ display: "flex", justifyContent: "center", paddingTop: 12, paddingBottom: 12 }}>
+              <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.3)", borderRadius: 2 }} />
             </div>
 
             <div
               style={{
                 flex: 1,
                 overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
               }}
+              className="hide-scrollbar"
             >
-              <div
-                style={{
-                  aspectRatio: "1 / 1",
-                  background: selectedPost.imageUrl
-                    ? `center / cover no-repeat url(${selectedPost.imageUrl})`
-                    : "#111",
-                  borderBottom: "0.5px solid #202020",
-                }}
-              />
+              {selectedPost.mediaType === "video" && selectedPost.mediaUrl ? (
+                <video
+                  src={selectedPost.mediaUrl}
+                  style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", background: "#111" }}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    aspectRatio: "1 / 1",
+                    background: selectedPost.imageUrl
+                      ? `center / cover no-repeat url(${selectedPost.imageUrl})`
+                      : "#111",
+                    borderBottom: "1px solid rgba(255,255,255,0.05)",
+                  }}
+                />
+              )}
 
               <div
                 style={{
-                  padding: 14,
+                  padding: 16,
                   display: "flex",
                   flexDirection: "column",
-                  gap: 12,
+                  gap: 16,
                 }}
               >
                 <div
@@ -379,6 +396,7 @@ export default function ProfileScreen({
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
+                    position: "relative",
                   }}
                 >
                   <div
@@ -386,56 +404,157 @@ export default function ProfileScreen({
                   >
                     <Avatar name={user.name} />
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 13 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14 }}>
                         {user.name}
                       </div>
-                      <div style={{ fontSize: 11, color: "#8a8a8a" }}>
+                      <div style={{ fontSize: 12, color: "#8a8a8a" }}>
                         @{user.username}
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                   <button
                     type="button"
+                    onClick={() => setMenuOpen(!menuOpen)}
                     style={{
                       background: "none",
                       border: "none",
                       color: "#fff",
+                      cursor: "pointer",
+                      padding: 4,
+                    }}
+                  >
+                    <MoreHorizontal size={20} />
+                  </button>
+
+                  {menuOpen && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 36,
+                        right: 0,
+                        background: "#1a1a1a",
+                        border: "0.5px solid #333",
+                        borderRadius: 12,
+                        padding: 8,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
+                        minWidth: 140,
+                        zIndex: 10,
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      {isOwn ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditingPostId(selectedPost.id);
+                              setEditCaption(selectedPost.caption);
+                              setMenuOpen(false);
+                            }}
+                            style={{ background: "transparent", border: "none", color: "#fff", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                          >
+                            Edit Post
+                          </button>
+                          <button
+                            onClick={() => {
+                              onDeletePost(selectedPost.id);
+                              setSelectedPostId(null);
+                              setMenuOpen(false);
+                            }}
+                            style={{ background: "transparent", border: "none", color: "#ff4d4d", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                          >
+                            Delete Post
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            onMessage();
+                            setMenuOpen(false);
+                          }}
+                          style={{ background: "transparent", border: "none", color: "#fff", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                        >
+                          Message
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                  <div
+                    style={{
                       display: "flex",
                       alignItems: "center",
                       gap: 6,
-                      padding: 0,
-                      fontSize: 12,
-                      cursor: "pointer",
+                      fontSize: 14,
+                      fontWeight: 600,
                     }}
                   >
-                    <Heart size={16} />
+                    <Heart size={20} color="#ff4d6d" fill="#ff4d6d" />
                     {selectedPost.likes.length}
-                  </button>
+                  </div>
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
                       gap: 6,
                       color: "#cfcfcf",
-                      fontSize: 12,
+                      fontSize: 14,
+                      fontWeight: 600,
                     }}
                   >
-                    <MessageCircle size={16} />
+                    <MessageCircle size={20} />
                     {selectedPost.comments.length}
                   </div>
                 </div>
 
                 <div>
-                  <div
-                    style={{ fontSize: 12, lineHeight: 1.6, color: "#f1f1f1" }}
-                  >
-                    <strong style={{ color: "#fff" }}>{user.username}</strong>{" "}
-                    {selectedPost.caption}
-                  </div>
-                  <div style={{ marginTop: 6, color: "#747474", fontSize: 11 }}>
+                  {editingPostId === selectedPost.id ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      <input
+                        value={editCaption}
+                        onChange={(e) => setEditCaption(e.target.value)}
+                        autoFocus
+                        style={{
+                          background: "#1a1a1a",
+                          border: "1px solid #333",
+                          color: "#fff",
+                          padding: "8px 12px",
+                          borderRadius: 8,
+                          fontSize: 14,
+                          outline: "none",
+                        }}
+                      />
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                        <button
+                          onClick={() => setEditingPostId(null)}
+                          style={{ background: "transparent", color: "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (editCaption.trim()) {
+                              onEditPost(selectedPost.id, editCaption.trim());
+                            }
+                            setEditingPostId(null);
+                          }}
+                          style={{ background: "#fff", color: "#000", border: "none", padding: "4px 12px", borderRadius: 16, cursor: "pointer", fontSize: 13, fontWeight: 600 }}
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 14, lineHeight: 1.5, color: "#fff" }}>
+                      <strong style={{ fontWeight: 700 }}>{user.username}</strong>{" "}
+                      {selectedPost.caption}
+                    </div>
+                  )}
+                  <div style={{ marginTop: 8, color: "#777", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
                     {new Date(selectedPost.createdAt).toLocaleDateString(
                       undefined,
                       {
@@ -447,19 +566,15 @@ export default function ProfileScreen({
                   </div>
                 </div>
 
-                <div
-                  style={{ borderTop: "0.5px solid #202020", paddingTop: 12 }}
-                >
+                {selectedPost.comments.length > 0 && (
                   <div
-                    style={{ color: "#9a9a9a", fontSize: 11, marginBottom: 8 }}
+                    style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 12 }}
                   >
-                    {selectedPost.comments.length === 0
-                      ? "No comments yet"
-                      : "Comments"}
-                  </div>
-                  <div
-                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
-                  >
+                    <div
+                      style={{ color: "#aaa", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}
+                    >
+                      Comments ({selectedPost.comments.length})
+                    </div>
                     {selectedPost.comments.slice(0, 3).map((comment, index) => {
                       const commentUser = users.find(
                         (candidate) => candidate.id === comment.userId,
@@ -467,18 +582,18 @@ export default function ProfileScreen({
                       return (
                         <div
                           key={`${selectedPost.id}-comment-${index}`}
-                          style={{ display: "flex", gap: 10 }}
+                          style={{ display: "flex", gap: 12, alignItems: "flex-start" }}
                         >
-                          <Avatar name={commentUser?.name ?? "U"} />
-                          <div style={{ flex: 1 }}>
+                          <Avatar name={commentUser?.name ?? "U"} size="sm" />
+                          <div style={{ flex: 1, marginTop: 2 }}>
                             <div
                               style={{
-                                fontSize: 12,
-                                lineHeight: 1.45,
-                                color: "#ececec",
+                                fontSize: 13,
+                                lineHeight: 1.4,
+                                color: "#eee",
                               }}
                             >
-                              <strong>{commentUser?.username ?? "user"}</strong>{" "}
+                              <strong style={{ fontWeight: 600 }}>{commentUser?.username ?? "user"}</strong>{" "}
                               {comment.text}
                             </div>
                           </div>
@@ -486,7 +601,7 @@ export default function ProfileScreen({
                       );
                     })}
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

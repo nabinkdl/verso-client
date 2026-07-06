@@ -146,10 +146,10 @@ export default function HomeScreen({
               textTransform: "uppercase",
             }}
           >
-            verso
+            {/* verso */}
           </div>
           <div style={{ fontWeight: 800, fontSize: 22, lineHeight: 1.05 }}>
-            home
+            Verso
           </div>
         </div>
 

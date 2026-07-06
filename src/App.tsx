@@ -16,6 +16,7 @@ import ChatScreen from "./components/ChatScreen";
 import ProfileScreen from "./components/ProfileScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
+import ForgetScreen from "./components/ForgetScreen";
 
 const CURRENT_USER_ID = "u1";
 
@@ -50,6 +51,7 @@ export default function App() {
   const [notifications, setNotifications] =
     useState<NotificationItem[]>(initialNotifications);
   const [profileUserId, setProfileUserId] = useState(CURRENT_USER_ID);
+  const [targetChatId, setTargetChatId] = useState<string | null>(null);
 
   const pushNotification = (
     item: Omit<NotificationItem, "id" | "createdAt">,
@@ -96,6 +98,10 @@ export default function App() {
 
   const handleNavigateToLogin = () => {
     setActiveScreen("login");
+  };
+
+  const handleNavigateToForget = () => {
+    setActiveScreen("forget");
   };
 
   const handleLogout = () => {
@@ -262,8 +268,24 @@ export default function App() {
     );
   };
 
+  const handleMessageUser = (userId: string) => {
+    let existingChat = chats.find(c => c.participants.includes(CURRENT_USER_ID) && c.participants.includes(userId));
+    if (!existingChat) {
+       existingChat = {
+         id: `c${Date.now()}`,
+         participants: [CURRENT_USER_ID, userId],
+         messages: [],
+         lastUpdated: Date.now()
+       };
+       setChats(prev => [...prev, existingChat!]);
+    }
+    setTargetChatId(existingChat.id);
+    setActiveScreen("chat");
+  };
+
   const handleNav = (screen: Screen) => {
     if (screen === "profile") setProfileUserId(CURRENT_USER_ID);
+    if (screen !== "chat") setTargetChatId(null);
     setActiveScreen(screen);
   };
 
@@ -302,11 +324,17 @@ export default function App() {
           <LoginScreen
             onLogin={handleLogin}
             onNavigateToRegister={handleNavigateToRegister}
+            onNavigateToForget={handleNavigateToForget}
           />
         )}
         {activeScreen === "register" && (
           <RegisterScreen
             onRegister={handleRegister}
+            onNavigateToLogin={handleNavigateToLogin}
+          />
+        )}
+        {activeScreen === "forget" && (
+          <ForgetScreen
             onNavigateToLogin={handleNavigateToLogin}
           />
         )}
@@ -342,6 +370,7 @@ export default function App() {
             users={users}
             currentUserId={CURRENT_USER_ID}
             onLike={handleLike}
+            onComment={handleComment}
           />
         )}
         {activeScreen === "notifications" && (
@@ -353,6 +382,8 @@ export default function App() {
             users={users}
             currentUserId={CURRENT_USER_ID}
             onSendMessage={handleSendMessage}
+            targetChatId={targetChatId}
+            onClearTargetChat={() => setTargetChatId(null)}
           />
         )}
         {activeScreen === "profile" && (
@@ -364,6 +395,9 @@ export default function App() {
             onNewPost={() => setActiveScreen("newPost")}
             onEditName={handleEditName}
             onLogout={handleLogout}
+            onEditPost={handleEditPost}
+            onDeletePost={handleDeletePost}
+            onMessage={() => handleMessageUser(profileUserId)}
           />
         )}
         {isLoggedIn && <BottomNav active={activeScreen} onChange={handleNav} />}

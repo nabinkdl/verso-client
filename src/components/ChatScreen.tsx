@@ -8,10 +8,18 @@ interface ChatScreenProps {
   users: User[];
   currentUserId: string;
   onSendMessage: (chatId: string, text: string) => void;
+  targetChatId?: string | null;
+  onClearTargetChat?: () => void;
 }
 
-export default function ChatScreen({ chats, users, currentUserId, onSendMessage }: ChatScreenProps) {
-  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+export default function ChatScreen({ chats, users, currentUserId, onSendMessage, targetChatId, onClearTargetChat }: ChatScreenProps) {
+  const [activeChatId, setActiveChatId] = useState<string | null>(targetChatId || null);
+
+  useEffect(() => {
+    if (targetChatId) {
+      setActiveChatId(targetChatId);
+    }
+  }, [targetChatId]);
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +44,10 @@ export default function ChatScreen({ chats, users, currentUserId, onSendMessage 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 16, gap: 10, overflow: 'hidden' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
-            onClick={() => setActiveChatId(null)}
+            onClick={() => {
+              setActiveChatId(null);
+              if (onClearTargetChat) onClearTargetChat();
+            }}
             style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: 4 }}
           >
             <ArrowLeft size={22} />

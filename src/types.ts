@@ -46,4 +46,4 @@ export interface Chat {
   lastUpdated: number;
 }
 
-export type Screen = 'login' | 'register' | 'home' | 'search' | 'newPost' | 'reels' | 'notifications' | 'chat' | 'profile';
+export type Screen = 'login' | 'register' | 'forget' | 'home' | 'search' | 'newPost' | 'reels' | 'notifications' | 'chat' | 'profile';

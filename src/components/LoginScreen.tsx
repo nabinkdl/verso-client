@@ -4,11 +4,13 @@ import { LogIn } from "lucide-react";
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => void;
   onNavigateToRegister: () => void;
+  onNavigateToForget: () => void;
 }
 
 export default function LoginScreen({
   onLogin,
   onNavigateToRegister,
+  onNavigateToForget,
 }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -147,7 +149,7 @@ export default function LoginScreen({
         </p>
         <button
           type="button"
-          // onClick={onForgotPassword}
+          onClick={onNavigateToForget}
           style={{
             background: "none",
             border: "none",
@@ -156,6 +158,9 @@ export default function LoginScreen({
             cursor: "pointer",
             padding: 0,
             textDecoration: "underline",
+            marginBottom: 12,
+            display: "block",
+            width: "100%",
           }}
         >
           Forgot password?
