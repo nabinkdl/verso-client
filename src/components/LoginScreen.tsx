@@ -146,6 +146,22 @@ export default function LoginScreen({
           Demo: Use any email and password
         </p>
         <button
+          type="button"
+          // onClick={onForgotPassword}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#3b82f6",
+            fontSize: 14,
+            cursor: "pointer",
+            padding: 0,
+            textDecoration: "underline",
+          }}
+        >
+          Forgot password?
+        </button>
+
+        <button
           onClick={onNavigateToRegister}
           style={{
             background: "none",

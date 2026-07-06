@@ -7,6 +7,7 @@ export interface User {
 }
 
 export interface Comment {
+  id: string;
   userId: string;
   text: string;
 }
@@ -17,8 +18,18 @@ export interface Post {
   caption: string;
   imageUrl?: string;
   imageAlt?: string;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video';
   likes: string[];
   comments: Comment[];
+  createdAt: number;
+}
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  kind: 'like' | 'comment' | 'follow' | 'post' | 'reel';
   createdAt: number;
 }
 
@@ -35,4 +46,4 @@ export interface Chat {
   lastUpdated: number;
 }
 
-export type Screen = 'login' | 'register' | 'home' | 'search' | 'newPost' | 'chat' | 'profile';
+export type Screen = 'login' | 'register' | 'home' | 'search' | 'newPost' | 'reels' | 'notifications' | 'chat' | 'profile';

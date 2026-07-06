@@ -1,4 +1,4 @@
-import { User, Post, Chat } from './types';
+import { User, Post, Chat, NotificationItem } from './types';
 
 const makePostImage = (seed: string) => {
   const svg = `
@@ -34,7 +34,7 @@ export const initialPosts: Post[] = Array.from({ length: 6 }, (_, i) => ({
   imageUrl: makePostImage(`NO.${i + 1}`),
   imageAlt: `Minimal black and white post ${i + 1}`,
   likes: [(i + 1) % 3 === 0 ? 'u3' : 'u1'],
-  comments: [{ userId: 'u2', text: 'nice!' }],
+  comments: [{ id: `c${i + 1}`, userId: 'u2', text: 'nice!' }],
   createdAt: Date.now() - (i + 1) * 3600000,
 }));
 
@@ -50,5 +50,29 @@ export const initialChats: Chat[] = [
     participants: ['u1', 'u3'],
     messages: [{ from: 'u3', text: 'love your latest post', timestamp: Date.now() }],
     lastUpdated: Date.now(),
+  },
+];
+
+export const initialNotifications: NotificationItem[] = [
+  {
+    id: 'n1',
+    title: 'Jamie Lin liked your post',
+    message: 'Your monochrome post is getting attention.',
+    kind: 'like',
+    createdAt: Date.now() - 1000 * 60 * 18,
+  },
+  {
+    id: 'n2',
+    title: 'Taylor Ray started following you',
+    message: 'They are now following your profile updates.',
+    kind: 'follow',
+    createdAt: Date.now() - 1000 * 60 * 47,
+  },
+  {
+    id: 'n3',
+    title: 'A new reel is ready',
+    message: 'Switch to the reels tab to watch short-form clips.',
+    kind: 'reel',
+    createdAt: Date.now() - 1000 * 60 * 78,
   },
 ];

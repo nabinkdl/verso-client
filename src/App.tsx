@@ -1,10 +1,17 @@
 import { useState } from "react";
-import { Screen, User, Post, Chat } from "./types";
-import { initialUsers, initialPosts, initialChats } from "./data";
+import { Screen, User, Post, Chat, NotificationItem } from "./types";
+import {
+  initialUsers,
+  initialPosts,
+  initialChats,
+  initialNotifications,
+} from "./data";
 import BottomNav from "./components/BottomNav";
 import HomeScreen from "./components/HomeScreen";
 import SearchScreen from "./components/SearchScreen";
 import NewPostScreen from "./components/NewPostScreen";
+import ReelScreen from "./components/ReelScreen";
+import NotificationScreen from "./components/NotificationScreen";
 import ChatScreen from "./components/ChatScreen";
 import ProfileScreen from "./components/ProfileScreen";
 import LoginScreen from "./components/LoginScreen";
@@ -40,7 +47,22 @@ export default function App() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [chats, setChats] = useState<Chat[]>(initialChats);
+  const [notifications, setNotifications] =
+    useState<NotificationItem[]>(initialNotifications);
   const [profileUserId, setProfileUserId] = useState(CURRENT_USER_ID);
+
+  const pushNotification = (
+    item: Omit<NotificationItem, "id" | "createdAt">,
+  ) => {
+    setNotifications((prev) => [
+      {
+        ...item,
+        id: `n${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+        createdAt: Date.now(),
+      },
+      ...prev,
+    ]);
+  };
 
   const handleLogin = (email: string, password: string) => {
     setIsLoggedIn(true);
@@ -94,6 +116,21 @@ export default function App() {
         };
       }),
     );
+    pushNotification({
+      title: "Like updated",
+      message: "You reacted to a post from the feed.",
+      kind: "like",
+    });
+  };
+
+  const handleEditPost = (postId: string, caption: string) => {
+    setPosts((prev) =>
+      prev.map((post) => (post.id === postId ? { ...post, caption } : post)),
+    );
+  };
+
+  const handleDeletePost = (postId: string) => {
+    setPosts((prev) => prev.filter((post) => post.id !== postId));
   };
 
   const handleComment = (postId: string, text: string) => {
@@ -103,7 +140,53 @@ export default function App() {
           ? p
           : {
               ...p,
-              comments: [...p.comments, { userId: CURRENT_USER_ID, text }],
+              comments: [
+                ...p.comments,
+                {
+                  id: `c${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+                  userId: CURRENT_USER_ID,
+                  text,
+                },
+              ],
+            },
+      ),
+    );
+    pushNotification({
+      title: "Comment posted",
+      message: text,
+      kind: "comment",
+    });
+  };
+
+  const handleEditComment = (
+    postId: string,
+    commentId: string,
+    text: string,
+  ) => {
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id !== postId
+          ? post
+          : {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment.id === commentId ? { ...comment, text } : comment,
+              ),
+            },
+      ),
+    );
+  };
+
+  const handleDeleteComment = (postId: string, commentId: string) => {
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id !== postId
+          ? post
+          : {
+              ...post,
+              comments: post.comments.filter(
+                (comment) => comment.id !== commentId,
+              ),
             },
       ),
     );
@@ -122,20 +205,37 @@ export default function App() {
         };
       }),
     );
+    pushNotification({
+      title: "Following updated",
+      message: "You changed who you follow.",
+      kind: "follow",
+    });
   };
 
-  const handlePublish = (caption: string) => {
+  const handlePublish = (
+    caption: string,
+    media?: { url: string; type: "image" | "video"; name: string },
+  ) => {
+    const isVideo = media?.type === "video";
+    const fallbackMedia = makePostImage(`NEW`);
     const newPost: Post = {
       id: `p${Date.now()}`,
       authorId: CURRENT_USER_ID,
       caption,
-      imageUrl: makePostImage(`NEW`),
+      imageUrl: isVideo ? undefined : (media?.url ?? fallbackMedia),
       imageAlt: caption || "New post image",
+      mediaUrl: media?.url ?? fallbackMedia,
+      mediaType: media?.type ?? "image",
       likes: [],
       comments: [],
       createdAt: Date.now(),
     };
     setPosts((prev) => [newPost, ...prev]);
+    pushNotification({
+      title: isVideo ? "Reel uploaded" : "Post uploaded",
+      message: media?.name ?? (caption || "New content is now live."),
+      kind: isVideo ? "reel" : "post",
+    });
     setActiveScreen("home");
   };
 
@@ -217,6 +317,12 @@ export default function App() {
             currentUserId={CURRENT_USER_ID}
             onLike={handleLike}
             onComment={handleComment}
+            onEditPost={handleEditPost}
+            onDeletePost={handleDeletePost}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
+            onCreatePost={() => setActiveScreen("newPost")}
+            onOpenNotifications={() => setActiveScreen("notifications")}
           />
         )}
         {activeScreen === "search" && (
@@ -229,6 +335,17 @@ export default function App() {
         )}
         {activeScreen === "newPost" && (
           <NewPostScreen onPublish={handlePublish} />
+        )}
+        {activeScreen === "reels" && (
+          <ReelScreen
+            posts={posts}
+            users={users}
+            currentUserId={CURRENT_USER_ID}
+            onLike={handleLike}
+          />
+        )}
+        {activeScreen === "notifications" && (
+          <NotificationScreen notifications={notifications} />
         )}
         {activeScreen === "chat" && (
           <ChatScreen
