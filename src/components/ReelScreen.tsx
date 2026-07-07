@@ -10,6 +10,8 @@ interface ReelScreenProps {
   currentUserId: string;
   onLike: (postId: string) => void;
   onComment: (postId: string, text: string) => void;
+  onEditComment?: (postId: string, commentId: string, text: string) => void;
+  onDeleteComment?: (postId: string, commentId: string) => void;
 }
 
 export default function ReelScreen({
@@ -18,6 +20,8 @@ export default function ReelScreen({
   currentUserId,
   onLike,
   onComment,
+  onEditComment,
+  onDeleteComment,
 }: ReelScreenProps) {
   const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null);
 
@@ -103,6 +107,8 @@ export default function ReelScreen({
           currentUserId={currentUserId}
           onClose={() => setActiveCommentPostId(null)}
           onComment={onComment}
+          onEditComment={onEditComment}
+          onDeleteComment={onDeleteComment}
         />
       )}
     </div>

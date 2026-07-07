@@ -9,9 +9,11 @@ type MediaDraft = {
 
 interface NewPostScreenProps {
   onPublish: (caption: string, media?: MediaDraft) => void;
+  onClose?: () => void;
+  targetPageName?: string;
 }
 
-export default function NewPostScreen({ onPublish }: NewPostScreenProps) {
+export default function NewPostScreen({ onPublish, onClose, targetPageName }: NewPostScreenProps) {
   const [caption, setCaption] = useState("");
   const [draft, setDraft] = useState<MediaDraft | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -56,9 +58,34 @@ export default function NewPostScreen({ onPublish }: NewPostScreenProps) {
           gap: 14,
         }}
       >
-        <h2 style={{ fontWeight: 700, fontSize: 18, marginBottom: 4 }}>
-          new post
-        </h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+          <div>
+            <h2 style={{ fontWeight: 700, fontSize: 18, margin: 0 }}>
+              new post
+            </h2>
+            {targetPageName && (
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: '#888' }}>Posting in <strong style={{ color: '#aaa' }}>{targetPageName}</strong></p>
+            )}
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "none",
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                color: "#fff",
+                display: "grid",
+                placeItems: "center",
+                cursor: "pointer",
+              }}
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
 
         <input
           ref={fileInputRef}

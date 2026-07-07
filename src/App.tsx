@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Screen, User, Post, Chat, NotificationItem } from "./types";
+import { Screen, User, Post, Chat, NotificationItem, Page } from "./types";
+import { PageProvider, usePages } from './contexts/PageContext';
 import {
+  CURRENT_USER_ID,
   initialUsers,
   initialPosts,
   initialChats,
   initialNotifications,
+  initialPages,
 } from "./data";
 import BottomNav from "./components/BottomNav";
 import HomeScreen from "./components/HomeScreen";
@@ -17,8 +20,9 @@ import ProfileScreen from "./components/ProfileScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ForgetScreen from "./components/ForgetScreen";
-
-const CURRENT_USER_ID = "u1";
+import PageManagementScreen from './components/PageManagementScreen';
+import PageViewScreen from './components/PageViewScreen';
+import CreatePageScreen from './components/CreatePageScreen';
 
 const makePostImage = (seed: string) => {
   const svg = `
@@ -42,7 +46,7 @@ const makePostImage = (seed: string) => {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 };
 
-export default function App() {
+function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeScreen, setActiveScreen] = useState<Screen>("login");
   const [users, setUsers] = useState<User[]>(initialUsers);
@@ -52,6 +56,11 @@ export default function App() {
     useState<NotificationItem[]>(initialNotifications);
   const [profileUserId, setProfileUserId] = useState(CURRENT_USER_ID);
   const [targetChatId, setTargetChatId] = useState<string | null>(null);
+  
+  const { pages } = usePages();
+  const [activePageId, setActivePageId] = useState<string | null>(null);
+  const [newPostTargetPageId, setNewPostTargetPageId] = useState<string | null>(null);
+  const [isCreatingPage, setIsCreatingPage] = useState(false);
 
   const pushNotification = (
     item: Omit<NotificationItem, "id" | "createdAt">,
@@ -221,12 +230,14 @@ export default function App() {
   const handlePublish = (
     caption: string,
     media?: { url: string; type: "image" | "video"; name: string },
+    pageId?: string
   ) => {
     const isVideo = media?.type === "video";
     const fallbackMedia = makePostImage(`NEW`);
     const newPost: Post = {
       id: `p${Date.now()}`,
       authorId: CURRENT_USER_ID,
+      pageId,
       caption,
       imageUrl: isVideo ? undefined : (media?.url ?? fallbackMedia),
       imageAlt: caption || "New post image",
@@ -301,7 +312,7 @@ export default function App() {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        background: "#000",
+        background: "#0a0a0a",
         fontFamily:
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
       }}
@@ -309,15 +320,17 @@ export default function App() {
       <div
         style={{
           width: "100%",
-          maxWidth: 380,
-          height: 700,
+          maxWidth: 480,
+          height: "100vh",
           background: "#000",
-          borderRadius: 32,
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          boxShadow: "0 0 0 1px #2a2a2a, 0 20px 35px -12px rgba(0,0,0,0.8)",
+          borderLeft: "1px solid #222",
+          borderRight: "1px solid #222",
+          boxShadow: "0 0 50px rgba(0,0,0,0.8)",
           color: "#fff",
+          position: "relative",
         }}
       >
         {activeScreen === "login" && (
@@ -351,6 +364,7 @@ export default function App() {
             onDeleteComment={handleDeleteComment}
             onCreatePost={() => setActiveScreen("newPost")}
             onOpenNotifications={() => setActiveScreen("notifications")}
+            onSearch={() => setActiveScreen("search")}
           />
         )}
         {activeScreen === "search" && (
@@ -362,19 +376,58 @@ export default function App() {
           />
         )}
         {activeScreen === "newPost" && (
-          <NewPostScreen onPublish={handlePublish} />
-        )}
-        {activeScreen === "reels" && (
+          <NewPostScreen
+            targetPageName={newPostTargetPageId ? pages.find(p => p.id === newPostTargetPageId)?.name : undefined}
+            onClose={() => {
+              setNewPostTargetPageId(null);
+              setActiveScreen(newPostTargetPageId ? "pages" : "home");
+            }}
+            onPublish={(caption, media) => {
+              handlePublish(caption, media, newPostTargetPageId || undefined);
+              setNewPostTargetPageId(null);
+              setActiveScreen(newPostTargetPageId ? "pages" : "home");
+            }}
+          />
+        )}{activeScreen === "reels" && (
           <ReelScreen
             posts={posts}
             users={users}
             currentUserId={CURRENT_USER_ID}
             onLike={handleLike}
             onComment={handleComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
           />
         )}
         {activeScreen === "notifications" && (
           <NotificationScreen notifications={notifications} />
+        )}
+        {activeScreen === "pages" && (
+          <PageManagementScreen 
+            currentUserId={CURRENT_USER_ID}
+            users={users}
+            onCreatePage={() => setIsCreatingPage(true)}
+            onViewPage={(id) => setActivePageId(id)}
+          />
+        )}
+        {activePageId && (
+          <PageViewScreen 
+            page={pages.find(p => p.id === activePageId)!}
+            users={users}
+            posts={posts}
+            currentUserId={CURRENT_USER_ID}
+            onClose={() => setActivePageId(null)} 
+            onNewPostClick={() => {
+              setNewPostTargetPageId(activePageId);
+              setActiveScreen("newPost");
+            }}
+          />
+        )}
+        {isCreatingPage && (
+          <CreatePageScreen 
+            onClose={() => setIsCreatingPage(false)}
+            currentUserId={CURRENT_USER_ID}
+          />
         )}
         {activeScreen === "chat" && (
           <ChatScreen
@@ -403,5 +456,13 @@ export default function App() {
         {isLoggedIn && <BottomNav active={activeScreen} onChange={handleNav} />}
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <PageProvider initialPages={initialPages}>
+      <AppContent />
+    </PageProvider>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, MoreHorizontal } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
 
@@ -9,15 +9,23 @@ interface ReelCommentModalProps {
   currentUserId: string;
   onClose: () => void;
   onComment: (postId: string, text: string) => void;
+  onEditComment?: (postId: string, commentId: string, text: string) => void;
+  onDeleteComment?: (postId: string, commentId: string) => void;
 }
 
 export default function ReelCommentModal({
   post,
   users,
+  currentUserId,
   onClose,
   onComment,
+  onEditComment,
+  onDeleteComment,
 }: ReelCommentModalProps) {
   const [text, setText] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [commentMenuId, setCommentMenuId] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,17 +90,112 @@ export default function ReelCommentModal({
         <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 16, marginBottom: 16 }} className="hide-scrollbar">
           {post.comments.map((comment, i) => {
             const author = getUserById(comment.userId);
+            const isOwnComment = comment.userId === currentUserId;
+            const isEditing = editingCommentId === comment.id;
+
             return (
-              <div key={i} style={{ display: "flex", gap: 12 }}>
+              <div key={i} style={{ display: "flex", gap: 12, position: "relative" }}>
                 <Avatar name={author?.name ?? "U"} size="sm" />
-                <div>
+                <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 2 }}>
                     {author?.username}
                   </div>
-                  <div style={{ fontSize: 14, color: "#fff", lineHeight: 1.4 }}>
-                    {comment.text}
-                  </div>
+                  {isEditing ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+                      <input
+                        autoFocus
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        style={{
+                          background: "#000",
+                          border: "0.5px solid #333",
+                          borderRadius: 8,
+                          padding: "8px 12px",
+                          color: "#fff",
+                          fontSize: 13,
+                          outline: "none",
+                        }}
+                      />
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                        <button
+                          type="button"
+                          onClick={() => setEditingCommentId(null)}
+                          style={{ background: "transparent", color: "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, padding: "4px 8px" }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (editText.trim() && onEditComment) {
+                              onEditComment(post.id, comment.id, editText.trim());
+                            }
+                            setEditingCommentId(null);
+                          }}
+                          style={{ background: "#fff", color: "#000", border: "none", borderRadius: 12, padding: "4px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 14, color: "#fff", lineHeight: 1.4 }}>
+                      {comment.text}
+                    </div>
+                  )}
                 </div>
+
+                {isOwnComment && !isEditing && (
+                  <button
+                    type="button"
+                    onClick={() => setCommentMenuId(commentMenuId === comment.id ? null : comment.id)}
+                    style={{ background: "transparent", border: "none", color: "#888", cursor: "pointer", padding: 4, alignSelf: "flex-start" }}
+                  >
+                    <MoreHorizontal size={16} />
+                  </button>
+                )}
+
+                {commentMenuId === comment.id && isOwnComment && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: 24,
+                      top: 16,
+                      background: "#1a1a1a",
+                      border: "0.5px solid #333",
+                      borderRadius: 12,
+                      padding: 8,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 4,
+                      minWidth: 130,
+                      zIndex: 10,
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCommentId(comment.id);
+                        setEditText(comment.text);
+                        setCommentMenuId(null);
+                      }}
+                      style={{ background: "transparent", border: "none", color: "#fff", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                    >
+                      Edit Comment
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onDeleteComment) onDeleteComment(post.id, comment.id);
+                        setCommentMenuId(null);
+                      }}
+                      style={{ background: "transparent", border: "none", color: "#ff4d4d", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                    >
+                      Delete Comment
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}

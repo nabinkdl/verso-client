@@ -1,4 +1,6 @@
-import { User, Post, Chat, NotificationItem } from './types';
+import { User, Post, Chat, NotificationItem, Page } from './types';
+
+export const CURRENT_USER_ID = 'u1';
 
 const makePostImage = (seed: string) => {
   const svg = `
@@ -30,7 +32,8 @@ export const initialUsers: User[] = [
 export const initialPosts: Post[] = Array.from({ length: 6 }, (_, i) => ({
   id: `p${i + 1}`,
   authorId: (i + 1) % 2 === 0 ? 'u2' : 'u1',
-  caption: `minimal black & white ${i + 1}`,
+  pageId: i === 0 ? 'p1' : (i === 1 ? 'p2' : undefined),
+  caption: i === 0 ? 'Welcome to the Verso Community! We are excited to start sharing our technology projects.' : `minimal black & white ${i + 1}`,
   imageUrl: makePostImage(`NO.${i + 1}`),
   imageAlt: `Minimal black and white post ${i + 1}`,
   likes: [(i + 1) % 3 === 0 ? 'u3' : 'u1'],
@@ -75,4 +78,67 @@ export const initialNotifications: NotificationItem[] = [
     kind: 'reel',
     createdAt: Date.now() - 1000 * 60 * 78,
   },
+];
+
+export const initialPages: Page[] = [
+  {
+    id: 'p1',
+    name: 'Verso Community',
+    category: 'Technology',
+    description: 'A community for tech enthusiasts and creators',
+    visibility: 'public',
+    avatar: 'V',
+    members: [
+      { userId: CURRENT_USER_ID, role: 'admin', joinedAt: 'Jan 2024' },
+      { userId: 'u2', role: 'moderator', joinedAt: 'Jan 2024' },
+      { userId: 'u3', role: 'editor', joinedAt: 'Feb 2024' }
+    ],
+    joinRequests: ['u4', 'u5'],
+    isVerified: true,
+  },
+  {
+    id: 'p2',
+    name: 'Design Collective',
+    category: 'Art & Design',
+    description: 'For all things design and creativity',
+    visibility: 'public',
+    avatar: 'D',
+    members: [
+      { userId: 'u4', role: 'admin', joinedAt: 'Feb 2024' },
+      { userId: CURRENT_USER_ID, role: 'editor', joinedAt: 'Feb 2024' },
+      { userId: 'u5', role: 'member', joinedAt: 'Mar 2024' }
+    ],
+    joinRequests: [],
+    isVerified: false,
+  },
+  {
+    id: 'p3',
+    name: 'Creative Writing Club',
+    category: 'Education',
+    description: 'Share your stories and get feedback from fellow writers.',
+    visibility: 'public',
+    avatar: 'C',
+    members: [
+      { userId: 'u2', role: 'admin', joinedAt: 'Jan 2024' },
+      { userId: 'u3', role: 'editor', joinedAt: 'Mar 2024' },
+      { userId: CURRENT_USER_ID, role: 'member', joinedAt: 'Apr 2024' }
+    ],
+    joinRequests: [],
+    isVerified: false,
+  },
+  {
+    id: 'p4',
+    name: 'Global Travelers',
+    category: 'Travel',
+    description: 'Explore the world, share itineraries, and post travel photos.',
+    visibility: 'restricted',
+    avatar: 'G',
+    members: [
+      { userId: 'u4', role: 'admin', joinedAt: 'Nov 2023' },
+      { userId: 'u5', role: 'editor', joinedAt: 'Dec 2023' }
+    ],
+    joinRequests: [],
+    isVerified: true,
+  },
+
 ];

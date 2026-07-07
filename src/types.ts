@@ -15,6 +15,7 @@ export interface Comment {
 export interface Post {
   id: string;
   authorId: string;
+  pageId?: string;
   caption: string;
   imageUrl?: string;
   imageAlt?: string;
@@ -46,4 +47,26 @@ export interface Chat {
   lastUpdated: number;
 }
 
-export type Screen = 'login' | 'register' | 'forget' | 'home' | 'search' | 'newPost' | 'reels' | 'notifications' | 'chat' | 'profile';
+export interface PageMember {
+  userId: string;
+  role: 'admin' | 'editor' | 'moderator' | 'member';
+  joinedAt: string;
+}
+
+export interface Page {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  visibility: string;
+  avatar: string;
+  members: PageMember[];
+  joinRequests?: string[];
+  invitedUsers?: string[];
+  isVerified: boolean;
+}
+
+export type Screen = 'login' | 'register' | 'forget' | 'home' | 'search' | 'newPost' | 'reels' | "notifications"
+  | "chat"
+  | "profile"
+  | "pages";

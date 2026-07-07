@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Bell,
+  Search,
   Heart,
   MessageCircle,
   PlusSquare,
@@ -25,6 +26,7 @@ interface HomeScreenProps {
   onDeleteComment: (postId: string, commentId: string) => void;
   onCreatePost: () => void;
   onOpenNotifications: () => void;
+  onSearch: () => void;
 }
 
 const PAGE_SIZE = 5;
@@ -41,6 +43,7 @@ export default function HomeScreen({
   onDeleteComment,
   onCreatePost,
   onOpenNotifications,
+  onSearch,
 }: HomeScreenProps) {
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [commentPostId, setCommentPostId] = useState<string | null>(null);
@@ -156,14 +159,32 @@ export default function HomeScreen({
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
             type="button"
+            onClick={onSearch}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              background: "rgba(255,255,255,0.05)",
+              border: "none",
+              color: "#fff",
+              display: "grid",
+              placeItems: "center",
+              cursor: "pointer",
+            }}
+            aria-label="Search"
+          >
+            <Search size={20} />
+          </button>
+          <button
+            type="button"
             onClick={onCreatePost}
             style={{
               width: 40,
               height: 40,
               borderRadius: 14,
-              background: "linear-gradient(135deg, #ffffff, #bfbfbf)",
+              background: "rgba(255,255,255,0.05)",
               border: "none",
-              color: "#000",
+              color: "#bfbfbf",
               display: "grid",
               placeItems: "center",
               cursor: "pointer",
@@ -499,8 +520,9 @@ export default function HomeScreen({
                               <div
                                 style={{
                                   display: "flex",
+                                  flexDirection: "column",
                                   gap: 8,
-                                  marginTop: 6,
+                                  marginTop: 8,
                                 }}
                               >
                                 <input
@@ -509,15 +531,22 @@ export default function HomeScreen({
                                   onChange={(e) => setEditText(e.target.value)}
                                   style={editInputStyle}
                                 />
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    saveCommentEdit(post.id, comment.id)
-                                  }
-                                  style={saveButtonStyle}
-                                >
-                                  save
-                                </button>
+                                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingCommentId(null)}
+                                    style={{ background: "transparent", color: "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, padding: "8px 12px" }}
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => saveCommentEdit(post.id, comment.id)}
+                                    style={saveButtonStyle}
+                                  >
+                                    Save
+                                  </button>
+                                </div>
                               </div>
                             ) : (
                               comment.text
@@ -553,41 +582,33 @@ export default function HomeScreen({
                           <div
                             style={{
                               position: "absolute",
-                              right: 10,
-                              top: 40,
-                              background: "#111",
-                              border: "0.5px solid #2c2c2c",
+                              right: 24,
+                              top: 24,
+                              background: "#1a1a1a",
+                              border: "0.5px solid #333",
                               borderRadius: 12,
                               padding: 8,
                               display: "flex",
                               flexDirection: "column",
-                              gap: 6,
-                              minWidth: 130,
-                              zIndex: 4,
-                              boxShadow: "0 12px 24px rgba(0,0,0,0.35)",
+                              gap: 4,
+                              minWidth: 140,
+                              zIndex: 10,
+                              boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
                             }}
                           >
                             <button
                               type="button"
-                              onClick={() =>
-                                startEditComment(
-                                  post.id,
-                                  comment.id,
-                                  comment.text,
-                                )
-                              }
-                              style={menuButtonStyle}
+                              onClick={() => startEditComment(post.id, comment.id, comment.text)}
+                              style={{ background: "transparent", border: "none", color: "#fff", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
                             >
-                              <PenLine size={14} /> Edit comment
+                              Edit Comment
                             </button>
                             <button
                               type="button"
-                              onClick={() =>
-                                onDeleteComment(post.id, comment.id)
-                              }
-                              style={{ ...menuButtonStyle, color: "#ff6b6b" }}
+                              onClick={() => onDeleteComment(post.id, comment.id)}
+                              style={{ background: "transparent", border: "none", color: "#ff4d4d", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
                             >
-                              <Trash2 size={14} /> Delete comment
+                              Delete Comment
                             </button>
                           </div>
                         )}

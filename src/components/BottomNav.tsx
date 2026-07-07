@@ -1,4 +1,4 @@
-import { Home, Search, MessageCircle, User, Clapperboard } from "lucide-react";
+import { Home, MessageCircle, User, Clapperboard, Layers } from "lucide-react";
 import { Screen } from "../types";
 
 interface BottomNavProps {
@@ -10,12 +10,12 @@ const ITEMS: {
   screen: Screen;
   Icon: React.FC<{ size?: number; strokeWidth?: number }>;
 }[] = [
-  { screen: "home", Icon: Home },
-  { screen: "search", Icon: Search },
-  { screen: "reels", Icon: Clapperboard },
-  { screen: "chat", Icon: MessageCircle },
-  { screen: "profile", Icon: User },
-];
+    { screen: "home", Icon: Home },
+    { screen: "pages", Icon: Layers },
+    { screen: "reels", Icon: Clapperboard },
+    { screen: "chat", Icon: MessageCircle },
+    { screen: "profile", Icon: User },
+  ];
 
 export default function BottomNav({ active, onChange }: BottomNavProps) {
   return (
