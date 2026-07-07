@@ -34,6 +34,7 @@ export default function ProfileScreen({
   const [menuOpen, setMenuOpen] = useState(false);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editCaption, setEditCaption] = useState("");
+  const [activeUserListType, setActiveUserListType] = useState<"followers" | "following" | null>(null);
 
   const user = users.find((u) => u.id === profileUserId);
   const userPosts = useMemo(
@@ -242,7 +243,14 @@ export default function ProfileScreen({
             { label: "Followers", value: followersCount },
             { label: "Following", value: followingCount },
           ].map((stat) => (
-            <div key={stat.label} style={{ textAlign: "center", flex: 1 }}>
+            <div
+              key={stat.label}
+              onClick={() => {
+                if (stat.label === "Followers") setActiveUserListType("followers");
+                else if (stat.label === "Following") setActiveUserListType("following");
+              }}
+              style={{ textAlign: "center", flex: 1, cursor: stat.label !== "Posts" ? "pointer" : "default" }}
+            >
               <strong style={{ fontSize: 17, display: "block" }}>
                 {stat.value}
               </strong>
@@ -603,6 +611,67 @@ export default function ProfileScreen({
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeUserListType && (
+        <div
+          onClick={() => setActiveUserListType(null)}
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 60,
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%",
+              height: "75%",
+              background: "#0c0c0c",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: "0 -4px 30px rgba(0,0,0,0.5)",
+              borderTop: "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "center", paddingTop: 12, paddingBottom: 12 }}>
+              <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.3)", borderRadius: 2 }} />
+            </div>
+
+            <div style={{ padding: "0 16px 12px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontWeight: 700, fontSize: 16, textAlign: "center" }}>
+              {activeUserListType === "followers" ? "Followers" : "Following"}
+            </div>
+
+            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }} className="hide-scrollbar">
+              {(activeUserListType === "followers" ? user.followers : user.following).map(userId => {
+                const listUser = users.find(u => u.id === userId);
+                if (!listUser) return null;
+                return (
+                  <div key={userId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px" }}>
+                    <Avatar name={listUser.name} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>{listUser.name}</div>
+                      <div style={{ fontSize: 12, color: "#888" }}>@{listUser.username}</div>
+                    </div>
+                  </div>
+                );
+              })}
+              {(activeUserListType === "followers" ? user.followers : user.following).length === 0 && (
+                <div style={{ padding: "40px 16px", textAlign: "center", color: "#666", fontSize: 14 }}>
+                  No users to display
+                </div>
+              )}
             </div>
           </div>
         </div>
