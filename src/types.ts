@@ -49,8 +49,16 @@ export interface Chat {
 
 export interface PageMember {
   userId: string;
-  role: 'admin' | 'editor' | 'moderator' | 'member';
+  role: AdminRole;
   joinedAt: string;
+  permissions?: string[];
+}
+
+export interface PageEvent {
+  id: string;
+  title: string;
+  date: number;
+  description: string;
 }
 
 export interface Page {
@@ -64,9 +72,34 @@ export interface Page {
   joinRequests?: string[];
   invitedUsers?: string[];
   isVerified: boolean;
+  coverUrl?: string;
+  rules?: string[];
+  events?: PageEvent[];
+  analytics?: { views: number; membersTrend: number };
 }
 
 export type Screen = 'login' | 'register' | 'forget' | 'home' | 'search' | 'newPost' | 'reels' | "notifications"
   | "chat"
   | "profile"
-  | "pages";
+  | "pages"
+  | "admin";
+
+// Admin / RBAC Types
+export type AdminRole = 'admin' | 'editor' | 'moderator' | 'member' | 'guest' | 'custom';
+export type UserStatus = 'active' | 'pending' | 'suspended';
+
+export interface PermissionDef {
+  id: string;
+  label: string;
+  description: string;
+  category: 'content' | 'social' | 'moderation' | 'system';
+}
+
+export interface AdminUser extends User {
+  email: string;
+  role: AdminRole;
+  status: UserStatus;
+  joinedAt: number;
+  invitedBy?: string;
+  permissions: string[]; // manually selected permission IDs (for custom role)
+}

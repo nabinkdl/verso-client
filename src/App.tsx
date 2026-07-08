@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Screen, User, Post, Chat, NotificationItem, Page } from "./types";
+import { Screen, User, Post, Chat, NotificationItem, Page, AdminUser } from "./types";
 import { PageProvider, usePages } from './contexts/PageContext';
 import {
   CURRENT_USER_ID,
@@ -49,14 +49,51 @@ const makePostImage = (seed: string) => {
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeScreen, setActiveScreen] = useState<Screen>("login");
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<AdminUser[]>([
+  {
+    id: 'u1', name: 'Alex Morgan', username: 'alexm', email: 'alex@verso.app',
+    role: 'admin', status: 'active', joinedAt: Date.now() - 86400000 * 180,
+    followers: ['u2'], following: ['u3'],
+    permissions: ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','suspend','ban','view_reports','pin_posts','manage_roles','manage_perms','analytics','settings','audit_log']
+  },
+  {
+    id: 'u2', name: 'Jamie Lin', username: 'jamieL', email: 'jamie@verso.app',
+    role: 'moderator', status: 'active', joinedAt: Date.now() - 86400000 * 140,
+    followers: [], following: ['u1'],
+    permissions: ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','suspend','ban','view_reports','pin_posts']
+  },
+  {
+    id: 'u3', name: 'Taylor Ray', username: 'tray', email: 'taylor@verso.app',
+    role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 120,
+    followers: ['u1'], following: [],
+    permissions: ['read','post','comment','like','edit_own','follow','dm','mention']
+  },
+  {
+    id: 'u4', name: 'Casey Wong', username: 'caseyw', email: 'casey@verso.app',
+    role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 95,
+    followers: [], following: [],
+    permissions: ['read','post','comment','like','edit_own','follow','dm','mention']
+  },
+  {
+    id: 'u5', name: 'Jordan Smith', username: 'jsmith', email: 'jordan@verso.app',
+    role: 'member', status: 'pending', joinedAt: Date.now() - 86400000 * 7,
+    followers: [], following: [],
+    permissions: ['read','post','comment','like','edit_own','follow','dm','mention']
+  },
+  {
+    id: 'u6', name: 'Riley Park', username: 'rpark', email: 'riley@verso.app',
+    role: 'guest', status: 'active', joinedAt: Date.now() - 86400000 * 3,
+    followers: [], following: [],
+    permissions: ['read']
+  },
+]);
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [chats, setChats] = useState<Chat[]>(initialChats);
   const [notifications, setNotifications] =
     useState<NotificationItem[]>(initialNotifications);
   const [profileUserId, setProfileUserId] = useState(CURRENT_USER_ID);
   const [targetChatId, setTargetChatId] = useState<string | null>(null);
-  
+
   const { pages } = usePages();
   const [activePageId, setActivePageId] = useState<string | null>(null);
   const [newPostTargetPageId, setNewPostTargetPageId] = useState<string | null>(null);
@@ -87,12 +124,17 @@ function AppContent() {
     password: string,
   ) => {
     // Add the new user to the users list
-    const newUser: User = {
+    const newUser: AdminUser = {
       id: `u${Date.now()}`,
       name,
       username,
+      email,
+      role: 'member',
+      status: 'active',
+      joinedAt: Date.now(),
       followers: [],
       following: [],
+      permissions: ['read','post','comment','like','edit_own','follow','dm','mention']
     };
     setUsers((prev) => [...prev, newUser]);
 
@@ -154,16 +196,16 @@ function AppContent() {
         p.id !== postId
           ? p
           : {
-              ...p,
-              comments: [
-                ...p.comments,
-                {
-                  id: `c${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-                  userId: CURRENT_USER_ID,
-                  text,
-                },
-              ],
-            },
+            ...p,
+            comments: [
+              ...p.comments,
+              {
+                id: `c${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+                userId: CURRENT_USER_ID,
+                text,
+              },
+            ],
+          },
       ),
     );
     pushNotification({
@@ -183,11 +225,11 @@ function AppContent() {
         post.id !== postId
           ? post
           : {
-              ...post,
-              comments: post.comments.map((comment) =>
-                comment.id === commentId ? { ...comment, text } : comment,
-              ),
-            },
+            ...post,
+            comments: post.comments.map((comment) =>
+              comment.id === commentId ? { ...comment, text } : comment,
+            ),
+          },
       ),
     );
   };
@@ -198,11 +240,11 @@ function AppContent() {
         post.id !== postId
           ? post
           : {
-              ...post,
-              comments: post.comments.filter(
-                (comment) => comment.id !== commentId,
-              ),
-            },
+            ...post,
+            comments: post.comments.filter(
+              (comment) => comment.id !== commentId,
+            ),
+          },
       ),
     );
   };
@@ -262,13 +304,13 @@ function AppContent() {
         c.id !== chatId
           ? c
           : {
-              ...c,
-              messages: [
-                ...c.messages,
-                { from: CURRENT_USER_ID, text, timestamp: Date.now() },
-              ],
-              lastUpdated: Date.now(),
-            },
+            ...c,
+            messages: [
+              ...c.messages,
+              { from: CURRENT_USER_ID, text, timestamp: Date.now() },
+            ],
+            lastUpdated: Date.now(),
+          },
       ),
     );
   };
@@ -282,13 +324,13 @@ function AppContent() {
   const handleMessageUser = (userId: string) => {
     let existingChat = chats.find(c => c.participants.includes(CURRENT_USER_ID) && c.participants.includes(userId));
     if (!existingChat) {
-       existingChat = {
-         id: `c${Date.now()}`,
-         participants: [CURRENT_USER_ID, userId],
-         messages: [],
-         lastUpdated: Date.now()
-       };
-       setChats(prev => [...prev, existingChat!]);
+      existingChat = {
+        id: `c${Date.now()}`,
+        participants: [CURRENT_USER_ID, userId],
+        messages: [],
+        lastUpdated: Date.now()
+      };
+      setChats(prev => [...prev, existingChat!]);
     }
     setTargetChatId(existingChat.id);
     setActiveScreen("chat");
@@ -403,7 +445,7 @@ function AppContent() {
           <NotificationScreen notifications={notifications} />
         )}
         {activeScreen === "pages" && (
-          <PageManagementScreen 
+          <PageManagementScreen
             currentUserId={CURRENT_USER_ID}
             users={users}
             onCreatePage={() => setIsCreatingPage(true)}
@@ -411,12 +453,12 @@ function AppContent() {
           />
         )}
         {activePageId && (
-          <PageViewScreen 
+          <PageViewScreen
             page={pages.find(p => p.id === activePageId)!}
             users={users}
             posts={posts}
             currentUserId={CURRENT_USER_ID}
-            onClose={() => setActivePageId(null)} 
+            onClose={() => setActivePageId(null)}
             onNewPostClick={() => {
               setNewPostTargetPageId(activePageId);
               setActiveScreen("newPost");
@@ -424,7 +466,7 @@ function AppContent() {
           />
         )}
         {isCreatingPage && (
-          <CreatePageScreen 
+          <CreatePageScreen
             onClose={() => setIsCreatingPage(false)}
             currentUserId={CURRENT_USER_ID}
           />

@@ -10,8 +10,9 @@ interface PageContextType {
   inviteUser: (pageId: string, targetUserId: string, currentUserId: string) => void;
   acceptInvite: (pageId: string, currentUserId: string) => void;
   rejectInvite: (pageId: string, currentUserId: string) => void;
-  updateMemberRole: (pageId: string, userId: string, role: PageMember['role'], currentUserId: string) => void;
+  updatePageMember: (pageId: string, userId: string, role: PageMember['role'], permissions: string[], currentUserId: string) => void;
   removeMember: (pageId: string, userId: string, currentUserId: string) => void;
+  updatePageSettings: (pageId: string, name: string, description: string, category: string, visibility: string, currentUserId: string) => void;
 }
 
 const PageContext = createContext<PageContextType | undefined>(undefined);
@@ -51,7 +52,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
       if (p.id !== pageId) return p;
       if (p.members.find(m => m.userId === currentUserId)) return p;
       if (p.joinRequests?.includes(currentUserId)) return p;
-      
+
       if (p.visibility === 'public') {
         return {
           ...p,
@@ -71,7 +72,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
       if (p.id !== pageId) return p;
       const myRole = p.members.find(m => m.userId === currentUserId)?.role;
       if (myRole !== 'admin' && myRole !== 'editor') return p;
-      
+
       return {
         ...p,
         joinRequests: (p.joinRequests || []).filter(id => id !== userId),
@@ -85,7 +86,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
       if (p.id !== pageId) return p;
       const myRole = p.members.find(m => m.userId === currentUserId)?.role;
       if (myRole !== 'admin' && myRole !== 'editor') return p;
-      
+
       return {
         ...p,
         joinRequests: (p.joinRequests || []).filter(id => id !== userId)
@@ -100,7 +101,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
       if (myRole !== 'admin' && myRole !== 'editor') return p;
       if (p.members.some(m => m.userId === targetUserId)) return p;
       if (p.invitedUsers?.includes(targetUserId)) return p;
-      
+
       return {
         ...p,
         invitedUsers: [...(p.invitedUsers || []), targetUserId]
@@ -112,7 +113,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
     setPages(prev => prev.map(p => {
       if (p.id !== pageId) return p;
       if (!p.invitedUsers?.includes(currentUserId)) return p;
-      
+
       return {
         ...p,
         invitedUsers: p.invitedUsers.filter(id => id !== currentUserId),
@@ -125,7 +126,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
     setPages(prev => prev.map(p => {
       if (p.id !== pageId) return p;
       if (!p.invitedUsers?.includes(currentUserId)) return p;
-      
+
       return {
         ...p,
         invitedUsers: p.invitedUsers.filter(id => id !== currentUserId)
@@ -133,16 +134,16 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
     }));
   };
 
-  const updateMemberRole = (pageId: string, userId: string, role: PageMember['role'], currentUserId: string) => {
+  const updatePageMember = (pageId: string, userId: string, role: PageMember['role'], permissions: string[], currentUserId: string) => {
     setPages(prev => prev.map(p => {
       if (p.id !== pageId) return p;
       const myRole = p.members.find(m => m.userId === currentUserId)?.role;
       if (myRole !== 'admin' && myRole !== 'editor') return p; // RBAC Check
       if (myRole === 'editor' && role === 'admin') return p; // Editor cannot promote to admin
-      
+
       return {
         ...p,
-        members: p.members.map(m => m.userId === userId ? { ...m, role } : m)
+        members: p.members.map(m => m.userId === userId ? { ...m, role, permissions } : m)
       };
     }));
   };
@@ -152,7 +153,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
       if (p.id !== pageId) return p;
       const myRole = p.members.find(m => m.userId === currentUserId)?.role;
       if (myRole !== 'admin' && myRole !== 'editor') return p; // RBAC Check
-      
+
       return {
         ...p,
         members: p.members.filter(m => m.userId !== userId)
@@ -160,11 +161,27 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
     }));
   };
 
+  const updatePageSettings = (pageId: string, name: string, description: string, category: string, visibility: string, currentUserId: string) => {
+    setPages(prev => prev.map(p => {
+      if (p.id !== pageId) return p;
+      const myRole = p.members.find(m => m.userId === currentUserId)?.role;
+      if (myRole !== 'admin' && myRole !== 'editor') return p; // RBAC Check
+
+      return {
+        ...p,
+        name,
+        description,
+        category,
+        visibility
+      };
+    }));
+  };
+
   return (
-    <PageContext.Provider value={{ 
-      pages, createPage, joinPage, acceptJoinRequest, rejectJoinRequest, 
+    <PageContext.Provider value={{
+      pages, createPage, joinPage, acceptJoinRequest, rejectJoinRequest,
       inviteUser, acceptInvite, rejectInvite,
-      updateMemberRole, removeMember 
+      updatePageMember, removeMember, updatePageSettings
     }}>
       {children}
     </PageContext.Provider>

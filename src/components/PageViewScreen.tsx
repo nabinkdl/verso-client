@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { ArrowLeft, Bell, Heart, MessageCircle, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Bell, Heart, MessageCircle, MoreVertical, Calendar, TrendingUp, Settings as SettingsIcon } from 'lucide-react';
 import Avatar from './Avatar';
 
 import { usePages } from '../contexts/PageContext';
 import { Page, User, Post } from '../types';
-import MemberManagementModal from './MemberManagementModal';
+import PageTeamManager from './PageTeamManager';
 
 interface PageViewScreenProps {
   page: Page;
@@ -15,21 +15,35 @@ interface PageViewScreenProps {
   onNewPostClick?: () => void;
 }
 
-export default function PageViewScreen({ 
-  page, 
-  users, 
+export default function PageViewScreen({
+  page,
+  users,
   posts,
-  currentUserId, 
+  currentUserId,
   onClose,
   onNewPostClick,
 }: PageViewScreenProps) {
-  const { joinPage } = usePages();
-  const [activeTab, setActiveTab] = useState<'feed' | 'members' | 'about'>('feed');
-  const [showMemberManagement, setShowMemberManagement] = useState(false);
-  
+  const { joinPage, updatePageSettings } = usePages();
+  const [activeTab, setActiveTab] = useState<'feed' | 'members' | 'about' | 'events' | 'insights' | 'settings'>('feed');
+
+  const [settingsName, setSettingsName] = useState(page.name);
+  const [settingsCategory, setSettingsCategory] = useState(page.category);
+  const [settingsDesc, setSettingsDesc] = useState(page.description);
+  const [settingsVisibility, setSettingsVisibility] = useState(page.visibility);
+
   const myRole = page.members.find(m => m.userId === currentUserId)?.role;
   const isMember = !!myRole;
   const isAdminOrEditor = myRole === 'admin' || myRole === 'editor';
+
+  const handleSaveSettings = () => {
+    updatePageSettings(page.id, settingsName, settingsDesc, settingsCategory, settingsVisibility, currentUserId);
+    alert('Settings saved!');
+  };
+
+  const tabs = ['feed', 'events', 'members', 'about'];
+  if (isAdminOrEditor) {
+    tabs.push('insights', 'settings');
+  }
 
   return (
     <div
@@ -46,16 +60,16 @@ export default function PageViewScreen({
       {/* Header with Cover */}
       <div style={{ position: 'relative', borderBottom: '0.5px solid #2a2a2a' }}>
         {/* Cover Background */}
-        <div style={{ 
-          position: 'absolute', 
-          top: 0, left: 0, right: 0, 
-          height: 120, 
-          background: 'linear-gradient(135deg, #1e3a8a, #4c1d95, #9d174d)', 
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, right: 0,
+          height: 120,
+          background: page.coverUrl ? `url(${page.coverUrl}) center/cover` : 'linear-gradient(135deg, #1e3a8a, #4c1d95, #9d174d)',
           opacity: 0.6,
           zIndex: 0
         }} />
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 120, background: 'linear-gradient(to bottom, transparent, #000)', zIndex: 1 }} />
-        
+
         {/* Header Content */}
         <div style={{ position: 'relative', zIndex: 2, padding: '16px 16px 12px', paddingTop: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -66,7 +80,7 @@ export default function PageViewScreen({
               <MoreVertical size={20} />
             </button>
           </div>
-          
+
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, marginTop: 16 }}>
             <div style={{ width: 72, height: 72, borderRadius: 36, background: '#111', display: 'grid', placeItems: 'center', fontSize: 28, fontWeight: 700, border: '3px solid #000' }}>
               {page.avatar}
@@ -83,62 +97,62 @@ export default function PageViewScreen({
               <p style={{ color: '#aaa', fontSize: 13, margin: '4px 0 0' }}>{page.category}</p>
             </div>
           </div>
-        {/* Action buttons */}
-        <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-          {!isMember && (
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+            {!isMember && (
+              <button
+                onClick={() => joinPage(page.id, currentUserId)}
+                disabled={page.joinRequests?.includes(currentUserId)}
+                style={{
+                  flex: 1,
+                  padding: '8px',
+                  background: page.joinRequests?.includes(currentUserId) ? '#333' : '#fff',
+                  color: page.joinRequests?.includes(currentUserId) ? '#888' : '#000',
+                  border: 'none',
+                  borderRadius: 12,
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: page.joinRequests?.includes(currentUserId) ? 'not-allowed' : 'pointer',
+                  transform: 'scale(1)',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseDown={(e) => { if (!page.joinRequests?.includes(currentUserId)) e.currentTarget.style.transform = 'scale(0.96)' }}
+                onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                {page.joinRequests?.includes(currentUserId) ? 'Requested' : 'Join Page'}
+              </button>
+            )}
             <button
-              onClick={() => joinPage(page.id, currentUserId)}
-              disabled={page.joinRequests?.includes(currentUserId)}
+              aria-label="Notify"
               style={{
-                flex: 1,
-                padding: '8px',
-                background: page.joinRequests?.includes(currentUserId) ? '#333' : '#fff',
-                color: page.joinRequests?.includes(currentUserId) ? '#888' : '#000',
+                width: 36,
+                height: 36,
+                background: 'rgba(255,255,255,0.05)',
+                color: '#bfbfbf',
                 border: 'none',
                 borderRadius: 12,
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: page.joinRequests?.includes(currentUserId) ? 'not-allowed' : 'pointer',
-                transform: 'scale(1)',
-                transition: 'all 0.2s ease',
+                cursor: 'pointer',
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
               }}
-              onMouseDown={(e) => { if(!page.joinRequests?.includes(currentUserId)) e.currentTarget.style.transform = 'scale(0.96)' }}
-              onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
-              {page.joinRequests?.includes(currentUserId) ? 'Requested' : 'Join Page'}
+              <Bell size={18} />
             </button>
-          )}
-          <button
-            aria-label="Notify"
-            style={{
-              width: 36,
-              height: 36,
-              background: 'rgba(255,255,255,0.05)',
-              color: '#bfbfbf',
-              border: 'none',
-              borderRadius: 12,
-              cursor: 'pointer',
-              display: 'grid',
-              placeItems: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Bell size={18} />
-          </button>
-        </div>
+          </div>
 
-        {/* Stats */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 24px', marginTop: 12, paddingTop: 12, borderTop: '0.5px solid #2a2a2a' }}>
-          <span style={{ fontSize: 13, color: '#8a8a8a' }}>👥 {page.members.length.toLocaleString()} members</span>
-          <span style={{ fontSize: 13, color: '#8a8a8a' }}>📝 {posts.filter(p => p.pageId === page.id).length} posts</span>
-        </div>
+          {/* Stats */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 24px', marginTop: 12, paddingTop: 12, borderTop: '0.5px solid #2a2a2a' }}>
+            <span style={{ fontSize: 13, color: '#8a8a8a' }}>👥 {page.members.length.toLocaleString()} members</span>
+            <span style={{ fontSize: 13, color: '#8a8a8a' }}>📝 {posts.filter(p => p.pageId === page.id).length} posts</span>
+          </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, padding: '8px 16px', borderBottom: '0.5px solid #2a2a2a' }}>
-        {['feed', 'members', 'about'].map((tab) => (
+      <div style={{ display: 'flex', gap: 4, padding: '8px 16px', borderBottom: '0.5px solid #2a2a2a', overflowX: 'auto' }} className="hide-scrollbar">
+        {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
@@ -151,15 +165,16 @@ export default function PageViewScreen({
               fontWeight: 600,
               fontSize: 13,
               cursor: 'pointer',
+              whiteSpace: 'nowrap'
             }}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab === 'members' ? 'Manage Team' : tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
         ))}
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+      <div style={{ flex: 1, overflowY: activeTab === 'members' ? 'hidden' : 'auto', padding: 16, display: 'flex', flexDirection: 'column' }}>
         {activeTab === 'feed' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {isMember && onNewPostClick && (
@@ -182,7 +197,7 @@ export default function PageViewScreen({
                 <span>Share something with the community...</span>
               </div>
             )}
-            
+
             {posts.filter(p => p.pageId === page.id).map((post) => {
               const u = users.find(user => user.id === post.authorId);
               return (
@@ -228,72 +243,55 @@ export default function PageViewScreen({
             )}
           </div>
         )}
-        
-        {activeTab === 'members' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {isAdminOrEditor && (
-              <button
-                onClick={() => setShowMemberManagement(true)}
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  color: '#fff',
-                  border: '1px solid #333',
-                  padding: '10px',
-                  borderRadius: 12,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  marginBottom: 10,
-                }}
-              >
-                Manage Members
-              </button>
-            )}
-            {[...page.members].sort((a, b) => {
-              const weight = { admin: 3, editor: 2, moderator: 1, member: 0 };
-              return weight[b.role] - weight[a.role];
-            }).map((m) => {
-              const u = users.find(user => user.id === m.userId);
-              if (!u) return null;
-              return (
-                <div
-                  key={m.userId}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '8px 12px',
-                    background: '#0c0c0c',
-                    borderRadius: 12,
-                    border: '0.5px solid #2a2a2a',
-                  }}
-                >
-                  <Avatar name={u.name} />
-                  <span style={{ fontWeight: 500 }}>{u.name}</span>
-                  {m.role === 'admin' && (
-                    <span style={{ marginLeft: 'auto', color: '#3b82f6', fontSize: 12 }}>Admin</span>
-                  )}
-                  {m.role === 'editor' && (
-                    <span style={{ marginLeft: 'auto', color: '#8b5cf6', fontSize: 12 }}>Editor</span>
-                  )}
-                  {m.role === 'moderator' && (
-                    <span style={{ marginLeft: 'auto', color: '#f59e0b', fontSize: 12 }}>Moderator</span>
-                  )}
-                  {m.role === 'member' && (
-                    <span style={{ marginLeft: 'auto', color: '#666', fontSize: 12 }}>Member</span>
-                  )}
+
+        {activeTab === 'events' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {(!page.events || page.events.length === 0) ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666', fontSize: 14 }}>
+                No upcoming events for this page.
+              </div>
+            ) : (
+              page.events.map(event => (
+                <div key={event.id} style={{ background: '#0c0c0c', borderRadius: 16, padding: 16, border: '0.5px solid #2a2a2a', display: 'flex', gap: 16 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                    <Calendar size={24} />
+                  </div>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: '#fff' }}>{event.title}</h4>
+                    <p style={{ margin: '4px 0', fontSize: 13, color: '#3b82f6', fontWeight: 600 }}>{new Date(event.date).toLocaleDateString()}</p>
+                    <p style={{ margin: 0, fontSize: 14, color: '#888' }}>{event.description}</p>
+                  </div>
                 </div>
-              );
-            })}
+              ))
+            )}
           </div>
         )}
-        
+
+        {activeTab === 'members' && (
+          <PageTeamManager page={page} users={users} currentUserId={currentUserId} />
+        )}
+
         {activeTab === 'about' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ background: '#0c0c0c', borderRadius: 16, padding: 16, border: '0.5px solid #2a2a2a' }}>
               <h4 style={{ margin: 0, marginBottom: 8, color: '#fff', fontSize: 15 }}>About this page</h4>
               <p style={{ lineHeight: 1.6, color: '#8a8a8a', fontSize: 14, margin: 0 }}>{page.description}</p>
             </div>
+
+            {page.rules && page.rules.length > 0 && (
+              <div style={{ background: '#0c0c0c', borderRadius: 16, padding: 16, border: '0.5px solid #2a2a2a' }}>
+                <h4 style={{ margin: 0, marginBottom: 12, color: '#fff', fontSize: 15 }}>Community Rules</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {page.rules.map((rule, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: 12, color: '#8a8a8a', fontSize: 14 }}>
+                      <span style={{ fontWeight: 600, color: '#555' }}>{idx + 1}.</span>
+                      <span>{rule}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={{ background: '#0c0c0c', borderRadius: 16, padding: 16, border: '0.5px solid #2a2a2a' }}>
               <h4 style={{ margin: 0, marginBottom: 12, color: '#fff', fontSize: 15 }}>Details</h4>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '0.5px solid #222' }}>
@@ -311,16 +309,99 @@ export default function PageViewScreen({
             </div>
           </div>
         )}
+
+        {activeTab === 'insights' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Page Insights</h3>
+            
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ flex: 1, background: '#0c0c0c', borderRadius: 16, padding: 16, border: '0.5px solid #2a2a2a' }}>
+                <p style={{ margin: 0, fontSize: 13, color: '#888', marginBottom: 8 }}>Total Views</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <h4 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>{page.analytics?.views.toLocaleString() || '0'}</h4>
+                  <span style={{ color: '#10b981', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 2 }}><TrendingUp size={12}/> +12%</span>
+                </div>
+              </div>
+              <div style={{ flex: 1, background: '#0c0c0c', borderRadius: 16, padding: 16, border: '0.5px solid #2a2a2a' }}>
+                <p style={{ margin: 0, fontSize: 13, color: '#888', marginBottom: 8 }}>Member Trend</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <h4 style={{ margin: 0, fontSize: 24, fontWeight: 700 }}>{page.analytics?.membersTrend || '0'}</h4>
+                  <span style={{ color: (page.analytics?.membersTrend || 0) >= 0 ? '#10b981' : '#ef4444', fontSize: 12, fontWeight: 600 }}>{(page.analytics?.membersTrend || 0) >= 0 ? 'Positive' : 'Negative'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: '#0c0c0c', borderRadius: 16, padding: 16, border: '0.5px solid #2a2a2a', height: 200, display: 'flex', alignItems: 'flex-end', gap: 8, marginTop: 10 }}>
+              {/* Dummy bar chart */}
+              {[30, 45, 20, 60, 80, 50, 90].map((h, i) => (
+                <div key={i} style={{ flex: 1, background: 'rgba(59, 130, 246, 0.2)', height: `${h}%`, borderRadius: '4px 4px 0 0', position: 'relative' }}>
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%', background: '#3b82f6', borderRadius: '4px 4px 0 0' }} />
+                </div>
+              ))}
+            </div>
+            <p style={{ textAlign: 'center', color: '#666', fontSize: 12, margin: 0 }}>Activity over last 7 days</p>
+          </div>
+        )}
+
+        {activeTab === 'settings' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <SettingsIcon size={20} /> Page Settings
+            </h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <label style={{ fontSize: 13, color: '#aaa', fontWeight: 600 }}>Page Name</label>
+              <input 
+                type="text" 
+                value={settingsName}
+                onChange={e => setSettingsName(e.target.value)}
+                style={{ background: '#0c0c0c', border: '1px solid #333', color: '#fff', padding: '12px', borderRadius: 12, fontSize: 14 }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <label style={{ fontSize: 13, color: '#aaa', fontWeight: 600 }}>Category</label>
+              <input 
+                type="text" 
+                value={settingsCategory}
+                onChange={e => setSettingsCategory(e.target.value)}
+                style={{ background: '#0c0c0c', border: '1px solid #333', color: '#fff', padding: '12px', borderRadius: 12, fontSize: 14 }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <label style={{ fontSize: 13, color: '#aaa', fontWeight: 600 }}>Description</label>
+              <textarea 
+                value={settingsDesc}
+                onChange={e => setSettingsDesc(e.target.value)}
+                rows={3}
+                style={{ background: '#0c0c0c', border: '1px solid #333', color: '#fff', padding: '12px', borderRadius: 12, fontSize: 14, fontFamily: 'inherit', resize: 'vertical' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <label style={{ fontSize: 13, color: '#aaa', fontWeight: 600 }}>Visibility</label>
+              <select 
+                value={settingsVisibility}
+                onChange={e => setSettingsVisibility(e.target.value)}
+                style={{ background: '#0c0c0c', border: '1px solid #333', color: '#fff', padding: '12px', borderRadius: 12, fontSize: 14 }}
+              >
+                <option value="public">Public - Anyone can join</option>
+                <option value="restricted">Restricted - Join requires approval</option>
+                <option value="private">Private - Invite only</option>
+              </select>
+            </div>
+
+            <button 
+              onClick={handleSaveSettings}
+              style={{ background: '#fff', color: '#000', padding: '12px', borderRadius: 12, border: 'none', fontWeight: 700, fontSize: 14, cursor: 'pointer', marginTop: 10 }}
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
       </div>
 
-      {showMemberManagement && (
-        <MemberManagementModal 
-          onClose={() => setShowMemberManagement(false)} 
-          page={page}
-          users={users}
-          currentUserId={currentUserId}
-        />
-      )}
     </div>
   );
 }

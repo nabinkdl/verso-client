@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Heart, MessageCircle, MoreHorizontal, Play } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, MoreHorizontal, Play, Shield } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
 
@@ -44,6 +44,7 @@ export default function ProfileScreen({
   const selectedPost =
     userPosts.find((post) => post.id === selectedPostId) ?? null;
   const isOwn = profileUserId === currentUserId;
+  const currentUserRole = (users.find(u => u.id === currentUserId) as any)?.role;
 
   useEffect(() => {
     if (selectedPostId && !selectedPost) {

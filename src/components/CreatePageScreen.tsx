@@ -179,58 +179,58 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
           <div style={{ width: 40, height: 4, background: '#333', borderRadius: 2 }} />
         </div>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-        <button onClick={step === 1 ? onClose : handleBack} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>
-          <ArrowLeft size={24} />
-        </button>
-        <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Create Page</h2>
-          <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-            {[1, 2].map((s) => (
-              <div
-                key={s}
-                style={{
-                  width: 40,
-                  height: 3,
-                  background: s <= step ? '#fff' : '#333',
-                  borderRadius: 2,
-                }}
-              />
-            ))}
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+          <button onClick={step === 1 ? onClose : handleBack} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>
+            <ArrowLeft size={24} />
+          </button>
+          <div>
+            <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Create Page</h2>
+            <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+              {[1, 2].map((s) => (
+                <div
+                  key={s}
+                  style={{
+                    width: 40,
+                    height: 3,
+                    background: s <= step ? '#fff' : '#333',
+                    borderRadius: 2,
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {renderStep()}
-      </div>
+        {/* Content */}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          {renderStep()}
+        </div>
 
-      {/* Footer */}
-      <div style={{ paddingTop: 16, borderTop: '0.5px solid #2a2a2a' }}>
-        <button
-          onClick={step === 2 ? handleCreate : handleNext}
-          disabled={step === 1 && (!pageData.name || !pageData.category)}
-          style={{
-            width: '100%',
-            padding: '14px',
-            background: (step === 1 && (!pageData.name || !pageData.category)) ? '#333' : '#fff',
-            color: (step === 1 && (!pageData.name || !pageData.category)) ? '#666' : '#000',
-            border: 'none',
-            borderRadius: 16,
-            fontWeight: 700,
-            fontSize: 16,
-            cursor: (step === 1 && (!pageData.name || !pageData.category)) ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseDown={e => { if (!(step === 1 && (!pageData.name || !pageData.category))) e.currentTarget.style.transform = 'scale(0.96)' }}
-          onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-        >
-          {step === 2 ? 'Create Page' : 'Next →'}
-        </button>
-      </div>
+        {/* Footer */}
+        <div style={{ paddingTop: 16, borderTop: '0.5px solid #2a2a2a' }}>
+          <button
+            onClick={step === 2 ? handleCreate : handleNext}
+            disabled={step === 1 && (!pageData.name || !pageData.category)}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: (step === 1 && (!pageData.name || !pageData.category)) ? '#333' : '#fff',
+              color: (step === 1 && (!pageData.name || !pageData.category)) ? '#666' : '#000',
+              border: 'none',
+              borderRadius: 16,
+              fontWeight: 700,
+              fontSize: 16,
+              cursor: (step === 1 && (!pageData.name || !pageData.category)) ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseDown={e => { if (!(step === 1 && (!pageData.name || !pageData.category))) e.currentTarget.style.transform = 'scale(0.96)' }}
+            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            {step === 2 ? 'Create Page' : 'Next →'}
+          </button>
+        </div>
       </div>
     </div>
   );

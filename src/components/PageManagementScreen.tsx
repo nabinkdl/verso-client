@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Settings, Users, MoreVertical, Inbox, Check, X } from 'lucide-react';
+import { Plus, Settings, Users, MoreVertical, Inbox, Check, X, Shield, Search } from 'lucide-react';
 import Avatar from './Avatar';
 
 import { Page, User } from '../types';
@@ -15,7 +15,24 @@ interface PageManagementScreenProps {
 export default function PageManagementScreen({ currentUserId, users, onCreatePage, onViewPage }: PageManagementScreenProps) {
   const { pages, acceptJoinRequest, rejectJoinRequest } = usePages();
 
-  const [activeTab, setActiveTab] = useState<'pages' | 'requests' | 'invites'>('pages');
+  const currentUser = users.find((u) => u.id === currentUserId) as any;
+  const currentUserRole = currentUser?.role;
+
+  const [activeTab, setActiveTab] = useState<'my_pages' | 'discover' | 'requests' | 'invites'>('my_pages');
+  const [discoverCategory, setDiscoverCategory] = useState<string>('All');
+
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const myPages = pages.filter(p => p.members.some(m => m.userId === currentUserId));
+  const discoverPages = pages.filter(p => !p.members.some(m => m.userId === currentUserId));
+  const categories = ['All', ...Array.from(new Set(discoverPages.map(p => p.category).filter(Boolean)))];
+
+  const filteredDiscoverPages = discoverPages
+    .filter(p => discoverCategory === 'All' || p.category === discoverCategory)
+    .filter(p => 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
 
   // Compute pending requests for pages where current user is admin/editor
   const managedPages = pages.filter(p => {
@@ -23,7 +40,7 @@ export default function PageManagementScreen({ currentUserId, users, onCreatePag
     return role === 'admin' || role === 'editor';
   });
 
-  const allRequests = managedPages.flatMap(p => 
+  const allRequests = managedPages.flatMap(p =>
     (p.joinRequests || []).map(reqUserId => ({
       page: p,
       userId: reqUserId
@@ -38,34 +55,36 @@ export default function PageManagementScreen({ currentUserId, users, onCreatePag
           <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Pages</h2>
           <p style={{ color: '#8a8a8a', fontSize: 13, marginTop: 4 }}>Manage your communities and pages</p>
         </div>
-        <button
-          onClick={onCreatePage}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 14,
-            background: "rgba(255,255,255,0.05)",
-            border: "none",
-            color: "#bfbfbf",
-            display: "grid",
-            placeItems: "center",
-            cursor: "pointer",
-            boxShadow: "0 8px 20px rgba(255,255,255,0.08)",
-            flexShrink: 0,
-            transition: 'all 0.2s',
-          }}
-          onMouseDown={e => e.currentTarget.style.transform = 'scale(0.92)'}
-          onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-          aria-label="Create Page"
-        >
-          <Plus size={18} />
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            onClick={onCreatePage}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 14,
+              background: "rgba(255,255,255,0.05)",
+              border: "none",
+              color: "#bfbfbf",
+              display: "grid",
+              placeItems: "center",
+              cursor: "pointer",
+              boxShadow: "0 8px 20px rgba(255,255,255,0.08)",
+              flexShrink: 0,
+              transition: 'all 0.2s',
+            }}
+            onMouseDown={e => e.currentTarget.style.transform = 'scale(0.92)'}
+            onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            aria-label="Create Page"
+          >
+            <Plus size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 20, borderBottom: '0.5px solid #2c2c2c', paddingBottom: 12, overflowX: 'auto' }} className="hide-scrollbar">
-        {['pages', 'requests', 'invites'].map((tab) => (
+        {['my_pages', 'discover', 'requests', 'invites'].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
@@ -83,7 +102,7 @@ export default function PageManagementScreen({ currentUserId, users, onCreatePag
               transition: 'all 0.2s',
             }}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
             {tab === 'requests' && allRequests.length > 0 && (
               <span style={{ marginLeft: 8, background: '#ff4d6d', color: '#fff', padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
                 {allRequests.length}
@@ -93,8 +112,54 @@ export default function PageManagementScreen({ currentUserId, users, onCreatePag
         ))}
       </div>
 
+      {/* Discover Categories & Search */}
+      {activeTab === 'discover' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 8, overflowX: 'auto' }} className="hide-scrollbar">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setDiscoverCategory(cat)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 20,
+                  border: discoverCategory === cat ? 'none' : '1px solid #333',
+                  background: discoverCategory === cat ? '#fff' : 'transparent',
+                  color: discoverCategory === cat ? '#000' : '#888',
+                  fontWeight: 600,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Search size={16} color="#666" style={{ position: 'absolute', left: 12 }} />
+            <input
+              type="text"
+              placeholder="Search communities..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                background: '#111',
+                border: '1px solid #333',
+                color: '#fff',
+                padding: '10px 12px 10px 36px',
+                borderRadius: 12,
+                fontSize: 14,
+                outline: 'none',
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Page Cards */}
-      {activeTab === 'pages' && pages.map((page) => (
+      {(activeTab === 'my_pages' ? myPages : activeTab === 'discover' ? filteredDiscoverPages : []).map((page) => (
         <div
           key={page.id}
           style={{
@@ -112,7 +177,7 @@ export default function PageManagementScreen({ currentUserId, users, onCreatePag
             position: 'absolute',
             top: 0, left: 0, right: 0,
             height: '40px',
-            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
+            background: page.coverUrl ? `url(${page.coverUrl}) center/cover` : 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
             borderBottom: '0.5px solid rgba(255,255,255,0.05)',
             zIndex: 0
           }} />
@@ -165,35 +230,41 @@ export default function PageManagementScreen({ currentUserId, users, onCreatePag
                 </span>
               );
             })()}
-            <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
-              <button
-                onClick={() => onViewPage(page.id)}
-                style={{
-                  background: 'rgba(255,255,255,0.1)',
-                  backdropFilter: 'blur(10px)',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
-                  color: '#fff',
-                  padding: '6px 14px',
-                  borderRadius: 20,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.95)'}
-                onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                <Users size={14} />
-                Manage
-              </button>
-            </div>
+            {activeTab === 'discover' ? (
+              <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+                <button
+                  onClick={() => joinPage(page.id, currentUserId)}
+                  disabled={page.joinRequests?.includes(currentUserId)}
+                  style={{
+                    background: page.joinRequests?.includes(currentUserId) ? '#333' : '#3b82f6',
+                    color: page.joinRequests?.includes(currentUserId) ? '#888' : '#fff',
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: 20,
+                    cursor: page.joinRequests?.includes(currentUserId) ? 'not-allowed' : 'pointer',
+                    fontSize: 12,
+                    fontWeight: 600,
+                  }}
+                >
+                  {page.joinRequests?.includes(currentUserId) ? 'Requested' : 'Join'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ))}
+      
+      {activeTab === 'discover' && filteredDiscoverPages.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666', fontSize: 14 }}>
+          No pages found in this category.
+        </div>
+      )}
+
+      {activeTab === 'my_pages' && myPages.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666', fontSize: 14 }}>
+          You haven't joined any pages yet. Head to Discover to find communities!
+        </div>
+      )}
 
       {/* Requests Tab */}
       {activeTab === 'requests' && (
