@@ -9,11 +9,13 @@ interface PageContextType {
   acceptJoinRequest: (pageId: string, userId: string, currentUserId: string) => void;
   rejectJoinRequest: (pageId: string, userId: string, currentUserId: string) => void;
   inviteUser: (pageId: string, targetUserId: string, currentUserId: string) => void;
+  cancelInvite: (pageId: string, targetUserId: string, currentUserId: string) => void;
   acceptInvite: (pageId: string, currentUserId: string) => void;
   rejectInvite: (pageId: string, currentUserId: string) => void;
   updatePageMember: (pageId: string, userId: string, role: PageMember['role'], permissions: string[], currentUserId: string) => void;
   removeMember: (pageId: string, userId: string, currentUserId: string) => void;
   updatePageSettings: (pageId: string, name: string, description: string, category: string, visibility: string, currentUserId: string, rules?: string[]) => void;
+  addEvent: (pageId: string, title: string, description: string, date: number, currentUserId: string) => void;
 }
 
 const PageContext = createContext<PageContextType | undefined>(undefined);
@@ -122,6 +124,20 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
     }));
   };
 
+  const cancelInvite = (pageId: string, targetUserId: string, currentUserId: string) => {
+    setPages(prev => prev.map(p => {
+      if (p.id !== pageId) return p;
+      const myRole = p.members.find(m => m.userId === currentUserId)?.role;
+      if (myRole !== 'admin' && myRole !== 'editor') return p;
+      if (!p.invitedUsers?.includes(targetUserId)) return p;
+
+      return {
+        ...p,
+        invitedUsers: p.invitedUsers.filter(id => id !== targetUserId)
+      };
+    }));
+  };
+
   const acceptInvite = (pageId: string, currentUserId: string) => {
     setPages(prev => prev.map(p => {
       if (p.id !== pageId) return p;
@@ -174,6 +190,20 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
     }));
   };
 
+  const addEvent = (pageId: string, title: string, description: string, date: number, currentUserId: string) => {
+    setPages(prev => prev.map(p => {
+      if (p.id !== pageId) return p;
+      const myRole = p.members.find(m => m.userId === currentUserId)?.role;
+      if (myRole !== 'admin' && myRole !== 'editor') return p;
+
+      const newEvent = { id: `evt${Date.now()}`, title, description, date };
+      return {
+        ...p,
+        events: [...(p.events || []), newEvent]
+      };
+    }));
+  };
+
   const updatePageSettings = (pageId: string, name: string, description: string, category: string, visibility: string, currentUserId: string, rules?: string[]) => {
     setPages(prev => prev.map(p => {
       if (p.id !== pageId) return p;
@@ -194,8 +224,8 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
   return (
     <PageContext.Provider value={{
       pages, createPage, joinPage, leavePage, acceptJoinRequest, rejectJoinRequest,
-      inviteUser, acceptInvite, rejectInvite,
-      updatePageMember, removeMember, updatePageSettings
+      inviteUser, cancelInvite, acceptInvite, rejectInvite,
+      updatePageMember, removeMember, updatePageSettings, addEvent
     }}>
       {children}
     </PageContext.Provider>

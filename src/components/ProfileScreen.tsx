@@ -263,7 +263,7 @@ export default function ProfileScreen({
         </div>
       </div>
 
-      <div style={{ padding: "0 0 12px" }}>
+      <div style={{ padding: "0 16px 12px" }}>
         <div
           style={{
             display: "grid",

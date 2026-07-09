@@ -9,6 +9,10 @@ import {
   initialNotifications,
   initialPages,
 } from "./data";
+import { likePost, editPost, deletePost, addComment, editComment, deleteComment } from "./services/postService";
+import { toggleFollow, editName, addUser } from "./services/userService";
+import { sendMessage, findOrCreateChat } from "./services/chatService";
+import { addNotification } from "./services/notificationService";
 import BottomNav from "./components/BottomNav";
 import HomeScreen from "./components/HomeScreen";
 import SearchScreen from "./components/SearchScreen";
@@ -50,44 +54,52 @@ const makePostImage = (seed: string) => {
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeScreen, setActiveScreen] = useState<Screen>("login");
+  const memberPerms = ['read','post','comment','like','edit_own','follow','dm','mention'];
+  const allPerms = ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','suspend','ban','view_reports','pin_posts','manage_roles','manage_perms','analytics','settings','audit_log'];
   const [users, setUsers] = useState<AdminUser[]>([
-  {
-    id: 'u1', name: 'Alex Morgan', username: 'alexm', email: 'alex@verso.app',
-    role: 'admin', status: 'active', joinedAt: Date.now() - 86400000 * 180,
-    followers: ['u2'], following: ['u3'],
-    permissions: ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','suspend','ban','view_reports','pin_posts','manage_roles','manage_perms','analytics','settings','audit_log']
-  },
-  {
-    id: 'u2', name: 'Jamie Lin', username: 'jamieL', email: 'jamie@verso.app',
-    role: 'moderator', status: 'active', joinedAt: Date.now() - 86400000 * 140,
-    followers: [], following: ['u1'],
-    permissions: ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','suspend','ban','view_reports','pin_posts']
-  },
-  {
-    id: 'u3', name: 'Taylor Ray', username: 'tray', email: 'taylor@verso.app',
-    role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 120,
-    followers: ['u1'], following: [],
-    permissions: ['read','post','comment','like','edit_own','follow','dm','mention']
-  },
-  {
-    id: 'u4', name: 'Casey Wong', username: 'caseyw', email: 'casey@verso.app',
-    role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 95,
-    followers: [], following: [],
-    permissions: ['read','post','comment','like','edit_own','follow','dm','mention']
-  },
-  {
-    id: 'u5', name: 'Jordan Smith', username: 'jsmith', email: 'jordan@verso.app',
-    role: 'member', status: 'pending', joinedAt: Date.now() - 86400000 * 7,
-    followers: [], following: [],
-    permissions: ['read','post','comment','like','edit_own','follow','dm','mention']
-  },
-  {
-    id: 'u6', name: 'Riley Park', username: 'rpark', email: 'riley@verso.app',
-    role: 'guest', status: 'active', joinedAt: Date.now() - 86400000 * 3,
-    followers: [], following: [],
-    permissions: ['read']
-  },
-]);
+    { id: 'u1', name: 'Alex Morgan', username: 'alexm', email: 'alex@verso.app', role: 'admin', status: 'active', joinedAt: Date.now() - 86400000 * 180, followers: ['u2'], following: ['u3'], permissions: allPerms },
+    { id: 'u2', name: 'Jamie Lin', username: 'jamieL', email: 'jamie@verso.app', role: 'moderator', status: 'active', joinedAt: Date.now() - 86400000 * 140, followers: [], following: ['u1'], permissions: ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','suspend','ban','view_reports','pin_posts'] },
+    { id: 'u3', name: 'Taylor Ray', username: 'tray', email: 'taylor@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 120, followers: ['u1'], following: [], permissions: memberPerms },
+    { id: 'u4', name: 'Casey Wong', username: 'caseyw', email: 'casey@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 95, followers: [], following: [], permissions: memberPerms },
+    { id: 'u5', name: 'Jordan Smith', username: 'jsmith', email: 'jordan@verso.app', role: 'member', status: 'pending', joinedAt: Date.now() - 86400000 * 7, followers: [], following: [], permissions: memberPerms },
+    { id: 'u6', name: 'Riley Park', username: 'rpark', email: 'riley@verso.app', role: 'guest', status: 'active', joinedAt: Date.now() - 86400000 * 3, followers: [], following: [], permissions: ['read'] },
+    { id: 'u7', name: 'Morgan Lee', username: 'morgs', email: 'morgan@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 90, followers: [], following: [], permissions: memberPerms },
+    { id: 'u8', name: 'Drew Kim', username: 'dkim', email: 'drew@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 85, followers: [], following: [], permissions: memberPerms },
+    { id: 'u9', name: 'Sam Rivera', username: 'srivera', email: 'sam@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 80, followers: [], following: [], permissions: memberPerms },
+    { id: 'u10', name: 'Avery Chen', username: 'averyc', email: 'avery@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 75, followers: [], following: [], permissions: memberPerms },
+    { id: 'u11', name: 'Quinn Davis', username: 'quinnD', email: 'quinn@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 70, followers: [], following: [], permissions: memberPerms },
+    { id: 'u12', name: 'Blake Turner', username: 'blaket', email: 'blake@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 65, followers: [], following: [], permissions: memberPerms },
+    { id: 'u13', name: 'Cameron Reed', username: 'creed', email: 'cameron@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 60, followers: [], following: [], permissions: memberPerms },
+    { id: 'u14', name: 'Dakota Hayes', username: 'dhayes', email: 'dakota@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 55, followers: [], following: [], permissions: memberPerms },
+    { id: 'u15', name: 'Emerson Blake', username: 'eblake', email: 'emerson@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 50, followers: [], following: [], permissions: memberPerms },
+    { id: 'u16', name: 'Finley Gray', username: 'fgray', email: 'finley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 48, followers: [], following: [], permissions: memberPerms },
+    { id: 'u17', name: 'Grayson Cole', username: 'gcole', email: 'grayson@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 45, followers: [], following: [], permissions: memberPerms },
+    { id: 'u18', name: 'Harper Wells', username: 'hwells', email: 'harper@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 42, followers: [], following: [], permissions: memberPerms },
+    { id: 'u19', name: 'Indigo Nash', username: 'inash', email: 'indigo@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 40, followers: [], following: [], permissions: memberPerms },
+    { id: 'u20', name: 'Jesse Fox', username: 'jfox', email: 'jesse@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 38, followers: [], following: [], permissions: memberPerms },
+    { id: 'u21', name: 'Kai Morrow', username: 'kmorrow', email: 'kai@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 35, followers: [], following: [], permissions: memberPerms },
+    { id: 'u22', name: 'Logan Pierce', username: 'lpierce', email: 'logan@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 32, followers: [], following: [], permissions: memberPerms },
+    { id: 'u23', name: 'Morgan Sage', username: 'msage', email: 'morgan.s@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 30, followers: [], following: [], permissions: memberPerms },
+    { id: 'u24', name: 'Nico Valentine', username: 'nval', email: 'nico@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 28, followers: [], following: [], permissions: memberPerms },
+    { id: 'u25', name: 'Oakley Frost', username: 'ofrost', email: 'oakley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 25, followers: [], following: [], permissions: memberPerms },
+    { id: 'u26', name: 'Parker Snow', username: 'psnow', email: 'parker@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 22, followers: [], following: [], permissions: memberPerms },
+    { id: 'u27', name: 'Reese Storm', username: 'rstorm', email: 'reese@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 20, followers: [], following: [], permissions: memberPerms },
+    { id: 'u28', name: 'Skyler Wren', username: 'swren', email: 'skyler@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 18, followers: [], following: [], permissions: memberPerms },
+    { id: 'u29', name: 'Tatum Birch', username: 'tbirch', email: 'tatum@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 15, followers: [], following: [], permissions: memberPerms },
+    { id: 'u30', name: 'Ainsley Cruz', username: 'acruz', email: 'ainsley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 14, followers: [], following: [], permissions: memberPerms },
+    { id: 'u31', name: 'Briar Dean', username: 'bdean', email: 'briar@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 12, followers: [], following: [], permissions: memberPerms },
+    { id: 'u32', name: 'Colby Hart', username: 'chart', email: 'colby@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 10, followers: [], following: [], permissions: memberPerms },
+    { id: 'u33', name: 'Devon Ivey', username: 'divey', email: 'devon@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 9, followers: [], following: [], permissions: memberPerms },
+    { id: 'u34', name: 'Ellis Johns', username: 'ejohns', email: 'ellis@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 8, followers: [], following: [], permissions: memberPerms },
+    { id: 'u35', name: 'Frankie Knox', username: 'fknox', email: 'frankie@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 7, followers: [], following: [], permissions: memberPerms },
+    { id: 'u36', name: 'Gray Luna', username: 'gluna', email: 'gray@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 6, followers: [], following: [], permissions: memberPerms },
+    { id: 'u37', name: 'Hadley Moss', username: 'hmoss', email: 'hadley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 5, followers: [], following: [], permissions: memberPerms },
+    { id: 'u38', name: 'Jay North', username: 'jnorth', email: 'jay@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 4, followers: [], following: [], permissions: memberPerms },
+    { id: 'u39', name: 'Kendall Ortiz', username: 'kortiz', email: 'kendall@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 3, followers: [], following: [], permissions: memberPerms },
+    { id: 'u40', name: 'Leighton Pace', username: 'lpace', email: 'leighton@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 2, followers: [], following: [], permissions: memberPerms },
+    { id: 'u41', name: 'Marley Quinn', username: 'mquinn', email: 'marley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 1, followers: [], following: [], permissions: memberPerms },
+    { id: 'u42', name: 'Nova Reyes', username: 'nreyes', email: 'nova@verso.app', role: 'member', status: 'active', joinedAt: Date.now(), followers: [], following: [], permissions: memberPerms },
+  ]);
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [chats, setChats] = useState<Chat[]>(initialChats);
   const [notifications, setNotifications] =
@@ -98,6 +110,7 @@ function AppContent() {
   const { pages } = usePages();
   const [activePageId, setActivePageId] = useState<string | null>(null);
   const [activePageTab, setActivePageTab] = useState<"feed" | "members" | null>(null);
+  const [activePageMemberFilter, setActivePageMemberFilter] = useState<'all' | 'invite'>('all');
   const [newPostTargetPageId, setNewPostTargetPageId] = useState<string | null>(null);
   const [isCreatingPage, setIsCreatingPage] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -105,14 +118,7 @@ function AppContent() {
   const pushNotification = (
     item: Omit<NotificationItem, "id" | "createdAt">,
   ) => {
-    setNotifications((prev) => [
-      {
-        ...item,
-        id: `n${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-        createdAt: Date.now(),
-      },
-      ...prev,
-    ]);
+    setNotifications((prev) => addNotification(prev, item));
   };
 
   const handleLogin = (email: string, password: string) => {
@@ -126,7 +132,6 @@ function AppContent() {
     email: string,
     password: string,
   ) => {
-    // Add the new user to the users list
     const newUser: AdminUser = {
       id: `u${Date.now()}`,
       name,
@@ -139,7 +144,7 @@ function AppContent() {
       following: [],
       permissions: ['read','post','comment','like','edit_own','follow','dm','mention']
     };
-    setUsers((prev) => [...prev, newUser]);
+    setUsers((prev) => addUser(prev, newUser));
 
     // Auto-login after registration
     setIsLoggedIn(true);
@@ -164,18 +169,7 @@ function AppContent() {
   };
 
   const handleLike = (postId: string) => {
-    setPosts((prev) =>
-      prev.map((p) => {
-        if (p.id !== postId) return p;
-        const liked = p.likes.includes(CURRENT_USER_ID);
-        return {
-          ...p,
-          likes: liked
-            ? p.likes.filter((id) => id !== CURRENT_USER_ID)
-            : [...p.likes, CURRENT_USER_ID],
-        };
-      }),
-    );
+    setPosts((prev) => likePost(prev, postId, CURRENT_USER_ID));
     pushNotification({
       title: "Like updated",
       message: "You reacted to a post from the feed.",
@@ -184,33 +178,20 @@ function AppContent() {
   };
 
   const handleEditPost = (postId: string, caption: string) => {
-    setPosts((prev) =>
-      prev.map((post) => (post.id === postId ? { ...post, caption } : post)),
-    );
+    setPosts((prev) => editPost(prev, postId, caption));
   };
 
   const handleDeletePost = (postId: string) => {
-    setPosts((prev) => prev.filter((post) => post.id !== postId));
+    setPosts((prev) => deletePost(prev, postId));
   };
 
   const handleComment = (postId: string, text: string) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id !== postId
-          ? p
-          : {
-            ...p,
-            comments: [
-              ...p.comments,
-              {
-                id: `c${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-                userId: CURRENT_USER_ID,
-                text,
-              },
-            ],
-          },
-      ),
-    );
+    const comment = {
+      id: `c${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+      userId: CURRENT_USER_ID,
+      text,
+    };
+    setPosts((prev) => addComment(prev, postId, comment));
     pushNotification({
       title: "Comment posted",
       message: text,
@@ -223,48 +204,15 @@ function AppContent() {
     commentId: string,
     text: string,
   ) => {
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id !== postId
-          ? post
-          : {
-            ...post,
-            comments: post.comments.map((comment) =>
-              comment.id === commentId ? { ...comment, text } : comment,
-            ),
-          },
-      ),
-    );
+    setPosts((prev) => editComment(prev, postId, commentId, text));
   };
 
   const handleDeleteComment = (postId: string, commentId: string) => {
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id !== postId
-          ? post
-          : {
-            ...post,
-            comments: post.comments.filter(
-              (comment) => comment.id !== commentId,
-            ),
-          },
-      ),
-    );
+    setPosts((prev) => deleteComment(prev, postId, commentId));
   };
 
   const handleToggleFollow = (targetId: string) => {
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id !== CURRENT_USER_ID) return u;
-        const isFollowing = u.following.includes(targetId);
-        return {
-          ...u,
-          following: isFollowing
-            ? u.following.filter((id) => id !== targetId)
-            : [...u.following, targetId],
-        };
-      }),
-    );
+    setUsers((prev) => toggleFollow(prev, CURRENT_USER_ID, targetId));
     pushNotification({
       title: "Following updated",
       message: "You changed who you follow.",
@@ -303,39 +251,18 @@ function AppContent() {
 
   const handleSendMessage = (chatId: string, text: string) => {
     setChats((prev) =>
-      prev.map((c) =>
-        c.id !== chatId
-          ? c
-          : {
-            ...c,
-            messages: [
-              ...c.messages,
-              { from: CURRENT_USER_ID, text, timestamp: Date.now() },
-            ],
-            lastUpdated: Date.now(),
-          },
-      ),
+      sendMessage(prev, chatId, { from: CURRENT_USER_ID, text, timestamp: Date.now() }),
     );
   };
 
   const handleEditName = (newName: string) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id !== CURRENT_USER_ID ? u : { ...u, name: newName })),
-    );
+    setUsers((prev) => editName(prev, CURRENT_USER_ID, newName));
   };
 
   const handleMessageUser = (userId: string) => {
-    let existingChat = chats.find(c => c.participants.includes(CURRENT_USER_ID) && c.participants.includes(userId));
-    if (!existingChat) {
-      existingChat = {
-        id: `c${Date.now()}`,
-        participants: [CURRENT_USER_ID, userId],
-        messages: [],
-        lastUpdated: Date.now()
-      };
-      setChats(prev => [...prev, existingChat!]);
-    }
-    setTargetChatId(existingChat.id);
+    const { chats: updatedChats, chatId } = findOrCreateChat(chats, CURRENT_USER_ID, userId);
+    setChats(updatedChats);
+    setTargetChatId(chatId);
     setActiveScreen("chat");
   };
 
@@ -360,24 +287,39 @@ function AppContent() {
         background: "#0a0a0a",
         fontFamily:
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        padding: 20,
+        boxSizing: "border-box",
       }}
     >
+      {/* Mobile Frame */}
       <div
         style={{
-          width: "100%",
-          maxWidth: 480,
-          height: "100vh",
-          background: "#000",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-          borderLeft: "1px solid #222",
-          borderRight: "1px solid #222",
-          boxShadow: "0 0 50px rgba(0,0,0,0.8)",
-          color: "#fff",
+          width: 480,
+          height: "calc(100vh - 40px)",
+          maxHeight: 900,
+          borderRadius: 44,
+          background: "#1a1a1a",
+          padding: 12,
+          boxShadow: "0 0 0 1px #333, 0 20px 60px rgba(0,0,0,0.5)",
+          boxSizing: "border-box",
           position: "relative",
+          flexShrink: 0,
         }}
       >
+        {/* Screen */}
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: 32,
+            overflow: "hidden",
+            background: "#000",
+            display: "flex",
+            flexDirection: "column",
+            color: "#fff",
+            position: "relative",
+          }}
+        >
         {activeScreen === "login" && (
           <LoginScreen
             onLogin={handleLogin}
@@ -479,9 +421,10 @@ function AppContent() {
             currentUserId={CURRENT_USER_ID}
             users={users}
             onCreatePage={() => setIsCreatingPage(true)}
-            onViewPage={(id, initialTab) => {
+            onViewPage={(id, initialTab, memberFilter) => {
               setActivePageId(id);
               setActivePageTab(initialTab || "feed");
+              setActivePageMemberFilter(memberFilter || 'all');
             }}
           />
         )}
@@ -492,9 +435,11 @@ function AppContent() {
             posts={posts}
             currentUserId={CURRENT_USER_ID}
             initialTab={activePageTab || "feed"}
+            defaultMemberFilter={activePageMemberFilter}
             onClose={() => {
               setActivePageId(null);
               setActivePageTab(null);
+              setActivePageMemberFilter('all');
             }}
             onNewPostClick={() => {
               setNewPostTargetPageId(activePageId);
@@ -544,6 +489,7 @@ function AppContent() {
           />
         )}
         {isLoggedIn && <BottomNav active={activeScreen} onChange={handleNav} />}
+      </div>
       </div>
     </div>
   );

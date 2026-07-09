@@ -43,13 +43,14 @@ interface PageTeamManagerProps {
   page: Page;
   users: User[];
   currentUserId: string;
+  defaultFilterRole?: 'all' | 'invite';
 }
 
-export default function PageTeamManager({ page, users, currentUserId }: PageTeamManagerProps) {
-  const { updatePageMember, inviteUser, removeMember } = usePages();
+export default function PageTeamManager({ page, users, currentUserId, defaultFilterRole = 'all' }: PageTeamManagerProps) {
+  const { updatePageMember, inviteUser, cancelInvite, removeMember, acceptJoinRequest, rejectJoinRequest } = usePages();
 
   const [search, setSearch] = useState('');
-  const [filterRole, setFilterRole] = useState<AdminRole | 'all' | 'invite'>('all');
+  const [filterRole, setFilterRole] = useState<AdminRole | 'all' | 'invite'>(defaultFilterRole);
   
   // Modal state
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
@@ -157,8 +158,8 @@ export default function PageTeamManager({ page, users, currentUserId }: PageTeam
       {/* Stats Bar */}
       <div style={{ display: 'flex', gap: 12, padding: '0 0 16px', overflowX: 'auto' }} className="hide-scrollbar">
         <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '12px 16px', borderRadius: 12, flex: 1, minWidth: 100, border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-          <div style={{ color: '#a78bfa', fontSize: 12, marginBottom: 4 }}>Invites</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#c4b5fd' }}>{page.invitedUsers?.length || 0}</div>
+          <div style={{ color: '#a78bfa', fontSize: 12, marginBottom: 4 }}>Pending</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#c4b5fd' }}>{(page.joinRequests?.length || 0) + (page.invitedUsers?.length || 0)}</div>
         </div>
         <div style={{ background: '#111', padding: '12px 16px', borderRadius: 12, flex: 1, minWidth: 100, border: '1px solid #222' }}>
           <div style={{ color: '#888', fontSize: 12, marginBottom: 4 }}>Total Members</div>
@@ -198,7 +199,16 @@ export default function PageTeamManager({ page, users, currentUserId }: PageTeam
                 whiteSpace: 'nowrap'
               }}
             >
-              {role} {role === 'all' ? `(${members.length})` : role === 'invite' ? `(${page.invitedUsers?.length || 0})` : ''}
+              {role}
+              {role === 'all' && ` (${members.length})`}
+              {role === 'invite' && (() => {
+                const pending = (page.joinRequests?.length || 0) + (page.invitedUsers?.length || 0);
+                return pending > 0 ? (
+                  <span style={{ marginLeft: 6, background: '#ff4d6d', color: '#fff', padding: '1px 7px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
+                    {pending}
+                  </span>
+                ) : '';
+              })()}
             </button>
           ))}
         </div>
@@ -229,32 +239,65 @@ export default function PageTeamManager({ page, users, currentUserId }: PageTeam
           {filterRole === 'invite' ? (
             filteredNonMembers.map(user => {
               const isInvited = page.invitedUsers?.includes(user.id);
+              const hasRequested = page.joinRequests?.includes(user.id);
               return (
                 <div key={user.id} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14, padding: '10px 12px', borderRadius: 14, background: '#111', border: '0.5px solid #262626' }}>
                   <Avatar name={user.name.charAt(0)} />
                   <div style={{ flex: 1, minWidth: 150 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontWeight: 600, fontSize: 14 }}>{user.name}</span>
+                      {hasRequested && (
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}>
+                          Requested
+                        </span>
+                      )}
+                      {isInvited && !hasRequested && (
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa' }}>
+                          Invited
+                        </span>
+                      )}
                     </div>
                     <div style={{ color: '#8a8a8a', fontSize: 12, marginTop: 2 }}>@{user.username}</div>
                   </div>
-                  <button
-                    disabled={isInvited}
-                    onClick={() => inviteUser(page.id, user.id, currentUserId)}
-                    style={{
-                      background: isInvited ? 'rgba(255,255,255,0.1)' : '#fff',
-                      color: isInvited ? '#888' : '#000',
-                      border: 'none',
-                      padding: '6px 14px',
-                      borderRadius: 20,
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: isInvited ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    {isInvited ? 'Invited' : 'Invite'}
-                  </button>
+                  {hasRequested ? (
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        onClick={() => acceptJoinRequest(page.id, user.id, currentUserId)}
+                        style={{ width: 36, height: 36, borderRadius: 18, background: '#3b82f6', border: 'none', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+                      >
+                        <Check size={16} />
+                      </button>
+                      <button
+                        onClick={() => rejectJoinRequest(page.id, user.id, currentUserId)}
+                        style={{ width: 36, height: 36, borderRadius: 18, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : isInvited ? (
+                    <button
+                      onClick={() => cancelInvite(page.id, user.id, currentUserId)}
+                      style={{ width: 36, height: 36, borderRadius: 18, background: 'rgba(255,77,109,0.1)', border: 'none', color: '#ff4d6d', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+                    >
+                      <X size={16} />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => inviteUser(page.id, user.id, currentUserId)}
+                      style={{
+                        background: '#fff',
+                        color: '#000',
+                        border: 'none',
+                        padding: '6px 14px',
+                        borderRadius: 20,
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Invite
+                    </button>
+                  )}
                 </div>
               );
             })
@@ -321,7 +364,7 @@ export default function PageTeamManager({ page, users, currentUserId }: PageTeam
 
       {/* Permission Editor Modal */}
       {editingUserId && editingUserDisplay && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
           <div style={{ background: '#111', height: '90%', borderTopLeftRadius: 24, borderTopRightRadius: 24, display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 20px 12px', borderBottom: '1px solid #222' }}>
               <div>

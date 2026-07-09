@@ -24,7 +24,7 @@ export default function Dialog({
     <div
       onClick={onClose}
       style={{
-        position: "fixed",
+        position: "absolute",
         inset: 0,
         zIndex: 200,
         background: "rgba(0,0,0,0.75)",

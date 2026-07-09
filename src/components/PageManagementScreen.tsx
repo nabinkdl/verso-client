@@ -15,7 +15,7 @@ interface PageManagementScreenProps {
   currentUserId: string;
   users: { id: string; name: string; username: string }[];
   onCreatePage: () => void;
-  onViewPage: (pageId: string, initialTab?: "feed" | "members") => void;
+  onViewPage: (pageId: string, initialTab?: "feed" | "members", memberFilter?: 'all' | 'invite') => void;
 }
 
 type Tab = "my_pages" | "discover" | "requests" | "invites";
@@ -113,12 +113,12 @@ export default function PageManagementScreen({
     <div
       style={{
         flex: 1,
-        overflowY: "auto",
-        padding: "12px 16px 16px",
+        overflow: "hidden",
         display: "flex",
         flexDirection: "column",
       }}
     >
+      <div style={{ padding: "12px 16px 0", flexShrink: 0 }}>
       {/* Header */}
       <div
         style={{
@@ -278,8 +278,10 @@ export default function PageManagementScreen({
           </div>
         </div>
       )}
+      </div>
 
       {/* Page Cards */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "4px 16px 16px" }}>
       {(activeTab === "my_pages"
         ? myPages
         : activeTab === "discover"
@@ -389,7 +391,7 @@ export default function PageManagementScreen({
               </div>
             </div>
             <button
-              onClick={() => onViewPage(page.id, "members")}
+              onClick={() => onViewPage(page.id, "members", "invite")}
               style={{
                 position: "absolute",
                 top: 14,
@@ -698,6 +700,7 @@ export default function PageManagementScreen({
           </p>
         </div>
       )}
+      </div>
     </div>
   );
 }

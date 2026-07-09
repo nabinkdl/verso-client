@@ -13,23 +13,25 @@ import {
   Image as ImageIcon,
   Send,
   X,
+  Plus,
 } from "lucide-react";
 import Avatar from "./Avatar";
 
 import { usePages } from "../contexts/PageContext";
-import { Page, Post } from "../types";
+import { Page, Post, User } from "../types";
 import PageTeamManager from "./PageTeamManager";
 
 type Tab = "feed" | "events" | "members" | "about" | "insights" | "settings";
 
 interface PageViewScreenProps {
   page: Page;
-  users: { id: string; name: string; username: string }[];
+  users: User[];
   posts: Post[];
   currentUserId: string;
   onClose: () => void;
   onNewPostClick?: () => void;
   initialTab?: Tab;
+  defaultMemberFilter?: 'all' | 'invite';
 }
 
 const ALL_TABS: Tab[] = [
@@ -50,8 +52,9 @@ export default function PageViewScreen({
   onClose,
   onNewPostClick,
   initialTab,
+  defaultMemberFilter,
 }: PageViewScreenProps) {
-  const { joinPage, updatePageSettings, leavePage } = usePages();
+  const { joinPage, updatePageSettings, leavePage, addEvent } = usePages();
   const [activeTab, setActiveTab] = useState<Tab>(initialTab || "feed");
   const [showMenu, setShowMenu] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -74,6 +77,10 @@ export default function PageViewScreen({
   const [settingsRulesText, setSettingsRulesText] = useState(
     (page.rules || []).join("\n"),
   );
+  const [showEventForm, setShowEventForm] = useState(false);
+  const [eventTitle, setEventTitle] = useState("");
+  const [eventDesc, setEventDesc] = useState("");
+  const [eventDate, setEventDate] = useState("");
 
   // Reset settings when page changes
   useEffect(() => {
@@ -564,6 +571,9 @@ export default function PageViewScreen({
               {tab === "members"
                 ? "Manage Team"
                 : tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab === "members" && (page.joinRequests?.length || 0) > 0 && (
+                <span style={{ marginLeft: 6, width: 8, height: 8, borderRadius: 4, background: "#ff4d6d", display: "inline-block", flexShrink: 0 }} />
+              )}
             </button>
           ))}
         </div>
@@ -872,86 +882,101 @@ export default function PageViewScreen({
           )}
 
           {activeTab === "events" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {!page.events || page.events.length === 0 ? (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "40px 20px",
-                    color: "#666",
-                    fontSize: 14,
-                  }}
-                >
-                  No upcoming events for this page.
-                </div>
-              ) : (
-                page.events.map((event) => (
-                  <div
-                    key={event.id}
-                    style={{
-                      background: "#0c0c0c",
-                      borderRadius: 16,
-                      padding: 16,
-                      border: "0.5px solid #2a2a2a",
-                      display: "flex",
-                      gap: 16,
-                    }}
-                  >
+            <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+              <div style={{ flex: 1, overflowY: "auto", minHeight: 0, paddingBottom: 0 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {!page.events || page.events.length === 0 ? (
                     <div
                       style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 12,
-                        background: "rgba(59, 130, 246, 0.1)",
-                        color: "#3b82f6",
-                        display: "grid",
-                        placeItems: "center",
-                        flexShrink: 0,
+                        textAlign: "center",
+                        padding: "40px 20px",
+                        color: "#666",
+                        fontSize: 14,
                       }}
                     >
-                      <Calendar size={24} />
+                      No upcoming events for this page.
                     </div>
-                    <div>
-                      <h4
+                  ) : (
+                    page.events.map((event) => (
+                      <div
+                        key={event.id}
                         style={{
-                          margin: 0,
-                          fontSize: 16,
-                          fontWeight: 600,
-                          color: "#fff",
+                          background: "#0c0c0c",
+                          borderRadius: 16,
+                          padding: 16,
+                          border: "0.5px solid #2a2a2a",
+                          display: "flex",
+                          gap: 16,
                         }}
                       >
-                        {event.title}
-                      </h4>
-                      <p
-                        style={{
-                          margin: "4px 0",
-                          fontSize: 13,
-                          color: "#3b82f6",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {new Date(event.date).toLocaleDateString()}
-                      </p>
-                      <p style={{ margin: 0, fontSize: 14, color: "#888" }}>
-                        {event.description}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
+                        <div
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: 12,
+                            background: "rgba(59, 130, 246, 0.1)",
+                            color: "#3b82f6",
+                            display: "grid",
+                            placeItems: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Calendar size={24} />
+                        </div>
+                        <div>
+                          <h4
+                            style={{
+                              margin: 0,
+                              fontSize: 16,
+                              fontWeight: 600,
+                              color: "#fff",
+                            }}
+                          >
+                            {event.title}
+                          </h4>
+                          <p
+                            style={{
+                              margin: "4px 0",
+                              fontSize: 13,
+                              color: "#3b82f6",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {new Date(event.date).toLocaleDateString()}
+                          </p>
+                          <p style={{ margin: 0, fontSize: 14, color: "#888" }}>
+                            {event.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
             </div>
           )}
 
+          <style>{`
+            @keyframes eventSlideUp {
+              from { transform: translateY(100%); }
+              to { transform: translateY(0); }
+            }
+          `}</style>
+
           {activeTab === "members" && (
+            <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
             <PageTeamManager
               page={page}
               users={users}
               currentUserId={currentUserId}
+              defaultFilterRole={defaultMemberFilter}
             />
+            </div>
           )}
 
           {activeTab === "about" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1, overflowY: "auto", minHeight: 0 }}>
               <div
                 style={{
                   background: "#0c0c0c",
@@ -1102,7 +1127,7 @@ export default function PageViewScreen({
           )}
 
           {activeTab === "insights" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1, overflowY: "auto", minHeight: 0 }}>
               <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
                 Page Insights
               </h3>
@@ -1243,7 +1268,7 @@ export default function PageViewScreen({
           )}
 
           {activeTab === "settings" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1, overflowY: "auto", minHeight: 0 }}>
               <h3
                 style={{
                   margin: 0,
@@ -1427,6 +1452,122 @@ export default function PageViewScreen({
           </button>
         )}
       </div>
+
+      {/* Create Event FAB */}
+      {isAdminOrEditor && !showEventForm && activeTab === "events" && (
+        <button
+          onClick={() => setShowEventForm(true)}
+          style={{
+            position: "absolute",
+            bottom: 24,
+            right: 24,
+            width: 52,
+            height: 52,
+            borderRadius: 26,
+            background: "#3b82f6",
+            border: "none",
+            color: "#fff",
+            cursor: "pointer",
+            display: "grid",
+            placeItems: "center",
+            boxShadow: "0 4px 20px rgba(59, 130, 246, 0.4)",
+            transition: "all 0.2s",
+            zIndex: 50,
+          }}
+          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.92)")}
+          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          aria-label="Create event"
+        >
+          <Plus size={24} />
+        </button>
+      )}
+
+      {/* Create Event Dialog */}
+      {showEventForm && (
+        <div
+          onClick={() => { setShowEventForm(false); setEventTitle(""); setEventDesc(""); setEventDate(""); }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 100,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#1a1a1a",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: 24,
+              paddingBottom: 32,
+              border: "1px solid #2a2a2a",
+              borderBottom: "none",
+              animation: "eventSlideUp 0.3s ease",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h4 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#fff" }}>New Event</h4>
+              <button
+                onClick={() => { setShowEventForm(false); setEventTitle(""); setEventDesc(""); setEventDate(""); }}
+                style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 4 }}
+              >
+                <X size={22} />
+              </button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <input
+                type="text"
+                placeholder="Event title"
+                value={eventTitle}
+                onChange={(e) => setEventTitle(e.target.value)}
+                style={{ background: "#0c0c0c", border: "1px solid #333", color: "#fff", padding: "12px 14px", borderRadius: 12, fontSize: 14, outline: "none" }}
+              />
+              <input
+                type="date"
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                style={{ background: "#0c0c0c", border: "1px solid #333", color: "#fff", padding: "12px 14px", borderRadius: 12, fontSize: 14, outline: "none", colorScheme: "dark" }}
+              />
+              <textarea
+                placeholder="Description"
+                value={eventDesc}
+                onChange={(e) => setEventDesc(e.target.value)}
+                rows={3}
+                style={{ background: "#0c0c0c", border: "1px solid #333", color: "#fff", padding: "12px 14px", borderRadius: 12, fontSize: 14, fontFamily: "inherit", outline: "none", resize: "vertical" }}
+              />
+              <button
+                onClick={() => {
+                  if (!eventTitle.trim() || !eventDate) return;
+                  addEvent(page.id, eventTitle.trim(), eventDesc.trim(), new Date(eventDate).getTime(), currentUserId);
+                  setEventTitle("");
+                  setEventDesc("");
+                  setEventDate("");
+                  setShowEventForm(false);
+                }}
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  borderRadius: 14,
+                  background: eventTitle.trim() && eventDate ? "#3b82f6" : "#333",
+                  color: eventTitle.trim() && eventDate ? "#fff" : "#666",
+                  border: "none",
+                  cursor: eventTitle.trim() && eventDate ? "pointer" : "not-allowed",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  marginTop: 4,
+                }}
+              >
+                Create Event
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         .hide-scrollbar::-webkit-scrollbar {
