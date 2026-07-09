@@ -97,6 +97,7 @@ function AppContent() {
 
   const { pages } = usePages();
   const [activePageId, setActivePageId] = useState<string | null>(null);
+  const [activePageTab, setActivePageTab] = useState<"feed" | "members" | null>(null);
   const [newPostTargetPageId, setNewPostTargetPageId] = useState<string | null>(null);
   const [isCreatingPage, setIsCreatingPage] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -478,7 +479,10 @@ function AppContent() {
             currentUserId={CURRENT_USER_ID}
             users={users}
             onCreatePage={() => setIsCreatingPage(true)}
-            onViewPage={(id) => setActivePageId(id)}
+            onViewPage={(id, initialTab) => {
+              setActivePageId(id);
+              setActivePageTab(initialTab || "feed");
+            }}
           />
         )}
         {activePageId && (
@@ -487,7 +491,11 @@ function AppContent() {
             users={users}
             posts={posts}
             currentUserId={CURRENT_USER_ID}
-            onClose={() => setActivePageId(null)}
+            initialTab={activePageTab || "feed"}
+            onClose={() => {
+              setActivePageId(null);
+              setActivePageTab(null);
+            }}
             onNewPostClick={() => {
               setNewPostTargetPageId(activePageId);
               setActiveScreen("newPost");

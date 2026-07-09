@@ -17,18 +17,19 @@ import {
 import Avatar from "./Avatar";
 
 import { usePages } from "../contexts/PageContext";
-import { Page, User, Post } from "../types";
+import { Page, Post } from "../types";
 import PageTeamManager from "./PageTeamManager";
 
 type Tab = "feed" | "events" | "members" | "about" | "insights" | "settings";
 
 interface PageViewScreenProps {
   page: Page;
-  users: User[];
+  users: { id: string; name: string; username: string }[];
   posts: Post[];
   currentUserId: string;
   onClose: () => void;
   onNewPostClick?: () => void;
+  initialTab?: Tab;
 }
 
 const ALL_TABS: Tab[] = [
@@ -48,9 +49,10 @@ export default function PageViewScreen({
   currentUserId,
   onClose,
   onNewPostClick,
+  initialTab,
 }: PageViewScreenProps) {
   const { joinPage, updatePageSettings, leavePage } = usePages();
-  const [activeTab, setActiveTab] = useState<Tab>("feed");
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab || "feed");
   const [showMenu, setShowMenu] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
@@ -80,9 +82,9 @@ export default function PageViewScreen({
     setSettingsDesc(page.description);
     setSettingsVisibility(page.visibility);
     setSettingsRulesText((page.rules || []).join("\n"));
-    setActiveTab("feed");
+    setActiveTab(initialTab || "feed");
     setShowMenu(false);
-  }, [page.id]);
+  }, [page.id, initialTab]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -322,11 +324,11 @@ export default function PageViewScreen({
               >
                 <ArrowLeft size={20} />
               </button>
-              <div style={{ position: "relative" }} ref={menuRef}>
-                <button
-                  aria-label="More options"
-                  onClick={() => setShowMenu((prev) => !prev)}
-                  style={{
+            <div style={{ position: "relative" }} ref={menuRef}>
+              <button
+                aria-label="More options"
+                onClick={() => setShowMenu((prev) => !prev)}
+                style={{
                     background: "rgba(0,0,0,0.5)",
                     backdropFilter: "blur(10px)",
                     width: 36,
@@ -335,13 +337,13 @@ export default function PageViewScreen({
                     border: "none",
                     color: "#fff",
                     cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <MoreVertical size={20} />
-                </button>
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <MoreVertical size={20} />
+              </button>
                 {showMenu && (
                   <div
                     style={{

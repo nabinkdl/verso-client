@@ -156,6 +156,10 @@ export default function PageTeamManager({ page, users, currentUserId }: PageTeam
       
       {/* Stats Bar */}
       <div style={{ display: 'flex', gap: 12, padding: '0 0 16px', overflowX: 'auto' }} className="hide-scrollbar">
+        <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '12px 16px', borderRadius: 12, flex: 1, minWidth: 100, border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+          <div style={{ color: '#a78bfa', fontSize: 12, marginBottom: 4 }}>Invites</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: '#c4b5fd' }}>{page.invitedUsers?.length || 0}</div>
+        </div>
         <div style={{ background: '#111', padding: '12px 16px', borderRadius: 12, flex: 1, minWidth: 100, border: '1px solid #222' }}>
           <div style={{ color: '#888', fontSize: 12, marginBottom: 4 }}>Total Members</div>
           <div style={{ fontSize: 24, fontWeight: 700 }}>{stats.total}</div>
@@ -177,7 +181,7 @@ export default function PageTeamManager({ page, users, currentUserId }: PageTeam
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: 12, flexDirection: 'column', marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }} className="hide-scrollbar">
-          {(['all', 'admin', 'moderator', 'editor', 'member', 'guest', 'custom', 'invite'] as const).map(role => (
+          {(['invite', 'all', 'admin', 'moderator', 'editor', 'member', 'guest', 'custom'] as const).map(role => (
             <button
               key={role}
               onClick={() => setFilterRole(role)}
@@ -194,7 +198,7 @@ export default function PageTeamManager({ page, users, currentUserId }: PageTeam
                 whiteSpace: 'nowrap'
               }}
             >
-              {role} {role === 'all' ? `(${members.length})` : role === 'invite' ? `(${nonMembers.length})` : ''}
+              {role} {role === 'all' ? `(${members.length})` : role === 'invite' ? `(${page.invitedUsers?.length || 0})` : ''}
             </button>
           ))}
         </div>

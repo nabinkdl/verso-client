@@ -1,15 +1,21 @@
 import { useState } from "react";
-import { Plus, MoreVertical, Inbox, Check, X, Search } from "lucide-react";
+import {
+  Plus,
+  Inbox,
+  Check,
+  X,
+  Search,
+  User,
+} from "lucide-react";
 import Avatar from "./Avatar";
 
-import { Page, User } from "../types";
 import { usePages } from "../contexts/PageContext";
 
 interface PageManagementScreenProps {
   currentUserId: string;
-  users: User[];
+  users: { id: string; name: string; username: string }[];
   onCreatePage: () => void;
-  onViewPage: (pageId: string) => void;
+  onViewPage: (pageId: string, initialTab?: "feed" | "members") => void;
 }
 
 type Tab = "my_pages" | "discover" | "requests" | "invites";
@@ -302,7 +308,7 @@ export default function PageManagementScreen({
               height: "40px",
               background: page.coverUrl
                 ? `url(${page.coverUrl}) center/cover`
-                : "linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))",
+                : "",
               borderBottom: "0.5px solid rgba(255,255,255,0.05)",
               zIndex: 0,
             }}
@@ -383,17 +389,58 @@ export default function PageManagementScreen({
               </div>
             </div>
             <button
+              onClick={() => onViewPage(page.id, "members")}
               style={{
-                background: "rgba(255,255,255,0.05)",
-                borderRadius: 12,
-                border: "none",
+                position: "absolute",
+                top: 14,
+                right: 14,
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                background: "rgba(17,17,17,0.92)",
+                border: "1px solid rgba(255,255,255,0.08)",
                 color: "#fff",
-                padding: 6,
+                display: "grid",
+                placeItems: "center",
                 cursor: "pointer",
-                marginTop: 4,
+                boxShadow: "0 8px 18px rgba(0,0,0,0.25)",
               }}
+              aria-label="Member notifications"
+              title={`Pending requests: ${page.joinRequests?.length || 0}`}
             >
-              <MoreVertical size={16} />
+              <div
+                style={{
+                  position: "relative",
+                  width: 18,
+                  height: 18,
+                  display: "grid",
+                  placeItems: "center",
+                }}
+              >
+                <User size={16} />
+                {(page.joinRequests?.length || 0) > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: -6,
+                      right: -7,
+                      minWidth: 16,
+                      height: 16,
+                      borderRadius: 999,
+                      background: "#ef4444",
+                      color: "#fff",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      display: "grid",
+                      placeItems: "center",
+                      padding: "0 4px",
+                      boxShadow: "0 0 0 2px #0c0c0c",
+                    }}
+                  >
+                    {page.joinRequests?.length || 0}
+                  </span>
+                )}
+              </div>
             </button>
           </div>
 
