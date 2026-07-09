@@ -3,7 +3,7 @@ import { Page, PageMember } from '../types';
 
 interface PageContextType {
   pages: Page[];
-  createPage: (name: string, category: string, description: string, visibility: string, currentUserId: string) => void;
+  createPage: (name: string, category: string, description: string, visibility: string, currentUserId: string, rules?: string[]) => string;
   joinPage: (pageId: string, currentUserId: string) => void;
   acceptJoinRequest: (pageId: string, userId: string, currentUserId: string) => void;
   rejectJoinRequest: (pageId: string, userId: string, currentUserId: string) => void;
@@ -12,7 +12,7 @@ interface PageContextType {
   rejectInvite: (pageId: string, currentUserId: string) => void;
   updatePageMember: (pageId: string, userId: string, role: PageMember['role'], permissions: string[], currentUserId: string) => void;
   removeMember: (pageId: string, userId: string, currentUserId: string) => void;
-  updatePageSettings: (pageId: string, name: string, description: string, category: string, visibility: string, currentUserId: string) => void;
+  updatePageSettings: (pageId: string, name: string, description: string, category: string, visibility: string, currentUserId: string, rules?: string[]) => void;
 }
 
 const PageContext = createContext<PageContextType | undefined>(undefined);
@@ -33,9 +33,9 @@ interface PageProviderProps {
 export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPages }) => {
   const [pages, setPages] = useState<Page[]>(initialPages);
 
-  const createPage = (name: string, category: string, description: string, visibility: string, currentUserId: string) => {
+  const createPage = (name: string, category: string, description: string, visibility: string, currentUserId: string, rules: string[] = []): string => {
     const newPage: Page = {
-      id: `p${Date.now()}`,
+      id: `page${Date.now()}`,
       name,
       category,
       description,
@@ -43,8 +43,10 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
       avatar: name.charAt(0).toUpperCase(),
       members: [{ userId: currentUserId, role: 'admin', joinedAt: new Date().toLocaleString('default', { month: 'short', year: 'numeric' }) }],
       isVerified: false,
+      rules,
     };
     setPages((prev) => [newPage, ...prev]);
+    return newPage.id;
   };
 
   const joinPage = (pageId: string, currentUserId: string) => {
@@ -161,7 +163,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
     }));
   };
 
-  const updatePageSettings = (pageId: string, name: string, description: string, category: string, visibility: string, currentUserId: string) => {
+  const updatePageSettings = (pageId: string, name: string, description: string, category: string, visibility: string, currentUserId: string, rules?: string[]) => {
     setPages(prev => prev.map(p => {
       if (p.id !== pageId) return p;
       const myRole = p.members.find(m => m.userId === currentUserId)?.role;
@@ -172,7 +174,8 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
         name,
         description,
         category,
-        visibility
+        visibility,
+        ...(rules ? { rules } : {}),
       };
     }));
   };

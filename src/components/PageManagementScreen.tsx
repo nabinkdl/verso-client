@@ -65,7 +65,7 @@ export default function PageManagementScreen({
     })),
   );
 
-  const tabs: Tab[] = ["my_pages", "discover", "requests", "invites"];
+  const tabs: Tab[] = ["my_pages", "discover", "requests"];
 
   const formatTabLabel = (tab: Tab) => {
     return tab

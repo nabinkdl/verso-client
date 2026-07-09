@@ -22,7 +22,8 @@ import RegisterScreen from "./components/RegisterScreen";
 import ForgetScreen from "./components/ForgetScreen";
 import PageManagementScreen from './components/PageManagementScreen';
 import PageViewScreen from './components/PageViewScreen';
-import CreatePageScreen from './components/CreatePageScreen';
+import CreatePageDialog from './components/CreatePageDialog';
+import ConfirmDialog from './components/ConfirmDialog';
 
 const makePostImage = (seed: string) => {
   const svg = `
@@ -98,6 +99,7 @@ function AppContent() {
   const [activePageId, setActivePageId] = useState<string | null>(null);
   const [newPostTargetPageId, setNewPostTargetPageId] = useState<string | null>(null);
   const [isCreatingPage, setIsCreatingPage] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   const pushNotification = (
     item: Omit<NotificationItem, "id" | "createdAt">,
@@ -466,9 +468,20 @@ function AppContent() {
           />
         )}
         {isCreatingPage && (
-          <CreatePageScreen
+          <CreatePageDialog
+            open={isCreatingPage}
             onClose={() => setIsCreatingPage(false)}
             currentUserId={CURRENT_USER_ID}
+            onCreated={(id) => {
+              pushNotification({
+                title: 'New page created',
+                message: 'Your new community is ready to grow.',
+                kind: 'post',
+              });
+              // Auto-navigate into the freshly-created page
+              setActivePageId(id);
+              setIsCreatingPage(false);
+            }}
           />
         )}
         {activeScreen === "chat" && (

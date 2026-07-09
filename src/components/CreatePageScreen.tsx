@@ -15,6 +15,7 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
     category: '',
     description: '',
     visibility: 'public',
+    rulesText: '',
     avatar: null as string | null,
   });
 
@@ -24,7 +25,11 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
   const handleBack = () => setStep(step - 1);
   const handleCreate = () => {
     if (!pageData.name.trim()) return;
-    createPage(pageData.name, pageData.category, pageData.description, pageData.visibility, currentUserId);
+    const rules = pageData.rulesText
+      .split('\n')
+      .map((rule) => rule.trim())
+      .filter(Boolean);
+    createPage(pageData.name, pageData.category, pageData.description, pageData.visibility, currentUserId, rules);
     onClose();
   };
 
@@ -108,39 +113,64 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
       case 2:
         return (
           <>
-            <h3 style={{ fontWeight: 700, fontSize: 18, margin: 0, marginBottom: 8 }}>Privacy Settings</h3>
-            <p style={{ color: '#8a8a8a', fontSize: 13, marginBottom: 20 }}>Choose who can see and join your page</p>
+            <h3 style={{ fontWeight: 700, fontSize: 18, margin: 0, marginBottom: 8 }}>Privacy & Rules</h3>
+            <p style={{ color: '#8a8a8a', fontSize: 13, marginBottom: 20 }}>Choose who can see and join your page, then add community rules</p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {[
-                { value: 'public', icon: Globe, label: 'Public', desc: 'Anyone can view and join' },
-                { value: 'private', icon: Lock, label: 'Private', desc: 'Only approved members can see content' },
-                { value: 'restricted', icon: Users, label: 'Restricted', desc: 'Members need approval to post' },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setPageData({ ...pageData, visibility: option.value })}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {[
+                  { value: 'public', icon: Globe, label: 'Public', desc: 'Anyone can view and join' },
+                  { value: 'private', icon: Lock, label: 'Private', desc: 'Only approved members can see content' },
+                  { value: 'restricted', icon: Users, label: 'Restricted', desc: 'Members need approval to post' },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setPageData({ ...pageData, visibility: option.value })}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 14,
+                      padding: '14px 16px',
+                      background: pageData.visibility === option.value ? 'rgba(255,255,255,0.05)' : 'transparent',
+                      border: pageData.visibility === option.value ? '1px solid #fff' : '0.5px solid #333',
+                      borderRadius: 14,
+                      color: '#fff',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      width: '100%',
+                    }}
+                  >
+                    <option.icon size={20} color={pageData.visibility === option.value ? '#fff' : '#666'} />
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>{option.label}</div>
+                      <div style={{ color: '#8a8a8a', fontSize: 12 }}>{option.desc}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>Community Rules <span style={{ color: '#8a8a8a', fontWeight: 400 }}>(optional)</span></label>
+                <textarea
+                  value={pageData.rulesText}
+                  onChange={(e) => setPageData({ ...pageData, rulesText: e.target.value })}
+                  placeholder={'Be respectful and constructive.\nNo spam or self-promotion.\nCredit sources and creators.'}
+                  rows={5}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 14,
-                    padding: '14px 16px',
-                    background: pageData.visibility === option.value ? 'rgba(255,255,255,0.05)' : 'transparent',
-                    border: pageData.visibility === option.value ? '1px solid #fff' : '0.5px solid #333',
-                    borderRadius: 14,
-                    color: '#fff',
-                    cursor: 'pointer',
-                    textAlign: 'left',
                     width: '100%',
+                    padding: '12px 16px',
+                    background: '#111',
+                    border: '0.5px solid #333',
+                    borderRadius: 12,
+                    color: '#fff',
+                    fontSize: 14,
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
                   }}
-                >
-                  <option.icon size={20} color={pageData.visibility === option.value ? '#fff' : '#666'} />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 14 }}>{option.label}</div>
-                    <div style={{ color: '#8a8a8a', fontSize: 12 }}>{option.desc}</div>
-                  </div>
-                </button>
-              ))}
+                />
+                <div style={{ color: '#8a8a8a', fontSize: 12, marginTop: 6 }}>Add one rule per line.</div>
+              </div>
             </div>
           </>
         );

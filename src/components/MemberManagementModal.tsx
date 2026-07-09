@@ -204,13 +204,13 @@ interface PageTeamManagerProps {
 
 const FILTER_ROLES = [
   "all",
+  "invite",
   "admin",
   "moderator",
   "editor",
   "member",
   "guest",
   "custom",
-  "invite",
 ] as const;
 type FilterRole = (typeof FILTER_ROLES)[number];
 

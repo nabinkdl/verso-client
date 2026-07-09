@@ -51,6 +51,9 @@ export default function PageViewScreen({
   const [settingsCategory, setSettingsCategory] = useState(page.category);
   const [settingsDesc, setSettingsDesc] = useState(page.description);
   const [settingsVisibility, setSettingsVisibility] = useState(page.visibility);
+  const [settingsRulesText, setSettingsRulesText] = useState(
+    (page.rules || []).join("\n"),
+  );
 
   // Reset settings when page changes
   useEffect(() => {
@@ -58,6 +61,7 @@ export default function PageViewScreen({
     setSettingsCategory(page.category);
     setSettingsDesc(page.description);
     setSettingsVisibility(page.visibility);
+    setSettingsRulesText((page.rules || []).join("\n"));
     setActiveTab("feed");
   }, [page.id]);
 
@@ -73,6 +77,11 @@ export default function PageViewScreen({
     return posts.filter((p) => p.pageId === page.id);
   }, [posts, page.id]);
 
+  const settingsRules = settingsRulesText
+    .split("\n")
+    .map((rule) => rule.trim())
+    .filter(Boolean);
+
   const handleSaveSettings = () => {
     updatePageSettings(
       page.id,
@@ -81,6 +90,7 @@ export default function PageViewScreen({
       settingsCategory,
       settingsVisibility,
       currentUserId,
+      settingsRules,
     );
     alert("Settings saved!");
   };
@@ -958,6 +968,33 @@ export default function PageViewScreen({
                 </option>
                 <option value="private">Private - Invite only</option>
               </select>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <label style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>
+                Community Rules
+              </label>
+              <textarea
+                value={settingsRulesText}
+                onChange={(e) => setSettingsRulesText(e.target.value)}
+                rows={5}
+                placeholder={
+                  "Be respectful and constructive.\nNo spam or self-promotion.\nCredit sources and creators."
+                }
+                style={{
+                  background: "#0c0c0c",
+                  border: "1px solid #333",
+                  color: "#fff",
+                  padding: "12px",
+                  borderRadius: 12,
+                  fontSize: 14,
+                  fontFamily: "inherit",
+                  resize: "vertical",
+                }}
+              />
+              <div style={{ color: "#666", fontSize: 12 }}>
+                Add one rule per line.
+              </div>
             </div>
 
             <button
