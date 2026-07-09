@@ -6,13 +6,12 @@ import {
   MessageCircle,
   PlusSquare,
   MoreHorizontal,
-  ChevronDown,
-  ChevronUp,
   PenLine,
   Trash2,
 } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
+import CommentDialog from "./CommentDialog";
 
 interface HomeScreenProps {
   posts: Post[];
@@ -46,16 +45,10 @@ export default function HomeScreen({
   onSearch,
 }: HomeScreenProps) {
   const [visible, setVisible] = useState(PAGE_SIZE);
-  const [commentPostId, setCommentPostId] = useState<string | null>(null);
-  const [expandedCommentsPostId, setExpandedCommentsPostId] = useState<
-    string | null
-  >(null);
+  const [commentDialogPostId, setCommentDialogPostId] = useState<string | null>(null);
   const [postMenuId, setPostMenuId] = useState<string | null>(null);
-  const [commentMenuId, setCommentMenuId] = useState<string | null>(null);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-  const [commentText, setCommentText] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -76,18 +69,8 @@ export default function HomeScreen({
     return () => container.removeEventListener("scroll", handleScroll);
   }, [posts.length]);
 
-  const submitComment = (postId: string) => {
-    if (commentText.trim()) {
-      onComment(postId, commentText.trim());
-      setCommentText("");
-      setCommentPostId(null);
-      setExpandedCommentsPostId(postId);
-    }
-  };
-
   const startEditPost = (postId: string, caption: string) => {
     setEditingPostId(postId);
-    setEditingCommentId(null);
     setEditText(caption);
     setPostMenuId(null);
   };
@@ -96,25 +79,6 @@ export default function HomeScreen({
     if (!editText.trim()) return;
     onEditPost(postId, editText.trim());
     setEditingPostId(null);
-    setEditText("");
-  };
-
-  const startEditComment = (
-    postId: string,
-    commentId: string,
-    text: string,
-  ) => {
-    setEditingCommentId(commentId);
-    setEditingPostId(null);
-    setEditText(text);
-    setCommentMenuId(null);
-    setExpandedCommentsPostId(postId);
-  };
-
-  const saveCommentEdit = (postId: string, commentId: string) => {
-    if (!editText.trim()) return;
-    onEditComment(postId, commentId, editText.trim());
-    setEditingCommentId(null);
     setEditText("");
   };
 
@@ -221,10 +185,6 @@ export default function HomeScreen({
         if (!author) return null;
         const isLiked = post.likes.includes(currentUserId);
         const mediaSource = post.mediaUrl ?? post.imageUrl;
-        const commentsExpanded = expandedCommentsPostId === post.id;
-        const commentsToShow = commentsExpanded
-          ? post.comments
-          : post.comments.slice(0, 2);
         return (
           <div
             key={post.id}
@@ -385,13 +345,11 @@ export default function HomeScreen({
               </button>
               <button
                 type="button"
-                onClick={() =>
-                  setCommentPostId(commentPostId === post.id ? null : post.id)
-                }
+                onClick={() => setCommentDialogPostId(post.id)}
                 style={{
                   background: "none",
                   border: "none",
-                  color: commentsExpanded ? "#fff" : "#ddd",
+                  color: "#ddd",
                   fontSize: 14,
                   cursor: "pointer",
                   display: "flex",
@@ -402,11 +360,6 @@ export default function HomeScreen({
               >
                 <MessageCircle size={22} />
                 <span style={{ color: "#aaa" }}>{post.comments.length}</span>
-                {commentsExpanded ? (
-                  <ChevronUp size={14} />
-                ) : (
-                  <ChevronDown size={14} />
-                )}
               </button>
             </div>
 
@@ -432,262 +385,21 @@ export default function HomeScreen({
                 post.caption
               )}
             </div>
-
-            {post.comments.length > 0 && (
-              <div
-                style={{
-                  marginTop: 8,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    setExpandedCommentsPostId(commentsExpanded ? null : post.id)
-                  }
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "#9f9f9f",
-                    cursor: "pointer",
-                    padding: 0,
-                    alignSelf: "flex-start",
-                    fontSize: 12,
-                    fontWeight: 600,
-                  }}
-                >
-                  {commentsExpanded
-                    ? "hide comments"
-                    : `view all ${post.comments.length} comments`}
-                </button>
-
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 10,
-                    maxHeight: commentsExpanded ? 220 : 86,
-                    overflowY: commentsExpanded ? "auto" : "hidden",
-                    paddingRight: 4,
-                  }}
-                >
-                  {commentsToShow.map((comment, index) => {
-                    const commentAuthor = getUserById(comment.userId);
-                    const isOwnComment = comment.userId === currentUserId;
-                    const isEditingComment = editingCommentId === comment.id;
-                    return (
-                      <div
-                        key={`${post.id}-comment-${index}`}
-                        style={{
-                          display: "flex",
-                          gap: 10,
-                          alignItems: "flex-start",
-                          background: "#111",
-                          border: "0.5px solid #262626",
-                          borderRadius: 14,
-                          padding: "10px 12px",
-                          position: "relative",
-                        }}
-                      >
-                        <Avatar name={commentAuthor?.name ?? "A"} size="sm" />
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 8,
-                              marginBottom: 4,
-                            }}
-                          >
-                            <strong style={{ fontSize: 12 }}>
-                              {commentAuthor?.username ?? "unknown"}
-                            </strong>
-                            <span style={{ fontSize: 11, color: "#777" }}>
-                              comment
-                            </span>
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 13,
-                              color: "#e5e5e5",
-                              lineHeight: 1.45,
-                              wordBreak: "break-word",
-                            }}
-                          >
-                            {isEditingComment ? (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  gap: 8,
-                                  marginTop: 8,
-                                }}
-                              >
-                                <input
-                                  autoFocus
-                                  value={editText}
-                                  onChange={(e) => setEditText(e.target.value)}
-                                  style={editInputStyle}
-                                />
-                                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                                  <button
-                                    type="button"
-                                    onClick={() => setEditingCommentId(null)}
-                                    style={{ background: "transparent", color: "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, padding: "8px 12px" }}
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => saveCommentEdit(post.id, comment.id)}
-                                    style={saveButtonStyle}
-                                  >
-                                    Save
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              comment.text
-                            )}
-                          </div>
-                        </div>
-
-                        {isOwnComment && !isEditingComment && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setCommentMenuId(
-                                commentMenuId === comment.id
-                                  ? null
-                                  : comment.id,
-                              )
-                            }
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              color: "#8f8f8f",
-                              cursor: "pointer",
-                              padding: 4,
-                              alignSelf: "center",
-                            }}
-                            aria-label="Comment actions"
-                          >
-                            <MoreHorizontal size={14} />
-                          </button>
-                        )}
-
-                        {commentMenuId === comment.id && isOwnComment && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              right: 24,
-                              top: 24,
-                              background: "#1a1a1a",
-                              border: "0.5px solid #333",
-                              borderRadius: 12,
-                              padding: 8,
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: 4,
-                              minWidth: 140,
-                              zIndex: 10,
-                              boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
-                            }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => startEditComment(post.id, comment.id, comment.text)}
-                              style={{ background: "transparent", border: "none", color: "#fff", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
-                            >
-                              Edit Comment
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => onDeleteComment(post.id, comment.id)}
-                              style={{ background: "transparent", border: "none", color: "#ff4d4d", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
-                            >
-                              Delete Comment
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCommentPostId(commentPostId === post.id ? null : post.id)
-                  }
-                  style={{
-                    alignSelf: "flex-start",
-                    background: "transparent",
-                    border: "none",
-                    color: "#ffffff",
-                    cursor: "pointer",
-                    padding: 0,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    opacity: 0.9,
-                  }}
-                >
-                  {commentPostId === post.id
-                    ? "close reply"
-                    : "write a comment"}
-                </button>
-              </div>
-            )}
-
-            {commentPostId === post.id && (
-              <div
-                style={{
-                  marginTop: 10,
-                  display: "flex",
-                  gap: 8,
-                  alignItems: "center",
-                }}
-              >
-                <input
-                  autoFocus
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && submitComment(post.id)}
-                  placeholder="add a comment..."
-                  style={{
-                    flex: 1,
-                    background: "#0f0f0f",
-                    border: "0.5px solid #303030",
-                    borderRadius: 18,
-                    padding: "10px 12px",
-                    color: "white",
-                    fontSize: 13,
-                    fontFamily: "inherit",
-                  }}
-                />
-                <button
-                  onClick={() => submitComment(post.id)}
-                  style={{
-                    background: "linear-gradient(135deg, #ffffff, #d8d8d8)",
-                    color: "black",
-                    border: "none",
-                    borderRadius: 16,
-                    padding: "0 14px",
-                    fontWeight: 700,
-                    fontSize: 13,
-                    cursor: "pointer",
-                    height: 40,
-                  }}
-                >
-                  post
-                </button>
-              </div>
-            )}
           </div>
         );
       })}
+
+      {commentDialogPostId && (
+        <CommentDialog
+          post={posts.find(p => p.id === commentDialogPostId)!}
+          users={users}
+          currentUserId={currentUserId}
+          onClose={() => setCommentDialogPostId(null)}
+          onComment={onComment}
+          onEditComment={onEditComment}
+          onDeleteComment={onDeleteComment}
+        />
+      )}
 
       <div
         ref={bottomRef}

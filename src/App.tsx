@@ -445,6 +445,10 @@ function AppContent() {
               setNewPostTargetPageId(activePageId);
               setActiveScreen("newPost");
             }}
+            onLike={handleLike}
+            onComment={handleComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
           />
         )}
         {isCreatingPage && (
@@ -486,6 +490,8 @@ function AppContent() {
             onEditPost={handleEditPost}
             onDeletePost={handleDeletePost}
             onMessage={() => handleMessageUser(profileUserId)}
+            onLike={handleLike}
+            onComment={handleComment}
           />
         )}
         {isLoggedIn && <BottomNav active={activeScreen} onChange={handleNav} />}

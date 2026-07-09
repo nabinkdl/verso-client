@@ -17,6 +17,7 @@ import {
   BadgeCheck,
 } from "lucide-react";
 import Avatar from "./Avatar";
+import CommentDialog from "./CommentDialog";
 
 import { usePages } from "../contexts/PageContext";
 import { Page, Post, User } from "../types";
@@ -33,6 +34,10 @@ interface PageViewScreenProps {
   onNewPostClick?: () => void;
   initialTab?: Tab;
   defaultMemberFilter?: 'all' | 'invite';
+  onLike: (postId: string) => void;
+  onComment: (postId: string, text: string) => void;
+  onEditComment: (postId: string, commentId: string, text: string) => void;
+  onDeleteComment: (postId: string, commentId: string) => void;
 }
 
 const ALL_TABS: Tab[] = [
@@ -55,6 +60,10 @@ export default function PageViewScreen({
   onNewPostClick,
   initialTab,
   defaultMemberFilter,
+  onLike,
+  onComment,
+  onEditComment,
+  onDeleteComment,
 }: PageViewScreenProps) {
   const { joinPage, updatePageSettings, leavePage, addEvent, requestPageVerification } = usePages();
   const [activeTab, setActiveTab] = useState<Tab>(initialTab || "feed");
@@ -64,6 +73,7 @@ export default function PageViewScreen({
   const [postText, setPostText] = useState("");
   const [postImage, setPostImage] = useState<string | null>(null);
   const [isPosting, setIsPosting] = useState(false);
+  const [commentDialogPostId, setCommentDialogPostId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -870,28 +880,38 @@ export default function PageViewScreen({
                       </div>
                     )}
                     <div style={{ display: "flex", gap: 16 }}>
-                      <div
+                      <button
+                        onClick={() => onLike(post.id)}
                         style={{
                           display: "flex",
                           alignItems: "center",
                           gap: 6,
                           color: "#8a8a8a",
                           fontSize: 13,
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
                         }}
                       >
-                        <Heart size={16} /> {post.likes.length}
-                      </div>
-                      <div
+                        <Heart size={16} color={post.likes.includes(currentUserId) ? "#ff4d6d" : "#8a8a8a"} fill={post.likes.includes(currentUserId) ? "#ff4d6d" : "none"} /> {post.likes.length}
+                      </button>
+                      <button
+                        onClick={() => setCommentDialogPostId(post.id)}
                         style={{
                           display: "flex",
                           alignItems: "center",
                           gap: 6,
                           color: "#8a8a8a",
                           fontSize: 13,
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
                         }}
                       >
                         <MessageCircle size={16} /> {post.comments.length}
-                      </div>
+                      </button>
                     </div>
                   </div>
                 );
@@ -1597,6 +1617,18 @@ export default function PageViewScreen({
             </div>
           </div>
         </div>
+      )}
+
+      {commentDialogPostId && (
+        <CommentDialog
+          post={posts.find(p => p.id === commentDialogPostId)!}
+          users={users}
+          currentUserId={currentUserId}
+          onClose={() => setCommentDialogPostId(null)}
+          onComment={onComment}
+          onEditComment={onEditComment}
+          onDeleteComment={onDeleteComment}
+        />
       )}
 
       <style>{`

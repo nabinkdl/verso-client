@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Heart, MessageCircle, MoreHorizontal, Play, Shield } from "lucide-react";
+import { ArrowLeft, Heart, MessageCircle, MoreHorizontal, Play, Shield, AlertTriangle, Trash2 } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
+import CommentDialog from "./CommentDialog";
 
 interface ProfileScreenProps {
   profileUserId: string;
@@ -14,6 +15,8 @@ interface ProfileScreenProps {
   onEditPost: (postId: string, caption: string) => void;
   onDeletePost: (postId: string) => void;
   onMessage: () => void;
+  onLike: (postId: string) => void;
+  onComment: (postId: string, text: string) => void;
 }
 
 export default function ProfileScreen({
@@ -27,6 +30,8 @@ export default function ProfileScreen({
   onEditPost,
   onDeletePost,
   onMessage,
+  onLike,
+  onComment,
 }: ProfileScreenProps) {
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState("");
@@ -35,6 +40,10 @@ export default function ProfileScreen({
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editCaption, setEditCaption] = useState("");
   const [activeUserListType, setActiveUserListType] = useState<"followers" | "following" | null>(null);
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [expandedComments, setExpandedComments] = useState(false);
+  const [showCommentDialog, setShowCommentDialog] = useState(false);
 
   const user = users.find((u) => u.id === profileUserId);
   const userPosts = useMemo(
@@ -59,6 +68,17 @@ export default function ProfileScreen({
       document.body.style.overflow = originalOverflow;
     };
   }, [selectedPost]);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-header-menu]')) {
+        setHeaderMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
 
   if (!user) return null;
 
@@ -101,8 +121,10 @@ export default function ProfileScreen({
         >
           <div style={{ width: 28 }} />
           <div style={{ fontSize: 16, fontWeight: 700 }}>{user.username}</div>
+          <div style={{ position: "relative" }} data-header-menu>
           <button
             type="button"
+            onClick={() => setHeaderMenuOpen(!headerMenuOpen)}
             style={{
               background: "none",
               border: "none",
@@ -113,6 +135,52 @@ export default function ProfileScreen({
           >
             <MoreHorizontal size={20} />
           </button>
+          {headerMenuOpen && (
+            <div
+              style={{
+                position: "absolute",
+                top: 36,
+                right: 0,
+                background: "#1a1a1a",
+                border: "0.5px solid #333",
+                borderRadius: 12,
+                padding: 8,
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                minWidth: 180,
+                zIndex: 10,
+                boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+              }}
+            >
+              {isOwn ? (
+                <button
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to request account deletion? This action cannot be undone.")) {
+                      window.alert("Account deletion requested.");
+                    }
+                    setHeaderMenuOpen(false);
+                  }}
+                  style={{ background: "transparent", border: "none", color: "#ff4d4d", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                >
+                  <Trash2 size={16} />
+                  Request Delete Account
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    window.alert("Thanks — your report has been submitted.");
+                    setHeaderMenuOpen(false);
+                  }}
+                  style={{ background: "transparent", border: "none", color: "#fca5a5", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                >
+                  <AlertTriangle size={16} />
+                  Report Account
+                </button>
+              )}
+            </div>
+          )}
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -493,19 +561,26 @@ export default function ProfileScreen({
                 </div>
 
                 <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                  <div
+                  <button
+                    onClick={() => onLike(selectedPost.id)}
                     style={{
                       display: "flex",
                       alignItems: "center",
                       gap: 6,
                       fontSize: 14,
                       fontWeight: 600,
+                      background: "none",
+                      border: "none",
+                      color: "#fff",
+                      cursor: "pointer",
+                      padding: 0,
                     }}
                   >
-                    <Heart size={20} color="#ff4d6d" fill="#ff4d6d" />
+                    <Heart size={20} color={selectedPost.likes.includes(currentUserId) ? "#ff4d6d" : "#fff"} fill={selectedPost.likes.includes(currentUserId) ? "#ff4d6d" : "none"} />
                     {selectedPost.likes.length}
-                  </div>
-                  <div
+                  </button>
+                  <button
+                    onClick={() => setShowCommentDialog(true)}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -513,11 +588,15 @@ export default function ProfileScreen({
                       color: "#cfcfcf",
                       fontSize: 14,
                       fontWeight: 600,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: 0,
                     }}
                   >
                     <MessageCircle size={20} />
                     {selectedPost.comments.length}
-                  </div>
+                  </button>
                 </div>
 
                 <div>
@@ -575,46 +654,22 @@ export default function ProfileScreen({
                   </div>
                 </div>
 
-                {selectedPost.comments.length > 0 && (
-                  <div
-                    style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 12 }}
-                  >
-                    <div
-                      style={{ color: "#aaa", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}
-                    >
-                      Comments ({selectedPost.comments.length})
-                    </div>
-                    {selectedPost.comments.slice(0, 3).map((comment, index) => {
-                      const commentUser = users.find(
-                        (candidate) => candidate.id === comment.userId,
-                      );
-                      return (
-                        <div
-                          key={`${selectedPost.id}-comment-${index}`}
-                          style={{ display: "flex", gap: 12, alignItems: "flex-start" }}
-                        >
-                          <Avatar name={commentUser?.name ?? "U"} size="sm" />
-                          <div style={{ flex: 1, marginTop: 2 }}>
-                            <div
-                              style={{
-                                fontSize: 13,
-                                lineHeight: 1.4,
-                                color: "#eee",
-                              }}
-                            >
-                              <strong style={{ fontWeight: 600 }}>{commentUser?.username ?? "user"}</strong>{" "}
-                              {comment.text}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {showCommentDialog && selectedPost && (
+        <CommentDialog
+          post={selectedPost}
+          users={users}
+          currentUserId={currentUserId}
+          onClose={() => setShowCommentDialog(false)}
+          onComment={onComment}
+          onEditComment={onEditComment}
+          onDeleteComment={onDeleteComment}
+        />
       )}
 
       {activeUserListType && (
