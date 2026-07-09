@@ -14,6 +14,7 @@ import {
   Send,
   X,
   Plus,
+  BadgeCheck,
 } from "lucide-react";
 import Avatar from "./Avatar";
 
@@ -43,6 +44,7 @@ const ALL_TABS: Tab[] = [
   "settings",
 ];
 const MEMBER_TABS: Tab[] = ["feed", "events", "members", "about"];
+const VISITOR_TABS: Tab[] = ["feed", "events", "about"];
 
 export default function PageViewScreen({
   page,
@@ -54,7 +56,7 @@ export default function PageViewScreen({
   initialTab,
   defaultMemberFilter,
 }: PageViewScreenProps) {
-  const { joinPage, updatePageSettings, leavePage, addEvent } = usePages();
+  const { joinPage, updatePageSettings, leavePage, addEvent, requestPageVerification } = usePages();
   const [activeTab, setActiveTab] = useState<Tab>(initialTab || "feed");
   const [showMenu, setShowMenu] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -137,10 +139,13 @@ export default function PageViewScreen({
   const myRole = page.members.find((m) => m.userId === currentUserId)?.role;
   const isMember = !!myRole;
   const isAdminOrEditor = myRole === "admin" || myRole === "editor";
+  const canManageTeam = myRole === "admin" || myRole === "moderator";
 
   const tabs = useMemo(() => {
-    return isAdminOrEditor ? ALL_TABS : MEMBER_TABS;
-  }, [isAdminOrEditor]);
+    if (!isMember) return VISITOR_TABS;
+    if (canManageTeam) return ALL_TABS;
+    return MEMBER_TABS;
+  }, [isMember, canManageTeam]);
 
   const pagePosts = useMemo(() => {
     return posts.filter((p) => p.pageId === page.id);
@@ -408,6 +413,31 @@ export default function PageViewScreen({
                       <Flag size={16} />
                       Report Page
                     </button>
+                    {!page.isVerified && myRole === "admin" && (
+                      <button
+                        onClick={() => {
+                          requestPageVerification(page.id, currentUserId);
+                          setShowMenu(false);
+                        }}
+                        style={{
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "10px 12px",
+                          background: "transparent",
+                          border: "none",
+                          color: "#60a5fa",
+                          borderRadius: 12,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          fontSize: 14,
+                        }}
+                      >
+                        <BadgeCheck size={16} />
+                        Request Verification
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -569,7 +599,7 @@ export default function PageViewScreen({
               }}
             >
               {tab === "members"
-                ? "Manage Team"
+                ? (canManageTeam ? "Manage Team" : "Members")
                 : tab.charAt(0).toUpperCase() + tab.slice(1)}
               {tab === "members" && (page.joinRequests?.length || 0) > 0 && (
                 <span style={{ marginLeft: 6, width: 8, height: 8, borderRadius: 4, background: "#ff4d6d", display: "inline-block", flexShrink: 0 }} />

@@ -187,7 +187,6 @@ const TEMPLATES: Record<AdminRole, string[]> = {
     "dm",
     "mention",
   ],
-  guest: ["read"],
   custom: [],
 };
 
@@ -209,7 +208,6 @@ const FILTER_ROLES = [
   "moderator",
   "editor",
   "member",
-  "guest",
   "custom",
 ] as const;
 type FilterRole = (typeof FILTER_ROLES)[number];
@@ -227,7 +225,6 @@ const ROLE_BADGE_STYLES: Record<string, { bg: string; color: string }> = {
   editor: { bg: "rgba(139, 92, 246, 0.15)", color: "#a78bfa" },
   custom: { bg: "rgba(236, 72, 153, 0.15)", color: "#f472b6" },
   member: { bg: "rgba(255, 255, 255, 0.1)", color: "#aaa" },
-  guest: { bg: "rgba(255, 255, 255, 0.1)", color: "#aaa" },
 };
 
 export default function PageTeamManager({
@@ -831,7 +828,6 @@ export default function PageTeamManager({
                       "editor",
                       "moderator",
                       "member",
-                      "guest",
                     ] as AdminRole[]
                   ).map((r) => (
                     <button

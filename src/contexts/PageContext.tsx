@@ -16,6 +16,7 @@ interface PageContextType {
   removeMember: (pageId: string, userId: string, currentUserId: string) => void;
   updatePageSettings: (pageId: string, name: string, description: string, category: string, visibility: string, currentUserId: string, rules?: string[]) => void;
   addEvent: (pageId: string, title: string, description: string, date: number, currentUserId: string) => void;
+  requestPageVerification: (pageId: string, currentUserId: string) => void;
 }
 
 const PageContext = createContext<PageContextType | undefined>(undefined);
@@ -221,11 +222,22 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
     }));
   };
 
+  const requestPageVerification = (pageId: string, currentUserId: string) => {
+    setPages(prev => prev.map(p => {
+      if (p.id !== pageId) return p;
+      const myRole = p.members.find(m => m.userId === currentUserId)?.role;
+      if (myRole !== 'admin') return p;
+
+      return { ...p, isVerified: true };
+    }));
+  };
+
   return (
     <PageContext.Provider value={{
       pages, createPage, joinPage, leavePage, acceptJoinRequest, rejectJoinRequest,
       inviteUser, cancelInvite, acceptInvite, rejectInvite,
-      updatePageMember, removeMember, updatePageSettings, addEvent
+      updatePageMember, removeMember, updatePageSettings, addEvent,
+      requestPageVerification
     }}>
       {children}
     </PageContext.Provider>

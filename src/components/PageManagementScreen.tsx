@@ -42,9 +42,14 @@ export default function PageManagementScreen({
   );
   const categories = [
     "All",
-    ...Array.from(
-      new Set(discoverPages.map((p) => p.category).filter(Boolean)),
-    ),
+    "Technology",
+    "Art & Design",
+    "Music",
+    "Sports",
+    "Food",
+    "Travel",
+    "Fashion",
+    "Other",
   ];
 
   const filteredDiscoverPages = discoverPages
@@ -390,6 +395,7 @@ export default function PageManagementScreen({
                 </div>
               </div>
             </div>
+            {activeTab !== "discover" && (
             <button
               onClick={() => onViewPage(page.id, "members", "invite")}
               style={{
@@ -444,6 +450,7 @@ export default function PageManagementScreen({
                 )}
               </div>
             </button>
+            )}
           </div>
 
           {/* Role badge and actions */}

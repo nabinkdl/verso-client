@@ -18,7 +18,7 @@ const categories = [
   "Food",
   "Travel",
   "Fashion",
-  "Education",
+  "Other",
 ];
 
 const visibilityOptions = [
@@ -488,79 +488,42 @@ export default function CreatePageDialog({
                   </div>
 
                   {/* Summary preview */}
-                  <div
+                  <button
+                    onClick={handleCreate}
+                    disabled={!canProceed}
                     style={{
+                      width: "100%",
+                      padding: "16px",
                       marginTop: 28,
-                      padding: 16,
-                      background: "#0f0f0f",
-                      border: "1px solid #2a2a2a",
+                      background: !canProceed ? "#1f1f1f" : "#fff",
+                      color: !canProceed ? "#555" : "#000",
+                      border: "none",
                       borderRadius: 16,
+                      fontWeight: 700,
+                      fontSize: 16,
+                      cursor: !canProceed ? "not-allowed" : "pointer",
+                      transition: "all 0.2s",
+                      transform: "scale(1)",
                     }}
+                    onMouseDown={(e) => {
+                      if (canProceed)
+                        e.currentTarget.style.transform = "scale(0.98)";
+                    }}
+                    onMouseUp={(e) =>
+                      (e.currentTarget.style.transform = "scale(1)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.transform = "scale(1)")
+                    }
                   >
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: "#666",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: 0.5,
-                        marginBottom: 12,
-                      }}
-                    >
-                      Summary
-                    </div>
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 12 }}
-                    >
-                      <div
-                        style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 14,
-                          background: "#0f0f0f",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 22,
-                          fontWeight: 700,
-                          color: "#fff",
-                        }}
-                      >
-                        {pageData.name.charAt(0).toUpperCase() || "P"}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 15 }}>
-                          {pageData.name || "Unnamed"}
-                        </div>
-                        <div
-                          style={{ color: "#888", fontSize: 13, marginTop: 2 }}
-                        >
-                          {pageData.category || "No category"} ·{" "}
-                          {pageData.visibility}
-                        </div>
-                        {pageData.rulesText.trim() && (
-                          <div
-                            style={{
-                              color: "#666",
-                              fontSize: 12,
-                              marginTop: 6,
-                            }}
-                          >
-                            {
-                              pageData.rulesText.split("\n").filter(Boolean)
-                                .length
-                            }{" "}
-                            community rule(s)
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                    Create Page
+                  </button>
                 </div>
               )}
             </div>
 
             {/* Footer */}
+            {step === 1 && (
             <div
               style={{
                 padding: "16px 20px 24px",
@@ -568,7 +531,7 @@ export default function CreatePageDialog({
               }}
             >
               <button
-                onClick={step === 2 ? handleCreate : handleNext}
+                onClick={handleNext}
                 disabled={!canProceed}
                 style={{
                   width: "100%",
@@ -594,9 +557,10 @@ export default function CreatePageDialog({
                   (e.currentTarget.style.transform = "scale(1)")
                 }
               >
-                {step === 2 ? "Create Page" : "Continue"}
+                Continue
               </button>
             </div>
+            )}
           </>
         )}
 

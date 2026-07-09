@@ -85,7 +85,7 @@ export type Screen = 'login' | 'register' | 'forget' | 'home' | 'search' | 'newP
   | "admin";
 
 // Admin / RBAC Types
-export type AdminRole = 'admin' | 'editor' | 'moderator' | 'member' | 'guest' | 'custom';
+export type AdminRole = 'admin' | 'editor' | 'moderator' | 'member' | 'custom';
 export type UserStatus = 'active' | 'pending' | 'suspended';
 
 export interface PermissionDef {

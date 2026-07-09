@@ -35,10 +35,8 @@ const TEMPLATES: Record<AdminRole, string[]> = {
   editor: ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','view_reports','pin_posts'],
   moderator: ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','suspend','ban','view_reports','pin_posts'],
   member: ['read','post','comment','like','edit_own','follow','dm','mention'],
-  guest: ['read'],
   custom: []
 };
-
 interface PageTeamManagerProps {
   page: Page;
   users: User[];
@@ -182,7 +180,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: 12, flexDirection: 'column', marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }} className="hide-scrollbar">
-          {(['invite', 'all', 'admin', 'moderator', 'editor', 'member', 'guest', 'custom'] as const).map(role => (
+          {(['invite', 'all', 'admin', 'moderator', 'editor', 'member', 'custom'] as const).map(role => (
             <button
               key={role}
               onClick={() => setFilterRole(role)}
@@ -381,7 +379,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
               <div style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#aaa', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Quick Templates</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {(['admin', 'editor', 'moderator', 'member', 'guest'] as AdminRole[]).map(r => (
+                  {(['admin', 'editor', 'moderator', 'member'] as AdminRole[]).map(r => (
                     <button
                       key={r}
                       onClick={() => handleApplyTemplate(r)}
