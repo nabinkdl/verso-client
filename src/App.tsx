@@ -420,18 +420,45 @@ function AppContent() {
           />
         )}
         {activeScreen === "newPost" && (
-          <NewPostScreen
-            targetPageName={newPostTargetPageId ? pages.find(p => p.id === newPostTargetPageId)?.name : undefined}
-            onClose={() => {
-              setNewPostTargetPageId(null);
-              setActiveScreen(newPostTargetPageId ? "pages" : "home");
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 80,
+              background: "rgba(0,0,0,0.72)",
+              backdropFilter: "blur(14px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 16,
             }}
-            onPublish={(caption, media) => {
-              handlePublish(caption, media, newPostTargetPageId || undefined);
-              setNewPostTargetPageId(null);
-              setActiveScreen(newPostTargetPageId ? "pages" : "home");
-            }}
-          />
+          >
+            <div
+              style={{
+                width: "100%",
+                maxWidth: 460,
+                maxHeight: "92vh",
+                borderRadius: 28,
+                overflow: "hidden",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                background: "#090909",
+              }}
+            >
+              <NewPostScreen
+                targetPageName={newPostTargetPageId ? pages.find(p => p.id === newPostTargetPageId)?.name : undefined}
+                onClose={() => {
+                  setNewPostTargetPageId(null);
+                  setActiveScreen(newPostTargetPageId ? "pages" : "home");
+                }}
+                onPublish={(caption, media) => {
+                  handlePublish(caption, media, newPostTargetPageId || undefined);
+                  setNewPostTargetPageId(null);
+                  setActiveScreen(newPostTargetPageId ? "pages" : "home");
+                }}
+              />
+            </div>
+          </div>
         )}{activeScreen === "reels" && (
           <ReelScreen
             posts={posts}

@@ -5,6 +5,7 @@ interface PageContextType {
   pages: Page[];
   createPage: (name: string, category: string, description: string, visibility: string, currentUserId: string, rules?: string[]) => string;
   joinPage: (pageId: string, currentUserId: string) => void;
+  leavePage: (pageId: string, currentUserId: string) => void;
   acceptJoinRequest: (pageId: string, userId: string, currentUserId: string) => void;
   rejectJoinRequest: (pageId: string, userId: string, currentUserId: string) => void;
   inviteUser: (pageId: string, targetUserId: string, currentUserId: string) => void;
@@ -66,6 +67,16 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
           joinRequests: [...(p.joinRequests || []), currentUserId]
         };
       }
+    }));
+  };
+
+  const leavePage = (pageId: string, currentUserId: string) => {
+    setPages(prev => prev.map(p => {
+      if (p.id !== pageId) return p;
+      return {
+        ...p,
+        members: p.members.filter(m => m.userId !== currentUserId)
+      };
     }));
   };
 
@@ -182,7 +193,7 @@ export const PageProvider: React.FC<PageProviderProps> = ({ children, initialPag
 
   return (
     <PageContext.Provider value={{
-      pages, createPage, joinPage, acceptJoinRequest, rejectJoinRequest,
+      pages, createPage, joinPage, leavePage, acceptJoinRequest, rejectJoinRequest,
       inviteUser, acceptInvite, rejectInvite,
       updatePageMember, removeMember, updatePageSettings
     }}>
