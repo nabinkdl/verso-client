@@ -17,6 +17,7 @@ import ProfileScreen from "./components/ProfileScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ForgetScreen from "./components/ForgetScreen";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const CURRENT_USER_ID = "u1";
 
@@ -402,6 +403,7 @@ export default function App() {
         )}
         {isLoggedIn && <BottomNav active={activeScreen} onChange={handleNav} />}
       </div>
+      <SpeedInsights />
     </div>
   );
 }
