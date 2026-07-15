@@ -2,15 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
+:root {
+  --bg: #ffffff;
+  --bg-secondary: #f2f2f7;
+  --bg-card: #ffffff;
+  --bg-input: #f0f0f0;
+  --bg-overlay: rgba(0,0,0,0.4);
+  --text: #000000;
+  --text-secondary: #8e8e93;
+  --text-tertiary: #aeaeb2;
+  --border: #d1d1d6;
+  --border-light: #e5e5ea;
+  --separator: #c6c6c8;
+  --shadow: 0 0 0 0.5px #d1d1d6, 0 20px 35px -12px rgba(0,0,0,0.12);
+  --accent: #3b82f6;
+  --danger: #ff3b30;
+  --heart: #ff2d55;
+}
+
+.dark {
+  --bg: #000000;
+  --bg-secondary: #0c0c0c;
+  --bg-card: #0c0c0c;
+  --bg-input: #1a1a1a;
+  --bg-overlay: rgba(0,0,0,0.6);
+  --text: #ffffff;
+  --text-secondary: #8e8e93;
+  --text-tertiary: #636366;
+  --border: #38383a;
+  --border-light: #2c2c2e;
+  --separator: #38383a;
+  --shadow: 0 0 0 0.5px #38383a, 0 20px 35px -12px rgba(0,0,0,0.8);
+  --accent: #3b82f6;
+  --danger: #ff453a;
+  --heart: #ff375f;
+}
+
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, fill 0.2s ease;
 }
 
 body {
-  background: #000;
-  color: #fff;
+  background: var(--bg);
+  color: var(--text);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
 }
 
 input, textarea, button {
@@ -19,17 +61,17 @@ input, textarea, button {
 
 input::placeholder,
 textarea::placeholder {
-  color: #555;
+  color: var(--text-tertiary);
 }
 
 ::-webkit-scrollbar {
   width: 3px;
 }
 ::-webkit-scrollbar-track {
-  background: #111;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #444;
+  background: var(--text-tertiary);
   border-radius: 10px;
 }
 

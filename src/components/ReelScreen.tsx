@@ -29,7 +29,7 @@ export default function ReelScreen({
   const activePost = activeCommentPostId ? posts.find(p => p.id === activeCommentPostId) : null;
 
   return (
-    <div style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", background: "#000" }}>
+    <div style={{ flex: 1, position: "relative", display: "flex", flexDirection: "column", background: "var(--bg)" }}>
       {/* Header overlay */}
       <div
         style={{
@@ -45,8 +45,8 @@ export default function ReelScreen({
         }}
       >
         <div>
-          <h2 style={{ fontWeight: 800, fontSize: 22, margin: 0, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>reels</h2>
-          <div style={{ fontSize: 12, color: "#ddd", marginTop: 4, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
+          <h2 style={{ fontWeight: 800, fontSize: 22, margin: 0 }}>reels</h2>
+          <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>
             short videos and fast cuts
           </div>
         </div>
@@ -55,14 +55,14 @@ export default function ReelScreen({
             width: 42,
             height: 42,
             borderRadius: 14,
-            background: "rgba(17,17,17,0.5)",
+            background: "color-mix(in srgb, var(--bg) 80%, transparent)",
             backdropFilter: "blur(10px)",
             display: "grid",
             placeItems: "center",
-            border: "0.5px solid rgba(255,255,255,0.1)",
+            border: "0.5px solid var(--border)",
           }}
         >
-          <Play size={18} color="#fff" />
+          <Play size={18} color="var(--text)" />
         </div>
       </div>
 

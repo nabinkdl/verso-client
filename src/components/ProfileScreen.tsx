@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Heart, MessageCircle, MoreHorizontal, Play } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
+import CommentDialog from "./CommentDialog";
 
 interface ProfileScreenProps {
   profileUserId: string;
@@ -13,6 +14,9 @@ interface ProfileScreenProps {
   onLogout: () => void;
   onEditPost: (postId: string, caption: string) => void;
   onDeletePost: (postId: string) => void;
+  onComment: (postId: string, text: string) => void;
+  onEditComment: (postId: string, commentId: string, text: string) => void;
+  onDeleteComment: (postId: string, commentId: string) => void;
   onMessage: () => void;
 }
 
@@ -26,6 +30,9 @@ export default function ProfileScreen({
   onLogout,
   onEditPost,
   onDeletePost,
+  onComment,
+  onEditComment,
+  onDeleteComment,
   onMessage,
 }: ProfileScreenProps) {
   const [editing, setEditing] = useState(false);
@@ -35,6 +42,7 @@ export default function ProfileScreen({
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editCaption, setEditCaption] = useState("");
   const [activeUserListType, setActiveUserListType] = useState<"followers" | "following" | null>(null);
+  const [commentDialogPostId, setCommentDialogPostId] = useState<string | null>(null);
 
   const user = users.find((u) => u.id === profileUserId);
   const userPosts = useMemo(
@@ -76,8 +84,8 @@ export default function ProfileScreen({
       style={{
         flex: 1,
         overflowY: "auto",
-        background: "#000",
-        color: "#fff",
+        background: "var(--bg)",
+        color: "var(--text)",
         display: "flex",
         flexDirection: "column",
         gap: 12,
@@ -87,7 +95,7 @@ export default function ProfileScreen({
       <div
         style={{
           padding: "16px 16px 12px",
-          borderBottom: "0.5px solid #222",
+          borderBottom: "0.5px solid var(--border)",
         }}
       >
         <div
@@ -105,7 +113,7 @@ export default function ProfileScreen({
             style={{
               background: "none",
               border: "none",
-              color: "#fff",
+              color: "var(--text)",
               padding: 4,
               cursor: "pointer",
             }}
@@ -128,11 +136,11 @@ export default function ProfileScreen({
                   placeholder={user.name}
                   style={{
                     flex: 1,
-                    background: "#0d0d0d",
-                    border: "0.5px solid #262626",
+                    background: "var(--bg-card)",
+                    border: "0.5px solid var(--border)",
                     borderRadius: 12,
                     padding: "10px 12px",
-                    color: "#fff",
+                    color: "var(--text)",
                     fontSize: 13,
                     fontFamily: "inherit",
                   }}
@@ -140,8 +148,8 @@ export default function ProfileScreen({
                 <button
                   onClick={handleEditSave}
                   style={{
-                    background: "#fff",
-                    color: "#000",
+                    background: "var(--bg)",
+                    color: "var(--text)",
                     border: "none",
                     borderRadius: 12,
                     padding: "0 12px",
@@ -160,7 +168,7 @@ export default function ProfileScreen({
                 >
                   {user.name}
                 </h3>
-                <p style={{ color: "#9a9a9a", fontSize: 13, margin: 0 }}>
+                <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
                   @{user.username}
                 </p>
               </>
@@ -176,16 +184,19 @@ export default function ProfileScreen({
                     }}
                     style={{
                       flex: 1,
-                      background: "#fff",
-                      color: "#000",
-                      border: "none",
+                      background: "var(--bg)",
+                      color: "var(--text)",
+                      border: "0.5px solid var(--border)",
                       padding: "10px 14px",
                       borderRadius: 999,
                       fontWeight: 700,
                       fontSize: 12,
                       cursor: "pointer",
                       fontFamily: "inherit",
+                      transition: "opacity 0.2s",
                     }}
+                    onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.7"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
                   >
                     Edit Profile
                   </button>
@@ -193,15 +204,18 @@ export default function ProfileScreen({
                     onClick={onLogout}
                     style={{
                       background: "transparent",
-                      color: "#cfcfcf",
-                      border: "0.5px solid #2b2b2b",
+                      color: "var(--text-secondary)",
+                      border: "0.5px solid var(--border)",
                       padding: "10px 14px",
                       borderRadius: 999,
                       fontWeight: 600,
                       fontSize: 12,
                       cursor: "pointer",
                       fontFamily: "inherit",
+                      transition: "color 0.2s",
                     }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = "var(--danger)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary)"; }}
                   >
                     Logout
                   </button>
@@ -211,8 +225,8 @@ export default function ProfileScreen({
                   onClick={onMessage}
                   style={{
                     flex: 1,
-                    background: "#fff",
-                    color: "#000",
+                    background: "var(--bg)",
+                    color: "var(--text)",
                     border: "none",
                     padding: "10px 14px",
                     borderRadius: 999,
@@ -235,7 +249,7 @@ export default function ProfileScreen({
             gap: 12,
             marginTop: 14,
             paddingTop: 12,
-            borderTop: "0.5px solid #222",
+            borderTop: "0.5px solid var(--border)",
           }}
         >
           {[
@@ -254,7 +268,7 @@ export default function ProfileScreen({
               <strong style={{ fontSize: 17, display: "block" }}>
                 {stat.value}
               </strong>
-              <div style={{ fontSize: 11, color: "#8a8a8a", marginTop: 3 }}>
+              <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 3 }}>
                 {stat.label}
               </div>
             </div>
@@ -280,7 +294,7 @@ export default function ProfileScreen({
                 border: "none",
                 padding: 0,
                 position: "relative",
-                background: "#1a1a1a",
+                background: "var(--bg-input)",
                 cursor: "pointer",
                 display: "block",
               }}
@@ -307,7 +321,7 @@ export default function ProfileScreen({
               )}
               {post.mediaType === "video" && (
                 <div style={{ position: "absolute", top: 8, right: 8 }}>
-                  <Play size={16} color="#fff" fill="#fff" />
+                  <Play size={16} color="var(--text)" fill="var(--text)" />
                 </div>
               )}
             </button>
@@ -318,7 +332,7 @@ export default function ProfileScreen({
             style={{
               padding: "48px 16px 24px",
               textAlign: "center",
-              color: "#686868",
+              color: "var(--text-tertiary)",
               fontSize: 14,
             }}
           >
@@ -346,18 +360,18 @@ export default function ProfileScreen({
             style={{
               width: "100%",
               height: "85%",
-              background: "#0c0c0c",
+              background: "var(--bg)",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
-              boxShadow: "0 -4px 30px rgba(0,0,0,0.5)",
-              borderTop: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 -4px 30px rgba(0,0,0,0.15)",
+              borderTop: "0.5px solid var(--border)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "center", paddingTop: 12, paddingBottom: 12 }}>
-              <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.3)", borderRadius: 2 }} />
+              <div style={{ width: 40, height: 4, background: "var(--text-secondary)", borderRadius: 2, opacity: 0.3 }} />
             </div>
 
             <div
@@ -372,7 +386,7 @@ export default function ProfileScreen({
               {selectedPost.mediaType === "video" && selectedPost.mediaUrl ? (
                 <video
                   src={selectedPost.mediaUrl}
-                  style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", background: "#111" }}
+                  style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", background: "var(--bg-secondary)" }}
                   autoPlay
                   muted
                   loop
@@ -385,8 +399,8 @@ export default function ProfileScreen({
                     aspectRatio: "1 / 1",
                     background: selectedPost.imageUrl
                       ? `center / cover no-repeat url(${selectedPost.imageUrl})`
-                      : "#111",
-                    borderBottom: "1px solid rgba(255,255,255,0.05)",
+                      : "var(--bg-secondary)",
+                    borderBottom: "0.5px solid var(--border)",
                   }}
                 />
               )}
@@ -415,7 +429,7 @@ export default function ProfileScreen({
                       <div style={{ fontWeight: 700, fontSize: 14 }}>
                         {user.name}
                       </div>
-                      <div style={{ fontSize: 12, color: "#8a8a8a" }}>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
                         @{user.username}
                       </div>
                     </div>
@@ -427,7 +441,7 @@ export default function ProfileScreen({
                     style={{
                       background: "none",
                       border: "none",
-                      color: "#fff",
+                      color: "var(--text)",
                       cursor: "pointer",
                       padding: 4,
                     }}
@@ -441,8 +455,8 @@ export default function ProfileScreen({
                         position: "absolute",
                         top: 36,
                         right: 0,
-                        background: "#1a1a1a",
-                        border: "0.5px solid #333",
+                        background: "var(--bg-input)",
+                        border: "0.5px solid var(--border)",
                         borderRadius: 12,
                         padding: 8,
                         display: "flex",
@@ -461,7 +475,7 @@ export default function ProfileScreen({
                               setEditCaption(selectedPost.caption);
                               setMenuOpen(false);
                             }}
-                            style={{ background: "transparent", border: "none", color: "#fff", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                            style={{ background: "transparent", border: "none", color: "var(--text)", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
                           >
                             Edit Post
                           </button>
@@ -471,7 +485,7 @@ export default function ProfileScreen({
                               setSelectedPostId(null);
                               setMenuOpen(false);
                             }}
-                            style={{ background: "transparent", border: "none", color: "#ff4d4d", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                            style={{ background: "transparent", border: "none", color: "var(--danger)", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
                           >
                             Delete Post
                           </button>
@@ -482,7 +496,7 @@ export default function ProfileScreen({
                             onMessage();
                             setMenuOpen(false);
                           }}
-                          style={{ background: "transparent", border: "none", color: "#fff", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                          style={{ background: "transparent", border: "none", color: "var(--text)", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
                         >
                           Message
                         </button>
@@ -501,7 +515,7 @@ export default function ProfileScreen({
                       fontWeight: 600,
                     }}
                   >
-                    <Heart size={20} color="#ff4d6d" fill="#ff4d6d" />
+                    <Heart size={20} color="var(--heart)" fill="var(--heart)" />
                     {selectedPost.likes.length}
                   </div>
                   <div
@@ -509,7 +523,7 @@ export default function ProfileScreen({
                       display: "flex",
                       alignItems: "center",
                       gap: 6,
-                      color: "#cfcfcf",
+                      color: "var(--text-secondary)",
                       fontSize: 14,
                       fontWeight: 600,
                     }}
@@ -527,11 +541,11 @@ export default function ProfileScreen({
                         onChange={(e) => setEditCaption(e.target.value)}
                         autoFocus
                         style={{
-                          background: "#1a1a1a",
-                          border: "1px solid #333",
-                          color: "#fff",
+                          background: "var(--bg-input)",
+                          border: "0.5px solid var(--border)",
+                          color: "var(--text)",
                           padding: "8px 12px",
-                          borderRadius: 8,
+                          borderRadius: 12,
                           fontSize: 14,
                           outline: "none",
                         }}
@@ -539,7 +553,7 @@ export default function ProfileScreen({
                       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                         <button
                           onClick={() => setEditingPostId(null)}
-                          style={{ background: "transparent", color: "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}
+                          style={{ background: "transparent", color: "var(--text-tertiary)", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}
                         >
                           Cancel
                         </button>
@@ -550,19 +564,19 @@ export default function ProfileScreen({
                             }
                             setEditingPostId(null);
                           }}
-                          style={{ background: "#fff", color: "#000", border: "none", padding: "4px 12px", borderRadius: 16, cursor: "pointer", fontSize: 13, fontWeight: 600 }}
+                          style={{ background: "var(--bg)", color: "var(--text)", border: "none", padding: "4px 12px", borderRadius: 16, cursor: "pointer", fontSize: 13, fontWeight: 600 }}
                         >
                           Save
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div style={{ fontSize: 14, lineHeight: 1.5, color: "#fff" }}>
+                    <div style={{ fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>
                       <strong style={{ fontWeight: 700 }}>{user.username}</strong>{" "}
                       {selectedPost.caption}
                     </div>
                   )}
-                  <div style={{ marginTop: 8, color: "#777", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  <div style={{ marginTop: 8, color: "var(--text-tertiary)", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
                     {new Date(selectedPost.createdAt).toLocaleDateString(
                       undefined,
                       {
@@ -575,46 +589,42 @@ export default function ProfileScreen({
                 </div>
 
                 {selectedPost.comments.length > 0 && (
-                  <div
-                    style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 16, display: "flex", flexDirection: "column", gap: 12 }}
+                  <button
+                    onClick={() => setCommentDialogPostId(selectedPost.id)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--text-secondary)",
+                      cursor: "pointer",
+                      fontSize: 13,
+                      textAlign: "left",
+                      padding: 0,
+                    }}
                   >
-                    <div
-                      style={{ color: "#aaa", fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}
-                    >
-                      Comments ({selectedPost.comments.length})
-                    </div>
-                    {selectedPost.comments.slice(0, 3).map((comment, index) => {
-                      const commentUser = users.find(
-                        (candidate) => candidate.id === comment.userId,
-                      );
-                      return (
-                        <div
-                          key={`${selectedPost.id}-comment-${index}`}
-                          style={{ display: "flex", gap: 12, alignItems: "flex-start" }}
-                        >
-                          <Avatar name={commentUser?.name ?? "U"} size="sm" />
-                          <div style={{ flex: 1, marginTop: 2 }}>
-                            <div
-                              style={{
-                                fontSize: 13,
-                                lineHeight: 1.4,
-                                color: "#eee",
-                              }}
-                            >
-                              <strong style={{ fontWeight: 600 }}>{commentUser?.username ?? "user"}</strong>{" "}
-                              {comment.text}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                    view all {selectedPost.comments.length} comments
+                  </button>
                 )}
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {commentDialogPostId && (() => {
+        const targetPost = posts.find(p => p.id === commentDialogPostId);
+        if (!targetPost) return null;
+        return (
+          <CommentDialog
+            post={targetPost}
+            users={users}
+            currentUserId={currentUserId}
+            onClose={() => setCommentDialogPostId(null)}
+            onComment={onComment}
+            onEditComment={onEditComment}
+            onDeleteComment={onDeleteComment}
+          />
+        );
+      })()}
 
       {activeUserListType && (
         <div
@@ -635,21 +645,21 @@ export default function ProfileScreen({
             style={{
               width: "100%",
               height: "75%",
-              background: "#0c0c0c",
+              background: "var(--bg)",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
-              boxShadow: "0 -4px 30px rgba(0,0,0,0.5)",
-              borderTop: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 -4px 30px rgba(0,0,0,0.15)",
+              borderTop: "0.5px solid var(--border)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "center", paddingTop: 12, paddingBottom: 12 }}>
-              <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.3)", borderRadius: 2 }} />
+              <div style={{ width: 40, height: 4, background: "var(--text-secondary)", borderRadius: 2, opacity: 0.3 }} />
             </div>
 
-            <div style={{ padding: "0 16px 12px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontWeight: 700, fontSize: 16, textAlign: "center" }}>
+            <div style={{ padding: "0 16px 12px", borderBottom: "0.5px solid var(--border)", fontWeight: 700, fontSize: 16, textAlign: "center", color: "var(--text)" }}>
               {activeUserListType === "followers" ? "Followers" : "Following"}
             </div>
 
@@ -662,13 +672,13 @@ export default function ProfileScreen({
                     <Avatar name={listUser.name} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{listUser.name}</div>
-                      <div style={{ fontSize: 12, color: "#888" }}>@{listUser.username}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>@{listUser.username}</div>
                     </div>
                   </div>
                 );
               })}
               {(activeUserListType === "followers" ? user.followers : user.following).length === 0 && (
-                <div style={{ padding: "40px 16px", textAlign: "center", color: "#666", fontSize: 14 }}>
+                <div style={{ padding: "40px 16px", textAlign: "center", color: "var(--text-secondary)", fontSize: 14 }}>
                   No users to display
                 </div>
               )}

@@ -17,6 +17,7 @@ import ProfileScreen from "./components/ProfileScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ForgetScreen from "./components/ForgetScreen";
+import { DarkModeProvider, useDarkMode } from "./context/DarkModeContext";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const CURRENT_USER_ID = "u1";
@@ -43,7 +44,8 @@ const makePostImage = (seed: string) => {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 };
 
-export default function App() {
+function AppContent() {
+  const { darkMode, toggleDarkMode } = useDarkMode();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeScreen, setActiveScreen] = useState<Screen>("login");
   const [users, setUsers] = useState<User[]>(initialUsers);
@@ -153,6 +155,7 @@ export default function App() {
                   id: `c${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
                   userId: CURRENT_USER_ID,
                   text,
+                  createdAt: Date.now(),
                 },
               ],
             },
@@ -296,31 +299,40 @@ export default function App() {
   };
 
   return (
-    <div
+      <div
+      className={`relative flex items-start justify-center min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}
       style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        background: "#000",
+        background: darkMode ? "#121212" : "#f2f2f7",
         fontFamily:
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
       }}
     >
       <div
-        style={{
-          width: "100%",
-          maxWidth: 380,
-          height: 700,
-          background: "#000",
-          borderRadius: 32,
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: "0 0 0 1px #2a2a2a, 0 20px 35px -12px rgba(0,0,0,0.8)",
-          color: "#fff",
-        }}
+        className="w-full max-w-[430px] h-[844px] rounded-[32px] overflow-hidden flex flex-col mt-12 transition-[background,color,box-shadow] duration-300"
+        style={{ background: "var(--bg)", color: "var(--text)", boxShadow: "var(--shadow)" }}
       >
+        <button
+          onClick={toggleDarkMode}
+          className="absolute top-5 right-5 bg-transparent rounded-full px-4 py-2 cursor-pointer text-sm z-10 backdrop-blur-sm transition-all duration-200 hover:scale-105 active:scale-95"
+          style={{
+            color: "var(--text)",
+            border: "0.5px solid var(--separator)",
+          }}
+        >
+          <span className="flex items-center gap-2">
+            {darkMode ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                Light
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                Dark
+              </>
+            )}
+          </span>
+        </button>
         {activeScreen === "login" && (
           <LoginScreen
             onLogin={handleLogin}
@@ -363,7 +375,7 @@ export default function App() {
           />
         )}
         {activeScreen === "newPost" && (
-          <NewPostScreen onPublish={handlePublish} />
+          <NewPostScreen onPublish={handlePublish} onClose={() => setActiveScreen("home")} />
         )}
         {activeScreen === "reels" && (
           <ReelScreen
@@ -375,7 +387,7 @@ export default function App() {
           />
         )}
         {activeScreen === "notifications" && (
-          <NotificationScreen notifications={notifications} />
+          <NotificationScreen notifications={notifications} onClose={() => setActiveScreen("home")} />
         )}
         {activeScreen === "chat" && (
           <ChatScreen
@@ -398,6 +410,9 @@ export default function App() {
             onLogout={handleLogout}
             onEditPost={handleEditPost}
             onDeletePost={handleDeletePost}
+            onComment={handleComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
             onMessage={() => handleMessageUser(profileUserId)}
           />
         )}
@@ -405,5 +420,13 @@ export default function App() {
       </div>
       <SpeedInsights />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <DarkModeProvider>
+      <AppContent />
+    </DarkModeProvider>
   );
 }

@@ -25,8 +25,8 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
         justifyContent: "space-around",
         alignItems: "center",
         padding: "12px 16px 18px",
-        background: "#000",
-        borderTop: "0.5px solid #2c2c2c",
+        background: "var(--bg)",
+        borderTop: "0.5px solid var(--border-light)",
       }}
     >
       {ITEMS.map(({ screen, Icon }) => (
@@ -36,7 +36,7 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
           style={{
             background: "none",
             border: "none",
-            color: active === screen ? "#ffffff" : "#666666",
+            color: active === screen ? "var(--text)" : "var(--text-secondary)",
             cursor: "pointer",
             padding: 6,
             display: "flex",

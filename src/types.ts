@@ -10,6 +10,7 @@ export interface Comment {
   id: string;
   userId: string;
   text: string;
+  createdAt: number;
 }
 
 export interface Post {

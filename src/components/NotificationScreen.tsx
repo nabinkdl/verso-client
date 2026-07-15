@@ -4,11 +4,13 @@ import {
   MessageCircle,
   UserPlus,
   Clapperboard,
+  X,
 } from "lucide-react";
 import { NotificationItem } from "../types";
 
 interface NotificationScreenProps {
   notifications: NotificationItem[];
+  onClose: () => void;
 }
 
 const ICONS = {
@@ -21,6 +23,7 @@ const ICONS = {
 
 export default function NotificationScreen({
   notifications,
+  onClose,
 }: NotificationScreenProps) {
   return (
     <div
@@ -33,13 +36,18 @@ export default function NotificationScreen({
         gap: 14,
       }}
     >
-      <div>
-        <h2 style={{ fontWeight: 800, fontSize: 22, margin: 0 }}>
-          notifications
-        </h2>
-        <div style={{ fontSize: 12, color: "#777", marginTop: 4 }}>
-          recent activity and updates
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <h2 style={{ fontWeight: 800, fontSize: 22, margin: 0 }}>
+            notifications
+          </h2>
+          <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>
+            recent activity and updates
+          </div>
         </div>
+        <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 4 }}>
+          <X size={20} />
+        </button>
       </div>
 
       {notifications.map((notification) => {
@@ -50,10 +58,10 @@ export default function NotificationScreen({
             style={{
               display: "flex",
               gap: 12,
-              background: "#0c0c0c",
+              background: "var(--bg-card)",
               borderRadius: 18,
               padding: 14,
-              border: "0.5px solid #2a2a2a",
+              border: "0.5px solid var(--border)",
             }}
           >
             <div
@@ -61,10 +69,10 @@ export default function NotificationScreen({
                 width: 42,
                 height: 42,
                 borderRadius: 14,
-                background: "#111",
+                background: "var(--bg-card)",
                 display: "grid",
                 placeItems: "center",
-                border: "0.5px solid #2c2c2c",
+                border: "0.5px solid var(--border)",
                 flex: "0 0 auto",
               }}
             >
@@ -74,7 +82,7 @@ export default function NotificationScreen({
               <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
                 {notification.title}
               </div>
-              <div style={{ fontSize: 13, color: "#9b9b9b", lineHeight: 1.45 }}>
+              <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.45 }}>
                 {notification.message}
               </div>
             </div>
@@ -83,7 +91,7 @@ export default function NotificationScreen({
       })}
 
       {notifications.length === 0 && (
-        <div style={{ color: "#666", textAlign: "center", marginTop: 40 }}>
+        <div style={{ color: "var(--text-secondary)", textAlign: "center", marginTop: 40 }}>
           no notifications yet
         </div>
       )}

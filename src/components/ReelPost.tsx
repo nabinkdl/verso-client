@@ -28,7 +28,7 @@ export default function ReelPost({
         flexShrink: 0,
         scrollSnapAlign: "start",
         overflow: "hidden",
-        background: "#0b0b0b",
+        background: "var(--bg)",
       }}
     >
       {post.mediaType === "video" && mediaSource ? (
@@ -55,19 +55,10 @@ export default function ReelPost({
           style={{
             position: "absolute",
             inset: 0,
-            background: "linear-gradient(145deg, #161616, #050505)",
+            background: "linear-gradient(145deg, var(--bg-secondary), var(--bg))",
           }}
         />
       )}
-
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.55) 100%)",
-        }}
-      />
 
       <div
         style={{
@@ -85,12 +76,12 @@ export default function ReelPost({
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <Avatar name={author.name} />
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontWeight: 700, fontSize: 16, textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>{author.name}</span>
-                <span style={{ fontSize: 13, color: "#eee", textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>@{author.username}</span>
+                <span style={{ fontWeight: 700, fontSize: 16, color: "var(--text)" }}>{author.name}</span>
+                <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>@{author.username}</span>
               </div>
             </div>
             <div>
-              <p style={{ fontSize: 15, margin: "0 0 6px", textShadow: "0 1px 2px rgba(0,0,0,0.5)", lineHeight: 1.4 }}>{post.caption}</p>
+              <p style={{ fontSize: 15, margin: "0 0 6px", lineHeight: 1.4, color: "var(--text)" }}>{post.caption}</p>
             </div>
           </div>
 
@@ -105,17 +96,16 @@ export default function ReelPost({
                   height: 44,
                   borderRadius: 999,
                   border: "none",
-                  background: "rgba(0,0,0,0.2)",
-                  color: isLiked ? "#ff4d6d" : "#fff",
+                  background: "rgba(0,0,0,0.3)",
+                  color: isLiked ? "var(--heart)" : "#fff",
                   display: "grid",
                   placeItems: "center",
                   cursor: "pointer",
-                  backdropFilter: "blur(4px)",
                 }}
               >
-                <Heart size={24} fill={isLiked ? "#ff4d6d" : "none"} />
+                <Heart size={24} fill={isLiked ? "var(--heart)" : "none"} />
               </button>
-              <span style={{ fontSize: 12, fontWeight: 600, textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>{post.likes.length}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>{post.likes.length}</span>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -126,17 +116,16 @@ export default function ReelPost({
                   width: 44,
                   height: 44,
                   borderRadius: 999,
-                  background: "rgba(0,0,0,0.2)",
+                  background: "rgba(0,0,0,0.3)",
                   display: "grid",
                   placeItems: "center",
-                  backdropFilter: "blur(4px)",
                   border: "none",
                   cursor: "pointer",
                 }}
               >
                 <MessageCircle size={22} color="#fff" />
               </button>
-              <span style={{ fontSize: 12, fontWeight: 600, textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>{post.comments.length}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>{post.comments.length}</span>
             </div>
           </div>
         </div>

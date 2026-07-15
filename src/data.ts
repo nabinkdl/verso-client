@@ -34,7 +34,7 @@ export const initialPosts: Post[] = Array.from({ length: 6 }, (_, i) => ({
   imageUrl: makePostImage(`NO.${i + 1}`),
   imageAlt: `Minimal black and white post ${i + 1}`,
   likes: [(i + 1) % 3 === 0 ? 'u3' : 'u1'],
-  comments: [{ id: `c${i + 1}`, userId: 'u2', text: 'nice!' }],
+  comments: [{ id: `c${i + 1}`, userId: 'u2', text: 'nice!', createdAt: Date.now() - (i + 1) * 7200000 }],
   createdAt: Date.now() - (i + 1) * 3600000,
 }));
 

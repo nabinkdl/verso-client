@@ -16,21 +16,21 @@ export default function LogoutButton({ onLogout }: LogoutButtonProps) {
         alignItems: "center",
         gap: 6,
         padding: "8px 12px",
-        backgroundColor: "#3b82f6",
+        backgroundColor: "var(--accent)",
         border: "none",
         borderRadius: 6,
-        color: "#fff",
+        color: "var(--text)",
         fontSize: 12,
         fontWeight: 600,
         cursor: "pointer",
-        transition: "background-color 0.2s",
+        transition: "color 0.2s",
         zIndex: 10,
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = "#2563eb";
+        e.currentTarget.style.color = "var(--danger)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = "#3b82f6";
+        e.currentTarget.style.color = "var(--text)";
       }}
       title="Sign out"
     >
