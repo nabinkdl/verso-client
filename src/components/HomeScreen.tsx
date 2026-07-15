@@ -7,6 +7,7 @@ import {
   MoreHorizontal,
   PenLine,
   Trash2,
+  Bookmark,
 } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
@@ -16,6 +17,8 @@ interface HomeScreenProps {
   posts: Post[];
   users: User[];
   currentUserId: string;
+  savedPosts: string[];
+  onToggleSave: (postId: string) => void;
   onLike: (postId: string) => void;
   onComment: (postId: string, text: string) => void;
   onEditPost: (postId: string, caption: string) => void;
@@ -32,6 +35,8 @@ export default function HomeScreen({
   posts,
   users,
   currentUserId,
+  savedPosts,
+  onToggleSave,
   onLike,
   onComment,
   onEditPost,
@@ -351,6 +356,29 @@ export default function HomeScreen({
                   <span style={{ color: "var(--text-secondary)" }}>
                     {post.comments.length}
                   </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onToggleSave(post.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: savedPosts.includes(post.id)
+                      ? "var(--accent)"
+                      : "var(--text-secondary)",
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: 0,
+                    marginLeft: "auto",
+                  }}
+                  aria-label="Save post"
+                >
+                  <Bookmark
+                    size={22}
+                    fill={savedPosts.includes(post.id) ? "var(--accent)" : "none"}
+                  />
                 </button>
               </div>
 

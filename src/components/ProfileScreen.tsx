@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { Heart, MessageCircle, MoreHorizontal, Play } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  Heart,
+  MessageCircle,
+  MoreHorizontal,
+  Play,
+  Bookmark,
+  ArrowLeft,
+} from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
 import CommentDialog from "./CommentDialog";
@@ -13,6 +20,8 @@ interface ProfileScreenProps {
   onEditName: (newName: string) => void;
   onLogout: () => void;
   onLike: (postId: string) => void;
+  onToggleSave: (postId: string) => void;
+  savedPosts: string[];
   onEditPost: (postId: string, caption: string) => void;
   onDeletePost: (postId: string) => void;
   onComment: (postId: string, text: string) => void;
@@ -30,6 +39,8 @@ export default function ProfileScreen({
   onEditName,
   onLogout,
   onLike,
+  onToggleSave,
+  savedPosts,
   onEditPost,
   onDeletePost,
   onComment,
@@ -39,13 +50,18 @@ export default function ProfileScreen({
 }: ProfileScreenProps) {
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [editCaption, setEditCaption] = useState("");
-  const [activeUserListType, setActiveUserListType] = useState<"followers" | "following" | null>(null);
-  const [commentDialogPostId, setCommentDialogPostId] = useState<string | null>(null);
-  const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
+  const [activeUserListType, setActiveUserListType] = useState<
+    "followers" | "following" | null
+  >(null);
+  const [commentDialogPostId, setCommentDialogPostId] = useState<string | null>(
+    null,
+  );
   const [showFeed, setShowFeed] = useState(false);
+  const [profileTab, setProfileTab] = useState<"posts" | "saved">("posts");
+  const [feedSource, setFeedSource] = useState<"posts" | "saved">("posts");
+  const [feedMenuId, setFeedMenuId] = useState<string | null>(null);
+  const [feedEditId, setFeedEditId] = useState<string | null>(null);
+  const [feedEditCaption, setFeedEditCaption] = useState("");
 
   const user = users.find((u) => u.id === profileUserId);
   const userPosts = useMemo(
@@ -60,20 +76,23 @@ export default function ProfileScreen({
     setNameInput("");
   };
 
-  const openFeedAtPost = (postId: string) => {
-    const index = userPosts.findIndex((p) => p.id === postId);
-    if (index !== -1) {
-      setActivePostIndex(index);
-      setShowFeed(true);
-    }
+  const openFeedAtPost = () => {
+    setFeedSource(profileTab);
+    setShowFeed(true);
   };
 
   const closeFeed = () => {
     setShowFeed(false);
-    setActivePostIndex(null);
   };
 
-  const renderFeed = () => (
+  const renderFeed = () => {
+    const feedList =
+      feedSource === "saved"
+        ? posts.filter((p) => savedPosts.includes(p.id))
+        : userPosts;
+    const firstPostIsOwn = feedList[0]?.authorId === currentUserId;
+
+    return (
     <div
       style={{
         position: "absolute",
@@ -85,6 +104,27 @@ export default function ProfileScreen({
         flexDirection: "column",
       }}
     >
+      <div style={{ position: "absolute", top: 10, left: 10, zIndex: 10 }}>
+        <button
+          onClick={closeFeed}
+          style={{
+            background: "var(--bg-input)",
+            border: "0.5px solid var(--border)",
+            borderRadius: 999,
+            width: 36,
+            height: 36,
+            display: "grid",
+            placeItems: "center",
+            cursor: "pointer",
+            color: "var(--text)",
+          }}
+          aria-label="Back"
+        >
+          <ArrowLeft size={20} />
+        </button>
+      </div>
+
+      {!firstPostIsOwn && (
       <div style={{ position: "absolute", top: 10, right: 10, zIndex: 10 }}>
         <button
           onClick={closeFeed}
@@ -100,11 +140,19 @@ export default function ProfileScreen({
             color: "var(--text)",
           }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
         </button>
       </div>
+      )}
 
       <div
         style={{
@@ -115,7 +163,10 @@ export default function ProfileScreen({
         }}
         className="hide-scrollbar"
       >
-        {userPosts.map((post) => {
+        {(feedSource === "saved"
+          ? posts.filter((p) => savedPosts.includes(p.id))
+          : userPosts
+        ).map((post) => {
           const author = users.find((u) => u.id === post.authorId);
           if (!author) return null;
           const isLiked = post.likes.includes(currentUserId);
@@ -147,6 +198,88 @@ export default function ProfileScreen({
                     @{author.username}
                   </div>
                 </div>
+                {post.authorId === currentUserId && (
+                  <div style={{ marginLeft: "auto", position: "relative" }}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFeedMenuId(feedMenuId === post.id ? null : post.id)
+                      }
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--text)",
+                        cursor: "pointer",
+                        padding: 4,
+                        display: "grid",
+                        placeItems: "center",
+                      }}
+                      aria-label="Post options"
+                    >
+                      <MoreHorizontal size={20} />
+                    </button>
+                    {feedMenuId === post.id && (
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          position: "absolute",
+                          top: 36,
+                          right: 0,
+                          background: "var(--bg-input)",
+                          border: "0.5px solid var(--border)",
+                          borderRadius: 12,
+                          padding: 8,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 4,
+                          minWidth: 140,
+                          zIndex: 20,
+                          boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+                        }}
+                      >
+                        <button
+                          onClick={() => {
+                            setFeedEditId(post.id);
+                            setFeedEditCaption(post.caption);
+                            setFeedMenuId(null);
+                          }}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "var(--text)",
+                            textAlign: "left",
+                            padding: "8px 12px",
+                            borderRadius: 6,
+                            fontWeight: 600,
+                            fontSize: 13,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Edit post
+                        </button>
+                        <button
+                          onClick={() => {
+                            onDeletePost(post.id);
+                            setFeedMenuId(null);
+                          }}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            color: "var(--danger)",
+                            textAlign: "left",
+                            padding: "8px 12px",
+                            borderRadius: 6,
+                            fontWeight: 600,
+                            fontSize: 13,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Delete post
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div
@@ -165,7 +298,11 @@ export default function ProfileScreen({
                     loop
                     playsInline
                     autoPlay
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
                   />
                 ) : mediaSource ? (
                   <div
@@ -228,13 +365,107 @@ export default function ProfileScreen({
                     {post.comments.length}
                   </span>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => onToggleSave(post.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: savedPosts.includes(post.id)
+                      ? "var(--accent)"
+                      : "var(--text-secondary)",
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: 0,
+                    marginLeft: "auto",
+                  }}
+                  aria-label="Save post"
+                >
+                  <Bookmark
+                    size={22}
+                    fill={
+                      savedPosts.includes(post.id) ? "var(--accent)" : "none"
+                    }
+                  />
+                </button>
               </div>
 
               <div style={{ fontSize: 14, padding: "4px 14px 12px" }}>
-                <strong>{author.username}</strong>{" "}
-                <span style={{ color: "var(--text-secondary)" }}>
-                  {post.caption}
-                </span>
+                {feedEditId === post.id ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8,
+                    }}
+                  >
+                    <input
+                      autoFocus
+                      value={feedEditCaption}
+                      onChange={(e) => setFeedEditCaption(e.target.value)}
+                      style={{
+                        background: "var(--bg-input)",
+                        border: "0.5px solid var(--border)",
+                        color: "var(--text)",
+                        padding: "8px 12px",
+                        borderRadius: 12,
+                        fontSize: 14,
+                        outline: "none",
+                        fontFamily: "inherit",
+                      }}
+                    />
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        justifyContent: "flex-end",
+                      }}
+                    >
+                      <button
+                        onClick={() => setFeedEditId(null)}
+                        style={{
+                          background: "transparent",
+                          color: "var(--text-tertiary)",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: 13,
+                          fontWeight: 600,
+                        }}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (feedEditCaption.trim()) {
+                            onEditPost(post.id, feedEditCaption.trim());
+                          }
+                          setFeedEditId(null);
+                        }}
+                        style={{
+                          background: "var(--bg)",
+                          color: "var(--text)",
+                          border: "none",
+                          padding: "4px 12px",
+                          borderRadius: 16,
+                          cursor: "pointer",
+                          fontSize: 13,
+                          fontWeight: 600,
+                        }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <strong>{author.username}</strong>{" "}
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      {post.caption}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           );
@@ -242,8 +473,9 @@ export default function ProfileScreen({
       </div>
     </div>
   );
+  };
 
-  const renderPostGrid = () => (
+  const renderPostGrid = (list: Post[], emptyText: string) => (
     <div style={{ padding: "0 0 12px" }}>
       <div
         style={{
@@ -252,11 +484,11 @@ export default function ProfileScreen({
           gap: 2,
         }}
       >
-        {userPosts.map((post) => (
+        {list.map((post) => (
           <button
             key={post.id}
             type="button"
-            onClick={() => openFeedAtPost(post.id)}
+            onClick={() => openFeedAtPost()}
             style={{
               aspectRatio: "1 / 1",
               border: "none",
@@ -295,7 +527,7 @@ export default function ProfileScreen({
           </button>
         ))}
       </div>
-      {userPosts.length === 0 && (
+      {list.length === 0 && (
         <div
           style={{
             padding: "48px 16px 24px",
@@ -304,7 +536,7 @@ export default function ProfileScreen({
             fontSize: 14,
           }}
         >
-          no posts yet
+          {emptyText}
         </div>
       )}
     </div>
@@ -325,7 +557,6 @@ export default function ProfileScreen({
         color: "var(--text)",
         display: "flex",
         flexDirection: "column",
-        gap: 12,
         position: "relative",
       }}
     >
@@ -345,18 +576,7 @@ export default function ProfileScreen({
         >
           <div style={{ width: 28 }} />
           <div style={{ fontSize: 16, fontWeight: 700 }}>{user.username}</div>
-          <button
-            type="button"
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--text)",
-              padding: 4,
-              cursor: "pointer",
-            }}
-          >
-            <MoreHorizontal size={20} />
-          </button>
+          <div style={{ width: 28 }} />
         </div>
 
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
@@ -405,7 +625,13 @@ export default function ProfileScreen({
                 >
                   {user.name}
                 </h3>
-                <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
+                <p
+                  style={{
+                    color: "var(--text-secondary)",
+                    fontSize: 13,
+                    margin: 0,
+                  }}
+                >
                   @{user.username}
                 </p>
               </>
@@ -432,8 +658,12 @@ export default function ProfileScreen({
                       fontFamily: "inherit",
                       transition: "opacity 0.2s",
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.7"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = "0.7";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = "1";
+                    }}
                   >
                     Edit Profile
                   </button>
@@ -451,8 +681,12 @@ export default function ProfileScreen({
                       fontFamily: "inherit",
                       transition: "color 0.2s",
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = "var(--danger)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary)"; }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "var(--danger)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "var(--text-secondary)";
+                    }}
                   >
                     Logout
                   </button>
@@ -497,15 +731,27 @@ export default function ProfileScreen({
             <div
               key={stat.label}
               onClick={() => {
-                if (stat.label === "Followers") setActiveUserListType("followers");
-                else if (stat.label === "Following") setActiveUserListType("following");
+                if (stat.label === "Followers")
+                  setActiveUserListType("followers");
+                else if (stat.label === "Following")
+                  setActiveUserListType("following");
               }}
-              style={{ textAlign: "center", flex: 1, cursor: stat.label !== "Posts" ? "pointer" : "default" }}
+              style={{
+                textAlign: "center",
+                flex: 1,
+                cursor: stat.label !== "Posts" ? "pointer" : "default",
+              }}
             >
               <strong style={{ fontSize: 17, display: "block" }}>
                 {stat.value}
               </strong>
-              <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 3 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "var(--text-secondary)",
+                  marginTop: 3,
+                }}
+              >
                 {stat.label}
               </div>
             </div>
@@ -513,7 +759,53 @@ export default function ProfileScreen({
         </div>
       </div>
 
-      {renderPostGrid()}
+      <div
+        style={{
+          display: "flex",
+          borderTop: "0.5px solid var(--border)",
+        }}
+      >
+        {(
+          [
+            { tab: "posts", label: "Posts" },
+            { tab: "saved", label: "Saved" },
+          ] as const
+        ).map(({ tab, label }) => {
+          const active = profileTab === tab;
+          return (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setProfileTab(tab)}
+              style={{
+                flex: 1,
+                background: "none",
+                border: "none",
+                borderTop: active
+                  ? "1.5px solid var(--text)"
+                  : "1.5px solid transparent",
+                color: active ? "var(--text)" : "var(--text-secondary)",
+                padding: "8px 0",
+                cursor: "pointer",
+                fontSize: 11,
+                fontWeight: 400,
+                textTransform: "uppercase",
+                letterSpacing: 1,
+                opacity: active ? 1 : 0.5,
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {profileTab === "posts"
+        ? renderPostGrid(userPosts, "no posts yet")
+        : renderPostGrid(
+            posts.filter((p) => savedPosts.includes(p.id)),
+            "no saved posts yet",
+          )}
 
       {showFeed && renderFeed()}
 
@@ -546,30 +838,89 @@ export default function ProfileScreen({
               borderTop: "0.5px solid var(--border)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "center", paddingTop: 12, paddingBottom: 12 }}>
-              <div style={{ width: 40, height: 4, background: "var(--text-secondary)", borderRadius: 2, opacity: 0.3 }} />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                paddingTop: 12,
+                paddingBottom: 12,
+              }}
+            >
+              <div
+                style={{
+                  width: 40,
+                  height: 4,
+                  background: "var(--text-secondary)",
+                  borderRadius: 2,
+                  opacity: 0.3,
+                }}
+              />
             </div>
 
-            <div style={{ padding: "0 16px 12px", borderBottom: "0.5px solid var(--border)", fontWeight: 700, fontSize: 16, textAlign: "center", color: "var(--text)" }}>
+            <div
+              style={{
+                padding: "0 16px 12px",
+                borderBottom: "0.5px solid var(--border)",
+                fontWeight: 700,
+                fontSize: 16,
+                textAlign: "center",
+                color: "var(--text)",
+              }}
+            >
               {activeUserListType === "followers" ? "Followers" : "Following"}
             </div>
 
-            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }} className="hide-scrollbar">
-              {(activeUserListType === "followers" ? user.followers : user.following).map(userId => {
-                const listUser = users.find(u => u.id === userId);
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+              }}
+              className="hide-scrollbar"
+            >
+              {(activeUserListType === "followers"
+                ? user.followers
+                : user.following
+              ).map((userId) => {
+                const listUser = users.find((u) => u.id === userId);
                 if (!listUser) return null;
                 return (
-                  <div key={userId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px" }}>
+                  <div
+                    key={userId}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "12px 16px",
+                    }}
+                  >
                     <Avatar name={listUser.name} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>{listUser.name}</div>
-                      <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>@{listUser.username}</div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>
+                        {listUser.name}
+                      </div>
+                      <div
+                        style={{ fontSize: 12, color: "var(--text-secondary)" }}
+                      >
+                        @{listUser.username}
+                      </div>
                     </div>
                   </div>
                 );
               })}
-              {(activeUserListType === "followers" ? user.followers : user.following).length === 0 && (
-                <div style={{ padding: "40px 16px", textAlign: "center", color: "var(--text-secondary)", fontSize: 14 }}>
+              {(activeUserListType === "followers"
+                ? user.followers
+                : user.following
+              ).length === 0 && (
+                <div
+                  style={{
+                    padding: "40px 16px",
+                    textAlign: "center",
+                    color: "var(--text-secondary)",
+                    fontSize: 14,
+                  }}
+                >
                   No users to display
                 </div>
               )}
@@ -578,21 +929,22 @@ export default function ProfileScreen({
         </div>
       )}
 
-      {commentDialogPostId && (() => {
-        const targetPost = posts.find(p => p.id === commentDialogPostId);
-        if (!targetPost) return null;
-        return (
-          <CommentDialog
-            post={targetPost}
-            users={users}
-            currentUserId={currentUserId}
-            onClose={() => setCommentDialogPostId(null)}
-            onComment={onComment}
-            onEditComment={onEditComment}
-            onDeleteComment={onDeleteComment}
-          />
-        );
-      })()}
+      {commentDialogPostId &&
+        (() => {
+          const targetPost = posts.find((p) => p.id === commentDialogPostId);
+          if (!targetPost) return null;
+          return (
+            <CommentDialog
+              post={targetPost}
+              users={users}
+              currentUserId={currentUserId}
+              onClose={() => setCommentDialogPostId(null)}
+              onComment={onComment}
+              onEditComment={onEditComment}
+              onDeleteComment={onDeleteComment}
+            />
+          );
+        })()}
     </div>
   );
 }

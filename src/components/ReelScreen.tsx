@@ -8,6 +8,8 @@ interface ReelScreenProps {
   posts: Post[];
   users: User[];
   currentUserId: string;
+  savedPosts: string[];
+  onToggleSave: (postId: string) => void;
   onLike: (postId: string) => void;
   onComment: (postId: string, text: string) => void;
 }
@@ -16,6 +18,8 @@ export default function ReelScreen({
   posts,
   users,
   currentUserId,
+  savedPosts,
+  onToggleSave,
   onLike,
   onComment,
 }: ReelScreenProps) {
@@ -89,7 +93,9 @@ export default function ReelScreen({
             post={post}
             author={author}
             isLiked={isLiked}
+            isSaved={savedPosts.includes(post.id)}
             onLike={onLike}
+            onToggleSave={onToggleSave}
             onOpenComments={() => setActiveCommentPostId(post.id)}
           />
         );

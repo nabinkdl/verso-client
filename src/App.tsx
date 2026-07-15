@@ -14,6 +14,7 @@ import ReelScreen from "./components/ReelScreen";
 import NotificationScreen from "./components/NotificationScreen";
 import ChatScreen from "./components/ChatScreen";
 import ProfileScreen from "./components/ProfileScreen";
+import SavedScreen from "./components/SavedScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ForgetScreen from "./components/ForgetScreen";
@@ -55,6 +56,7 @@ function AppContent() {
     useState<NotificationItem[]>(initialNotifications);
   const [profileUserId, setProfileUserId] = useState(CURRENT_USER_ID);
   const [targetChatId, setTargetChatId] = useState<string | null>(null);
+  const [savedPosts, setSavedPosts] = useState<string[]>([]);
 
   const pushNotification = (
     item: Omit<NotificationItem, "id" | "createdAt">,
@@ -199,6 +201,14 @@ function AppContent() {
               ),
             },
       ),
+    );
+  };
+
+  const handleToggleSave = (postId: string) => {
+    setSavedPosts((prev) =>
+      prev.includes(postId)
+        ? prev.filter((id) => id !== postId)
+        : [...prev, postId],
     );
   };
 
@@ -356,6 +366,8 @@ function AppContent() {
             posts={posts}
             users={users}
             currentUserId={CURRENT_USER_ID}
+            savedPosts={savedPosts}
+            onToggleSave={handleToggleSave}
             onLike={handleLike}
             onComment={handleComment}
             onEditPost={handleEditPost}
@@ -382,6 +394,8 @@ function AppContent() {
             posts={posts}
             users={users}
             currentUserId={CURRENT_USER_ID}
+            savedPosts={savedPosts}
+            onToggleSave={handleToggleSave}
             onLike={handleLike}
             onComment={handleComment}
           />
@@ -409,12 +423,28 @@ function AppContent() {
             onEditName={handleEditName}
             onLogout={handleLogout}
             onLike={handleLike}
+            onToggleSave={handleToggleSave}
+            savedPosts={savedPosts}
             onEditPost={handleEditPost}
             onDeletePost={handleDeletePost}
             onComment={handleComment}
             onEditComment={handleEditComment}
             onDeleteComment={handleDeleteComment}
             onMessage={() => handleMessageUser(profileUserId)}
+          />
+        )}
+        {activeScreen === "saved" && (
+          <SavedScreen
+            posts={posts}
+            users={users}
+            currentUserId={CURRENT_USER_ID}
+            savedPosts={savedPosts}
+            onToggleSave={handleToggleSave}
+            onLike={handleLike}
+            onComment={handleComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
+            onClose={() => setActiveScreen("profile")}
           />
         )}
         {isLoggedIn && <BottomNav active={activeScreen} onChange={handleNav} />}

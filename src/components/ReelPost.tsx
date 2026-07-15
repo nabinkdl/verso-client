@@ -1,4 +1,4 @@
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle, Bookmark } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
 
@@ -6,7 +6,9 @@ interface ReelPostProps {
   post: Post;
   author: User;
   isLiked: boolean;
+  isSaved: boolean;
   onLike: (postId: string) => void;
+  onToggleSave: (postId: string) => void;
   onOpenComments: () => void;
 }
 
@@ -14,7 +16,9 @@ export default function ReelPost({
   post,
   author,
   isLiked,
+  isSaved,
   onLike,
+  onToggleSave,
   onOpenComments,
 }: ReelPostProps) {
   const mediaSource = post.mediaUrl ?? post.imageUrl;
@@ -126,6 +130,26 @@ export default function ReelPost({
                 <MessageCircle size={22} color="#fff" />
               </button>
               <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>{post.comments.length}</span>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <button
+                type="button"
+                onClick={() => onToggleSave(post.id)}
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 999,
+                  background: "rgba(0,0,0,0.3)",
+                  display: "grid",
+                  placeItems: "center",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+                aria-label="Save post"
+              >
+                <Bookmark size={22} color={isSaved ? "var(--accent)" : "#fff"} fill={isSaved ? "var(--accent)" : "none"} />
+              </button>
             </div>
           </div>
         </div>
