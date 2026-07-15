@@ -1,5 +1,6 @@
-# Client (Verso) — Project Objective
 
+# Client (Verso) — Project Objective
+<img width="1392" height="848" alt="Screenshot 2026-07-15 at 3 32 43 pm" src="https://github.com/user-attachments/assets/4c4327e4-f397-493b-9540-fc7bd175013b" />
 ## Objective
 
 Build a small, **mobile-style social app UI prototype** named **Verso**. The client focuses on demonstrating core social interactions in a clean black/white interface:
