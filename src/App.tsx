@@ -300,7 +300,7 @@ function AppContent() {
 
   return (
       <div
-      className={`relative flex items-start justify-center min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}
+      className={`relative flex items-center justify-center min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}
       style={{
         background: darkMode ? "#121212" : "#f2f2f7",
         fontFamily:
@@ -308,12 +308,12 @@ function AppContent() {
       }}
     >
       <div
-        className="w-full max-w-[430px] h-[844px] rounded-[32px] overflow-hidden flex flex-col mt-12 transition-[background,color,box-shadow] duration-300"
+        className="w-full max-w-[390px] h-[780px] rounded-[28px] overflow-hidden flex flex-col transition-[background,color,box-shadow] duration-300"
         style={{ background: "var(--bg)", color: "var(--text)", boxShadow: "var(--shadow)" }}
       >
         <button
           onClick={toggleDarkMode}
-          className="absolute top-5 right-5 bg-transparent rounded-full px-4 py-2 cursor-pointer text-sm z-10 backdrop-blur-sm transition-all duration-200 hover:scale-105 active:scale-95"
+          className="absolute top-4 right-4 bg-transparent rounded-full px-3 py-1.5 cursor-pointer text-xs z-10 backdrop-blur-sm transition-all duration-200 hover:scale-105 active:scale-95"
           style={{
             color: "var(--text)",
             border: "0.5px solid var(--separator)",
@@ -408,6 +408,7 @@ function AppContent() {
             onNewPost={() => setActiveScreen("newPost")}
             onEditName={handleEditName}
             onLogout={handleLogout}
+            onLike={handleLike}
             onEditPost={handleEditPost}
             onDeletePost={handleDeletePost}
             onComment={handleComment}

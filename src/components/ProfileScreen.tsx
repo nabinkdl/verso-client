@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Heart, MessageCircle, MoreHorizontal, Play } from "lucide-react";
+import { Heart, MessageCircle, MoreHorizontal, Play } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
 import CommentDialog from "./CommentDialog";
@@ -12,6 +12,7 @@ interface ProfileScreenProps {
   onNewPost: () => void;
   onEditName: (newName: string) => void;
   onLogout: () => void;
+  onLike: (postId: string) => void;
   onEditPost: (postId: string, caption: string) => void;
   onDeletePost: (postId: string) => void;
   onComment: (postId: string, text: string) => void;
@@ -28,6 +29,7 @@ export default function ProfileScreen({
   // onNewPost,
   onEditName,
   onLogout,
+  onLike,
   onEditPost,
   onDeletePost,
   onComment,
@@ -37,47 +39,282 @@ export default function ProfileScreen({
 }: ProfileScreenProps) {
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState("");
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editCaption, setEditCaption] = useState("");
   const [activeUserListType, setActiveUserListType] = useState<"followers" | "following" | null>(null);
   const [commentDialogPostId, setCommentDialogPostId] = useState<string | null>(null);
+  const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
+  const [showFeed, setShowFeed] = useState(false);
 
   const user = users.find((u) => u.id === profileUserId);
   const userPosts = useMemo(
     () => posts.filter((p) => p.authorId === profileUserId),
     [posts, profileUserId],
   );
-  const selectedPost =
-    userPosts.find((post) => post.id === selectedPostId) ?? null;
   const isOwn = profileUserId === currentUserId;
-
-  useEffect(() => {
-    if (selectedPostId && !selectedPost) {
-      setSelectedPostId(null);
-    }
-  }, [selectedPost, selectedPostId]);
-
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = selectedPost ? "hidden" : originalOverflow;
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [selectedPost]);
-
-  if (!user) return null;
-
-  const postsCount = userPosts.length;
-  const followersCount = user.followers.length;
-  const followingCount = user.following.length;
 
   const handleEditSave = () => {
     if (nameInput.trim()) onEditName(nameInput.trim());
     setEditing(false);
     setNameInput("");
   };
+
+  const openFeedAtPost = (postId: string) => {
+    const index = userPosts.findIndex((p) => p.id === postId);
+    if (index !== -1) {
+      setActivePostIndex(index);
+      setShowFeed(true);
+    }
+  };
+
+  const closeFeed = () => {
+    setShowFeed(false);
+    setActivePostIndex(null);
+  };
+
+  const renderFeed = () => (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 50,
+        background: "var(--bg)",
+        color: "var(--text)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div style={{ position: "absolute", top: 10, right: 10, zIndex: 10 }}>
+        <button
+          onClick={closeFeed}
+          style={{
+            background: "var(--bg-input)",
+            border: "0.5px solid var(--border)",
+            borderRadius: 999,
+            width: 36,
+            height: 36,
+            display: "grid",
+            placeItems: "center",
+            cursor: "pointer",
+            color: "var(--text)",
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div
+        style={{
+          flex: 1,
+          overflowY: "scroll",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        className="hide-scrollbar"
+      >
+        {userPosts.map((post) => {
+          const author = users.find((u) => u.id === post.authorId);
+          if (!author) return null;
+          const isLiked = post.likes.includes(currentUserId);
+          const mediaSource = post.mediaUrl ?? post.imageUrl;
+
+          return (
+            <div
+              key={post.id}
+              style={{
+                borderBottom: "0.5px solid var(--border)",
+                padding: "12px 0",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "0 14px",
+                  marginBottom: 10,
+                }}
+              >
+                <Avatar name={author.name} />
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 15 }}>
+                    {author.name}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                    @{author.username}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  width: "100%",
+                  aspectRatio: "1 / 1",
+                  background: "var(--bg-input)",
+                  overflow: "hidden",
+                  position: "relative",
+                }}
+              >
+                {post.mediaType === "video" && mediaSource ? (
+                  <video
+                    src={mediaSource}
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : mediaSource ? (
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backgroundImage: `url(${mediaSource})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                ) : null}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 18,
+                  padding: "10px 14px 4px",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => onLike(post.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: isLiked ? "var(--heart)" : "var(--text)",
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: 0,
+                  }}
+                >
+                  <Heart size={22} fill={isLiked ? "var(--heart)" : "none"} />
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    {post.likes.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCommentDialogPostId(post.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-secondary)",
+                    fontSize: 14,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: 0,
+                  }}
+                >
+                  <MessageCircle size={22} />
+                  <span style={{ color: "var(--text-secondary)" }}>
+                    {post.comments.length}
+                  </span>
+                </button>
+              </div>
+
+              <div style={{ fontSize: 14, padding: "4px 14px 12px" }}>
+                <strong>{author.username}</strong>{" "}
+                <span style={{ color: "var(--text-secondary)" }}>
+                  {post.caption}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const renderPostGrid = () => (
+    <div style={{ padding: "0 0 12px" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gap: 2,
+        }}
+      >
+        {userPosts.map((post) => (
+          <button
+            key={post.id}
+            type="button"
+            onClick={() => openFeedAtPost(post.id)}
+            style={{
+              aspectRatio: "1 / 1",
+              border: "none",
+              padding: 0,
+              position: "relative",
+              background: "var(--bg-input)",
+              cursor: "pointer",
+              display: "block",
+            }}
+          >
+            {post.mediaType === "video" && post.mediaUrl ? (
+              <video
+                src={post.mediaUrl}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                muted
+                playsInline
+              />
+            ) : (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage: post.imageUrl
+                    ? `url(${post.imageUrl})`
+                    : undefined,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+            )}
+            {post.mediaType === "video" && (
+              <div style={{ position: "absolute", top: 8, right: 8 }}>
+                <Play size={16} color="var(--text)" fill="var(--text)" />
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
+      {userPosts.length === 0 && (
+        <div
+          style={{
+            padding: "48px 16px 24px",
+            textAlign: "center",
+            color: "var(--text-tertiary)",
+            fontSize: 14,
+          }}
+        >
+          no posts yet
+        </div>
+      )}
+    </div>
+  );
+
+  if (!user) return null;
+
+  const postsCount = userPosts.length;
+  const followersCount = user.followers.length;
+  const followingCount = user.following.length;
 
   return (
     <div
@@ -276,355 +513,9 @@ export default function ProfileScreen({
         </div>
       </div>
 
-      <div style={{ padding: "0 0 12px" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-            gap: 2,
-          }}
-        >
-          {userPosts.map((post) => (
-            <button
-              key={post.id}
-              type="button"
-              onClick={() => setSelectedPostId(post.id)}
-              style={{
-                aspectRatio: "1 / 1",
-                border: "none",
-                padding: 0,
-                position: "relative",
-                background: "var(--bg-input)",
-                cursor: "pointer",
-                display: "block",
-              }}
-            >
-              {post.mediaType === "video" && post.mediaUrl ? (
-                <video
-                  src={post.mediaUrl}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  muted
-                  playsInline
-                />
-              ) : (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    backgroundImage: post.imageUrl
-                      ? `url(${post.imageUrl})`
-                      : undefined,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
-              )}
-              {post.mediaType === "video" && (
-                <div style={{ position: "absolute", top: 8, right: 8 }}>
-                  <Play size={16} color="var(--text)" fill="var(--text)" />
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
-        {userPosts.length === 0 && (
-          <div
-            style={{
-              padding: "48px 16px 24px",
-              textAlign: "center",
-              color: "var(--text-tertiary)",
-              fontSize: 14,
-            }}
-          >
-            no posts yet
-          </div>
-        )}
-      </div>
+      {renderPostGrid()}
 
-      {selectedPost && (
-        <div
-          onClick={() => setSelectedPostId(null)}
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 50,
-            background: "rgba(0,0,0,0.6)",
-            backdropFilter: "blur(8px)",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-end",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              height: "85%",
-              background: "var(--bg)",
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-              boxShadow: "0 -4px 30px rgba(0,0,0,0.15)",
-              borderTop: "0.5px solid var(--border)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "center", paddingTop: 12, paddingBottom: 12 }}>
-              <div style={{ width: 40, height: 4, background: "var(--text-secondary)", borderRadius: 2, opacity: 0.3 }} />
-            </div>
-
-            <div
-              style={{
-                flex: 1,
-                overflowY: "auto",
-                display: "flex",
-                flexDirection: "column",
-              }}
-              className="hide-scrollbar"
-            >
-              {selectedPost.mediaType === "video" && selectedPost.mediaUrl ? (
-                <video
-                  src={selectedPost.mediaUrl}
-                  style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover", background: "var(--bg-secondary)" }}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                />
-              ) : (
-                <div
-                  style={{
-                    width: "100%",
-                    aspectRatio: "1 / 1",
-                    background: selectedPost.imageUrl
-                      ? `center / cover no-repeat url(${selectedPost.imageUrl})`
-                      : "var(--bg-secondary)",
-                    borderBottom: "0.5px solid var(--border)",
-                  }}
-                />
-              )}
-
-              <div
-                style={{
-                  padding: 16,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 16,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    position: "relative",
-                  }}
-                >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 12 }}
-                  >
-                    <Avatar name={user.name} />
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 14 }}>
-                        {user.name}
-                      </div>
-                      <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                        @{user.username}
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--text)",
-                      cursor: "pointer",
-                      padding: 4,
-                    }}
-                  >
-                    <MoreHorizontal size={20} />
-                  </button>
-
-                  {menuOpen && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 36,
-                        right: 0,
-                        background: "var(--bg-input)",
-                        border: "0.5px solid var(--border)",
-                        borderRadius: 12,
-                        padding: 8,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 4,
-                        minWidth: 140,
-                        zIndex: 10,
-                        boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
-                      }}
-                    >
-                      {isOwn ? (
-                        <>
-                          <button
-                            onClick={() => {
-                              setEditingPostId(selectedPost.id);
-                              setEditCaption(selectedPost.caption);
-                              setMenuOpen(false);
-                            }}
-                            style={{ background: "transparent", border: "none", color: "var(--text)", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
-                          >
-                            Edit Post
-                          </button>
-                          <button
-                            onClick={() => {
-                              onDeletePost(selectedPost.id);
-                              setSelectedPostId(null);
-                              setMenuOpen(false);
-                            }}
-                            style={{ background: "transparent", border: "none", color: "var(--danger)", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
-                          >
-                            Delete Post
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            onMessage();
-                            setMenuOpen(false);
-                          }}
-                          style={{ background: "transparent", border: "none", color: "var(--text)", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
-                        >
-                          Message
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      fontSize: 14,
-                      fontWeight: 600,
-                    }}
-                  >
-                    <Heart size={20} color="var(--heart)" fill="var(--heart)" />
-                    {selectedPost.likes.length}
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      color: "var(--text-secondary)",
-                      fontSize: 14,
-                      fontWeight: 600,
-                    }}
-                  >
-                    <MessageCircle size={20} />
-                    {selectedPost.comments.length}
-                  </div>
-                </div>
-
-                <div>
-                  {editingPostId === selectedPost.id ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      <input
-                        value={editCaption}
-                        onChange={(e) => setEditCaption(e.target.value)}
-                        autoFocus
-                        style={{
-                          background: "var(--bg-input)",
-                          border: "0.5px solid var(--border)",
-                          color: "var(--text)",
-                          padding: "8px 12px",
-                          borderRadius: 12,
-                          fontSize: 14,
-                          outline: "none",
-                        }}
-                      />
-                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                        <button
-                          onClick={() => setEditingPostId(null)}
-                          style={{ background: "transparent", color: "var(--text-tertiary)", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (editCaption.trim()) {
-                              onEditPost(selectedPost.id, editCaption.trim());
-                            }
-                            setEditingPostId(null);
-                          }}
-                          style={{ background: "var(--bg)", color: "var(--text)", border: "none", padding: "4px 12px", borderRadius: 16, cursor: "pointer", fontSize: 13, fontWeight: 600 }}
-                        >
-                          Save
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>
-                      <strong style={{ fontWeight: 700 }}>{user.username}</strong>{" "}
-                      {selectedPost.caption}
-                    </div>
-                  )}
-                  <div style={{ marginTop: 8, color: "var(--text-tertiary)", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                    {new Date(selectedPost.createdAt).toLocaleDateString(
-                      undefined,
-                      {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      },
-                    )}
-                  </div>
-                </div>
-
-                {selectedPost.comments.length > 0 && (
-                  <button
-                    onClick={() => setCommentDialogPostId(selectedPost.id)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--text-secondary)",
-                      cursor: "pointer",
-                      fontSize: 13,
-                      textAlign: "left",
-                      padding: 0,
-                    }}
-                  >
-                    view all {selectedPost.comments.length} comments
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {commentDialogPostId && (() => {
-        const targetPost = posts.find(p => p.id === commentDialogPostId);
-        if (!targetPost) return null;
-        return (
-          <CommentDialog
-            post={targetPost}
-            users={users}
-            currentUserId={currentUserId}
-            onClose={() => setCommentDialogPostId(null)}
-            onComment={onComment}
-            onEditComment={onEditComment}
-            onDeleteComment={onDeleteComment}
-          />
-        );
-      })()}
+      {showFeed && renderFeed()}
 
       {activeUserListType && (
         <div
@@ -686,6 +577,22 @@ export default function ProfileScreen({
           </div>
         </div>
       )}
+
+      {commentDialogPostId && (() => {
+        const targetPost = posts.find(p => p.id === commentDialogPostId);
+        if (!targetPost) return null;
+        return (
+          <CommentDialog
+            post={targetPost}
+            users={users}
+            currentUserId={currentUserId}
+            onClose={() => setCommentDialogPostId(null)}
+            onComment={onComment}
+            onEditComment={onEditComment}
+            onDeleteComment={onDeleteComment}
+          />
+        );
+      })()}
     </div>
   );
 }
