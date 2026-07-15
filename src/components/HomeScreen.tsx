@@ -25,6 +25,7 @@ interface HomeScreenProps {
   onDeletePost: (postId: string) => void;
   onEditComment: (postId: string, commentId: string, text: string) => void;
   onDeleteComment: (postId: string, commentId: string) => void;
+  onToggleFollow: (targetId: string) => void;
   onCreatePost: () => void;
   onOpenNotifications: () => void;
 }
@@ -43,6 +44,7 @@ export default function HomeScreen({
   onDeletePost,
   onEditComment,
   onDeleteComment,
+  onToggleFollow,
   onCreatePost,
   onOpenNotifications,
 }: HomeScreenProps) {
@@ -170,6 +172,9 @@ export default function HomeScreen({
           const author = getUserById(post.authorId);
           if (!author) return null;
           const isLiked = post.likes.includes(currentUserId);
+          const isOwnPost = post.authorId === currentUserId;
+          const currentUser = users.find((u) => u.id === currentUserId);
+          const isFollowingAuthor = currentUser?.following.includes(post.authorId) ?? false;
           const mediaSource = post.mediaUrl ?? post.imageUrl;
           return (
             <div
@@ -207,7 +212,7 @@ export default function HomeScreen({
                 <MoreHorizontal size={16} />
               </button>
 
-              {postMenuId === post.id && post.authorId === currentUserId && (
+              {postMenuId === post.id && (
                 <div
                   style={{
                     position: "absolute",
@@ -225,20 +230,35 @@ export default function HomeScreen({
                     boxShadow: "0 12px 24px rgba(0,0,0,0.35)",
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => startEditPost(post.id, post.caption)}
-                    style={menuButtonStyle}
-                  >
-                    <PenLine size={14} /> Edit post
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDeletePost(post.id)}
-                    style={{ ...menuButtonStyle, color: "var(--danger)" }}
-                  >
-                    <Trash2 size={14} /> Delete post
-                  </button>
+                  {isOwnPost ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => startEditPost(post.id, post.caption)}
+                        style={menuButtonStyle}
+                      >
+                        <PenLine size={14} /> Edit post
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDeletePost(post.id)}
+                        style={{ ...menuButtonStyle, color: "var(--danger)" }}
+                      >
+                        <Trash2 size={14} /> Delete post
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onToggleFollow(post.authorId);
+                        setPostMenuId(null);
+                      }}
+                      style={menuButtonStyle}
+                    >
+                      {isFollowingAuthor ? "Unfollow" : "Follow"}
+                    </button>
+                  )}
                 </div>
               )}
 

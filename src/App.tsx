@@ -374,6 +374,7 @@ function AppContent() {
             onDeletePost={handleDeletePost}
             onEditComment={handleEditComment}
             onDeleteComment={handleDeleteComment}
+            onToggleFollow={handleToggleFollow}
             onCreatePost={() => setActiveScreen("newPost")}
             onOpenNotifications={() => setActiveScreen("notifications")}
           />
@@ -430,6 +431,7 @@ function AppContent() {
             onComment={handleComment}
             onEditComment={handleEditComment}
             onDeleteComment={handleDeleteComment}
+            onToggleFollow={handleToggleFollow}
             onMessage={() => handleMessageUser(profileUserId)}
           />
         )}

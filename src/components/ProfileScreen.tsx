@@ -27,6 +27,7 @@ interface ProfileScreenProps {
   onComment: (postId: string, text: string) => void;
   onEditComment: (postId: string, commentId: string, text: string) => void;
   onDeleteComment: (postId: string, commentId: string) => void;
+  onToggleFollow: (targetId: string) => void;
   onMessage: () => void;
 }
 
@@ -46,6 +47,7 @@ export default function ProfileScreen({
   onComment,
   onEditComment,
   onDeleteComment,
+  onToggleFollow,
   onMessage,
 }: ProfileScreenProps) {
   const [editing, setEditing] = useState(false);
@@ -170,6 +172,9 @@ export default function ProfileScreen({
           const author = users.find((u) => u.id === post.authorId);
           if (!author) return null;
           const isLiked = post.likes.includes(currentUserId);
+          const isOwnPost = post.authorId === currentUserId;
+          const currentUser = users.find((u) => u.id === currentUserId);
+          const isFollowingAuthor = currentUser?.following.includes(post.authorId) ?? false;
           const mediaSource = post.mediaUrl ?? post.imageUrl;
 
           return (
@@ -198,49 +203,90 @@ export default function ProfileScreen({
                     @{author.username}
                   </div>
                 </div>
-                {post.authorId === currentUserId && (
-                  <div style={{ marginLeft: "auto", position: "relative" }}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFeedMenuId(feedMenuId === post.id ? null : post.id)
-                      }
+                <div style={{ marginLeft: "auto", position: "relative" }}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFeedMenuId(feedMenuId === post.id ? null : post.id)
+                    }
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--text)",
+                      cursor: "pointer",
+                      padding: 4,
+                      display: "grid",
+                      placeItems: "center",
+                    }}
+                    aria-label="Post options"
+                  >
+                    <MoreHorizontal size={20} />
+                  </button>
+                  {feedMenuId === post.id && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
                       style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--text)",
-                        cursor: "pointer",
-                        padding: 4,
-                        display: "grid",
-                        placeItems: "center",
+                        position: "absolute",
+                        top: 36,
+                        right: 0,
+                        background: "var(--bg-input)",
+                        border: "0.5px solid var(--border)",
+                        borderRadius: 12,
+                        padding: 8,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
+                        minWidth: 140,
+                        zIndex: 20,
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
                       }}
-                      aria-label="Post options"
                     >
-                      <MoreHorizontal size={20} />
-                    </button>
-                    {feedMenuId === post.id && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                          position: "absolute",
-                          top: 36,
-                          right: 0,
-                          background: "var(--bg-input)",
-                          border: "0.5px solid var(--border)",
-                          borderRadius: 12,
-                          padding: 8,
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 4,
-                          minWidth: 140,
-                          zIndex: 20,
-                          boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
-                        }}
-                      >
+                      {isOwnPost ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              setFeedEditId(post.id);
+                              setFeedEditCaption(post.caption);
+                              setFeedMenuId(null);
+                            }}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "var(--text)",
+                              textAlign: "left",
+                              padding: "8px 12px",
+                              borderRadius: 6,
+                              fontWeight: 600,
+                              fontSize: 13,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Edit post
+                          </button>
+                          <button
+                            onClick={() => {
+                              onDeletePost(post.id);
+                              setFeedMenuId(null);
+                            }}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: "var(--danger)",
+                              textAlign: "left",
+                              padding: "8px 12px",
+                              borderRadius: 6,
+                              fontWeight: 600,
+                              fontSize: 13,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Delete post
+                          </button>
+                        </>
+                      ) : (
                         <button
                           onClick={() => {
-                            setFeedEditId(post.id);
-                            setFeedEditCaption(post.caption);
+                            onToggleFollow(post.authorId);
                             setFeedMenuId(null);
                           }}
                           style={{
@@ -255,31 +301,12 @@ export default function ProfileScreen({
                             cursor: "pointer",
                           }}
                         >
-                          Edit post
+                          {isFollowingAuthor ? "Unfollow" : "Follow"}
                         </button>
-                        <button
-                          onClick={() => {
-                            onDeletePost(post.id);
-                            setFeedMenuId(null);
-                          }}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "var(--danger)",
-                            textAlign: "left",
-                            padding: "8px 12px",
-                            borderRadius: 6,
-                            fontWeight: 600,
-                            fontSize: 13,
-                            cursor: "pointer",
-                          }}
-                        >
-                          Delete post
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div
