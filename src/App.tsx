@@ -24,10 +24,9 @@ import ProfileScreen from "./components/ProfileScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ForgetScreen from "./components/ForgetScreen";
-import PageManagementScreen from './components/PageManagementScreen';
-import PageViewScreen from './components/PageViewScreen';
-import CreatePageDialog from './components/CreatePageDialog';
-import ConfirmDialog from './components/ConfirmDialog';
+import { SpeedInsights } from "@vercel/speed-insights/react";
+
+const CURRENT_USER_ID = "u1";
 
 const makePostImage = (seed: string) => {
   const svg = `
@@ -496,7 +495,7 @@ function AppContent() {
         )}
         {isLoggedIn && <BottomNav active={activeScreen} onChange={handleNav} />}
       </div>
-      </div>
+      <SpeedInsights />
     </div>
   );
 }
