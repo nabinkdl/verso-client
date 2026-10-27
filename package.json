@@ -1,0 +1,36 @@
+{
+  "name": "mononet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo for the Verso social app and its API",
+  "workspaces": [
+    "ui",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n ui,api -c magenta,cyan \"npm:dev:ui\" \"npm:dev:api\"",
+    "dev:ui": "npm run dev --workspace @mononet/ui",
+    "dev:api": "npm run start:dev --workspace @mononet/backend",
+    "build": "npm run build --workspaces --if-present",
+    "build:ui": "npm run build --workspace @mononet/ui",
+    "build:api": "npm run build --workspace @mononet/backend",
+    "start:api": "npm run start:prod --workspace @mononet/backend",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "format": "npm run format --workspace @mononet/backend",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:generate": "npm run db:generate --workspace @mononet/backend",
+    "db:migrate": "npm run db:migrate --workspace @mononet/backend",
+    "db:deploy": "npm run db:deploy --workspace @mononet/backend",
+    "db:seed": "npm run db:seed --workspace @mononet/backend",
+    "db:studio": "npm run db:studio --workspace @mononet/backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.5"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
