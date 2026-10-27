@@ -61,7 +61,7 @@ export default function ReelCommentModal({
       <div
         style={{
           height: "65%",
-          background: "rgba(17, 17, 17, 0.95)",
+          background: "var(--overlay-surface)",
           backdropFilter: "blur(20px)",
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
@@ -71,17 +71,17 @@ export default function ReelCommentModal({
           flexDirection: "column",
           padding: 16,
           boxShadow: "0 -4px 24px rgba(0,0,0,0.5)",
-          borderTop: "0.5px solid rgba(255,255,255,0.1)",
+          borderTop: "0.5px solid var(--surface-hover)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-          <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.3)", borderRadius: 2 }} />
+          <div style={{ width: 40, height: 4, background: "var(--surface-active)", borderRadius: 2 }} />
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{post.comments.length} comments</h3>
           <button
             onClick={onClose}
-            style={{ background: "none", border: "none", color: "#fff", cursor: "pointer" }}
+            style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer" }}
           >
             <X size={20} />
           </button>
@@ -97,7 +97,7 @@ export default function ReelCommentModal({
               <div key={i} style={{ display: "flex", gap: 12, position: "relative" }}>
                 <Avatar name={author?.name ?? "U"} size="sm" />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#aaa", marginBottom: 2 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>
                     {author?.username}
                   </div>
                   {isEditing ? (
@@ -107,11 +107,11 @@ export default function ReelCommentModal({
                         value={editText}
                         onChange={(e) => setEditText(e.target.value)}
                         style={{
-                          background: "#000",
-                          border: "0.5px solid #333",
+                          background: "var(--bg)",
+                          border: "0.5px solid var(--border)",
                           borderRadius: 8,
                           padding: "8px 12px",
-                          color: "#fff",
+                          color: "var(--text)",
                           fontSize: 13,
                           outline: "none",
                         }}
@@ -120,7 +120,7 @@ export default function ReelCommentModal({
                         <button
                           type="button"
                           onClick={() => setEditingCommentId(null)}
-                          style={{ background: "transparent", color: "#ccc", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, padding: "4px 8px" }}
+                          style={{ background: "transparent", color: "var(--text-soft-2)", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, padding: "4px 8px" }}
                         >
                           Cancel
                         </button>
@@ -132,14 +132,14 @@ export default function ReelCommentModal({
                             }
                             setEditingCommentId(null);
                           }}
-                          style={{ background: "#fff", color: "#000", border: "none", borderRadius: 12, padding: "4px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+                          style={{ background: "var(--text)", color: "var(--bg)", border: "none", borderRadius: 12, padding: "4px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
                         >
                           Save
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div style={{ fontSize: 14, color: "#fff", lineHeight: 1.4 }}>
+                    <div style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.4 }}>
                       {comment.text}
                     </div>
                   )}
@@ -149,7 +149,7 @@ export default function ReelCommentModal({
                   <button
                     type="button"
                     onClick={() => setCommentMenuId(commentMenuId === comment.id ? null : comment.id)}
-                    style={{ background: "transparent", border: "none", color: "#888", cursor: "pointer", padding: 4, alignSelf: "flex-start" }}
+                    style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, alignSelf: "flex-start" }}
                   >
                     <MoreHorizontal size={16} />
                   </button>
@@ -161,8 +161,8 @@ export default function ReelCommentModal({
                       position: "absolute",
                       right: 24,
                       top: 16,
-                      background: "#1a1a1a",
-                      border: "0.5px solid #333",
+                      background: "var(--bg-raised)",
+                      border: "0.5px solid var(--border)",
                       borderRadius: 12,
                       padding: 8,
                       display: "flex",
@@ -180,7 +180,7 @@ export default function ReelCommentModal({
                         setEditText(comment.text);
                         setCommentMenuId(null);
                       }}
-                      style={{ background: "transparent", border: "none", color: "#fff", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                      style={{ background: "transparent", border: "none", color: "var(--text)", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
                     >
                       Edit Comment
                     </button>
@@ -208,11 +208,11 @@ export default function ReelCommentModal({
             placeholder="Add a comment..."
             style={{
               flex: 1,
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "var(--surface-hover)",
+              border: "1px solid var(--surface-hover)",
               borderRadius: 20,
               padding: "10px 16px",
-              color: "#fff",
+              color: "var(--text)",
               fontSize: 14,
               outline: "none",
             }}
@@ -221,8 +221,8 @@ export default function ReelCommentModal({
             type="submit"
             disabled={!text.trim()}
             style={{
-              background: text.trim() ? "#fff" : "rgba(255,255,255,0.2)",
-              color: text.trim() ? "#000" : "rgba(255,255,255,0.5)",
+              background: text.trim() ? "var(--text)" : "rgba(255,255,255,0.2)",
+              color: text.trim() ? "var(--bg)" : "rgba(255,255,255,0.5)",
               border: "none",
               borderRadius: 20,
               padding: "0 16px",

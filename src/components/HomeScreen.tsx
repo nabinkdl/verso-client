@@ -108,7 +108,7 @@ export default function HomeScreen({
           <div
             style={{
               fontSize: 11,
-              color: "#8a8a8a",
+              color: "var(--text-muted)",
               letterSpacing: 2,
               textTransform: "uppercase",
             }}
@@ -128,9 +128,9 @@ export default function HomeScreen({
               width: 40,
               height: 40,
               borderRadius: 20,
-              background: "rgba(255,255,255,0.05)",
+              background: "var(--surface-subtle)",
               border: "none",
-              color: "#fff",
+              color: "var(--text)",
               display: "grid",
               placeItems: "center",
               cursor: "pointer",
@@ -146,13 +146,13 @@ export default function HomeScreen({
               width: 40,
               height: 40,
               borderRadius: 14,
-              background: "rgba(255,255,255,0.05)",
+              background: "var(--surface-subtle)",
               border: "none",
-              color: "#bfbfbf",
+              color: "var(--text-secondary)",
               display: "grid",
               placeItems: "center",
               cursor: "pointer",
-              boxShadow: "0 8px 20px rgba(255,255,255,0.08)",
+              boxShadow: "0 8px 20px var(--surface-hover)",
             }}
             aria-label="Create post"
           >
@@ -166,9 +166,9 @@ export default function HomeScreen({
               width: 40,
               height: 40,
               borderRadius: 14,
-              background: "#111",
-              border: "0.5px solid #2c2c2c",
-              color: "#fff",
+              background: "var(--bg-elevated-2)",
+              border: "0.5px solid var(--border-2)",
+              color: "var(--text)",
               display: "grid",
               placeItems: "center",
               cursor: "pointer",
@@ -189,10 +189,10 @@ export default function HomeScreen({
           <div
             key={post.id}
             style={{
-              background: "#0c0c0c",
+              background: "var(--bg-elevated)",
               borderRadius: 20,
               padding: 14,
-              border: "0.5px solid #2a2a2a",
+              border: "0.5px solid var(--border-subtle)",
               position: "relative",
             }}
           >
@@ -208,9 +208,9 @@ export default function HomeScreen({
                 width: 32,
                 height: 32,
                 borderRadius: 10,
-                border: "0.5px solid #2b2b2b",
-                background: "#111",
-                color: "#fff",
+                border: "0.5px solid var(--border-subtle)",
+                background: "var(--bg-elevated-2)",
+                color: "var(--text)",
                 display: "grid",
                 placeItems: "center",
                 cursor: "pointer",
@@ -227,8 +227,8 @@ export default function HomeScreen({
                   position: "absolute",
                   top: 48,
                   right: 12,
-                  background: "#111",
-                  border: "0.5px solid #2c2c2c",
+                  background: "var(--bg-elevated-2)",
+                  border: "0.5px solid var(--border-2)",
                   borderRadius: 14,
                   padding: 8,
                   display: "flex",
@@ -269,7 +269,7 @@ export default function HomeScreen({
                 <div style={{ fontWeight: 600, fontSize: 15 }}>
                   {author.name}
                 </div>
-                <div style={{ fontSize: 12, color: "#888" }}>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
                   @{author.username}
                 </div>
               </div>
@@ -279,15 +279,15 @@ export default function HomeScreen({
               style={{
                 width: "100%",
                 aspectRatio: "1 / 1",
-                background: "#1a1a1a",
+                background: "var(--bg-raised)",
                 borderRadius: 18,
                 margin: "10px 0",
-                border: "0.5px solid #2c2c2c",
+                border: "0.5px solid var(--border-2)",
                 overflow: "hidden",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#444",
+                color: "var(--text-faint)",
                 fontSize: 13,
                 letterSpacing: 2,
                 position: "relative",
@@ -331,7 +331,7 @@ export default function HomeScreen({
                 style={{
                   background: "none",
                   border: "none",
-                  color: isLiked ? "#ff4d6d" : "#ddd",
+                  color: isLiked ? "#ff4d6d" : "var(--text-soft)",
                   fontSize: 14,
                   cursor: "pointer",
                   display: "flex",
@@ -341,7 +341,7 @@ export default function HomeScreen({
                 }}
               >
                 <Heart size={22} fill={isLiked ? "#ff4d6d" : "none"} />
-                <span style={{ color: "#aaa" }}>{post.likes.length}</span>
+                <span style={{ color: "var(--text-secondary)" }}>{post.likes.length}</span>
               </button>
               <button
                 type="button"
@@ -349,7 +349,7 @@ export default function HomeScreen({
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#ddd",
+                  color: "var(--text-soft)",
                   fontSize: 14,
                   cursor: "pointer",
                   display: "flex",
@@ -359,7 +359,7 @@ export default function HomeScreen({
                 }}
               >
                 <MessageCircle size={22} />
-                <span style={{ color: "#aaa" }}>{post.comments.length}</span>
+                <span style={{ color: "var(--text-secondary)" }}>{post.comments.length}</span>
               </button>
             </div>
 
@@ -403,7 +403,7 @@ export default function HomeScreen({
 
       <div
         ref={bottomRef}
-        style={{ height: 30, textAlign: "center", color: "#555", fontSize: 13 }}
+        style={{ height: 30, textAlign: "center", color: "var(--text-dim)", fontSize: 13 }}
       >
         {visible < posts.length ? "↓ scroll for more" : "· end ·"}
       </div>
@@ -414,7 +414,7 @@ export default function HomeScreen({
 const menuButtonStyle: React.CSSProperties = {
   background: "transparent",
   border: "none",
-  color: "#fff",
+  color: "var(--text)",
   display: "flex",
   alignItems: "center",
   gap: 8,
@@ -428,18 +428,18 @@ const menuButtonStyle: React.CSSProperties = {
 
 const editInputStyle: React.CSSProperties = {
   flex: 1,
-  background: "#0f0f0f",
-  border: "0.5px solid #303030",
+  background: "var(--bg-input)",
+  border: "0.5px solid var(--border-2)",
   borderRadius: 16,
   padding: "10px 12px",
-  color: "white",
+  color: "var(--text)",
   fontSize: 13,
   fontFamily: "inherit",
 };
 
 const saveButtonStyle: React.CSSProperties = {
-  background: "linear-gradient(135deg, #ffffff, #d8d8d8)",
-  color: "black",
+  background: "linear-gradient(135deg, var(--text), var(--text-soft))",
+  color: "var(--bg)",
   border: "none",
   borderRadius: 16,
   padding: "0 14px",

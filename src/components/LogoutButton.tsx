@@ -19,7 +19,7 @@ export default function LogoutButton({ onLogout }: LogoutButtonProps) {
         backgroundColor: "#3b82f6",
         border: "none",
         borderRadius: 6,
-        color: "#fff",
+        color: "var(--text)",
         fontSize: 12,
         fontWeight: 600,
         cursor: "pointer",

@@ -40,7 +40,7 @@ export default function LoginScreen({
             marginBottom: 16,
           }}
         >
-          <LogIn size={48} color="#fffff" />
+          <LogIn size={48} color="var(--text)" />
         </div>
         <h1
           style={{ fontSize: 28, fontWeight: 700, margin: 0, marginBottom: 8 }}
@@ -69,10 +69,10 @@ export default function LoginScreen({
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #333",
+            backgroundColor: "var(--bg-raised)",
+            border: "1px solid var(--border)",
             borderRadius: 8,
-            color: "#fff",
+            color: "var(--text)",
             fontSize: 14,
             outline: "none",
             boxSizing: "border-box",
@@ -82,7 +82,7 @@ export default function LoginScreen({
             e.currentTarget.style.borderColor = "#3b82f6";
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = "#333";
+            e.currentTarget.style.borderColor = "var(--border)";
           }}
         />
 
@@ -94,10 +94,10 @@ export default function LoginScreen({
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #333",
+            backgroundColor: "var(--bg-raised)",
+            border: "1px solid var(--border)",
             borderRadius: 8,
-            color: "#fff",
+            color: "var(--text)",
             fontSize: 14,
             outline: "none",
             boxSizing: "border-box",
@@ -107,7 +107,7 @@ export default function LoginScreen({
             e.currentTarget.style.borderColor = "#3b82f6";
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = "#333";
+            e.currentTarget.style.borderColor = "var(--border)";
           }}
         />
 
@@ -116,20 +116,20 @@ export default function LoginScreen({
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "#fff", // black background
+            backgroundColor: "var(--text)", // black background
             border: "none",
             borderRadius: 8,
-            color: "#000", // white text
+            color: "var(--bg)", // white text
             fontSize: 16,
             fontWeight: 600,
             cursor: "pointer",
             transition: "background-color 0.2s",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "#333333"; // dark gray on hover
+            e.currentTarget.style.backgroundColor = "var(--border)"; // dark gray on hover
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "#fff"; // back to black
+            e.currentTarget.style.backgroundColor = "var(--text)"; // back to black
           }}
         >
           Sign In
@@ -140,7 +140,7 @@ export default function LoginScreen({
         <p
           style={{
             fontSize: 13,
-            color: "#666",
+            color: "var(--text-tertiary)",
             margin: 0,
             marginBottom: 12,
           }}

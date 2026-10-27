@@ -21,17 +21,17 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ position: 'relative' }}>
-        <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#555' }} />
+        <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="search by username..."
           style={{
-            background: '#111',
-            border: '0.5px solid #333',
+            background: 'var(--bg-elevated-2)',
+            border: '0.5px solid var(--border)',
             borderRadius: 40,
             padding: '12px 16px 12px 38px',
-            color: 'white',
+            color: 'var(--text)',
             fontSize: 15,
             width: '100%',
             fontFamily: 'inherit',
@@ -50,10 +50,10 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: '#0c0c0c',
+                background: 'var(--bg-elevated)',
                 padding: 12,
                 borderRadius: 16,
-                border: '0.5px solid #2a2a2a',
+                border: '0.5px solid var(--border-subtle)',
                 cursor: 'pointer',
               }}
             >
@@ -61,15 +61,15 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
                 <Avatar name={user.name} />
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{user.name}</div>
-                  <div style={{ fontSize: 12, color: '#aaa' }}>@{user.username}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>@{user.username}</div>
                 </div>
               </div>
               <button
                 onClick={e => { e.stopPropagation(); onToggleFollow(user.id); }}
                 style={{
-                  background: isFollowing ? 'transparent' : '#fff',
-                  color: isFollowing ? '#fff' : '#000',
-                  border: isFollowing ? '0.5px solid #fff' : 'none',
+                  background: isFollowing ? 'transparent' : 'var(--text)',
+                  color: isFollowing ? 'var(--text)' : 'var(--bg)',
+                  border: isFollowing ? '0.5px solid var(--text)' : 'none',
                   padding: '6px 16px',
                   borderRadius: 30,
                   fontWeight: 600,
@@ -84,7 +84,7 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
           );
         })}
         {filtered.length === 0 && query && (
-          <div style={{ textAlign: 'center', color: '#555', marginTop: 40, fontSize: 14 }}>no users found</div>
+          <div style={{ textAlign: 'center', color: 'var(--text-dim)', marginTop: 40, fontSize: 14 }}>no users found</div>
         )}
       </div>
     </div>

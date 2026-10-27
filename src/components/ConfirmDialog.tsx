@@ -21,8 +21,8 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  const confirmBg = variant === "danger" ? "#ef4444" : "#fff";
-  const confirmColor = variant === "danger" ? "#fff" : "#000";
+  const confirmBg = variant === "danger" ? "#ef4444" : "var(--text)";
+  const confirmColor = variant === "danger" ? "var(--text)" : "var(--bg)";
   const confirmShadow =
     variant === "danger" ? "0 2px 12px rgba(239, 68, 68, 0.3)" : "none";
 
@@ -75,7 +75,7 @@ export default function ConfirmDialog({
         <p
           style={{
             margin: "10px auto 22px",
-            color: "#888",
+            color: "var(--text-muted)",
             fontSize: 14,
             lineHeight: 1.5,
             maxWidth: 320,
@@ -89,9 +89,9 @@ export default function ConfirmDialog({
             style={{
               flex: 1,
               padding: "13px",
-              background: "rgba(255,255,255,0.05)",
-              color: "#fff",
-              border: "1px solid #2a2a2a",
+              background: "var(--surface-subtle)",
+              color: "var(--text)",
+              border: "1px solid var(--border-subtle)",
               borderRadius: 14,
               fontWeight: 600,
               fontSize: 14,
@@ -100,10 +100,10 @@ export default function ConfirmDialog({
               transition: "background 0.2s",
             }}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "rgba(255,255,255,0.08)")
+              (e.currentTarget.style.background = "var(--surface-hover)")
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "rgba(255,255,255,0.05)")
+              (e.currentTarget.style.background = "var(--surface-subtle)")
             }
           >
             {cancelText}

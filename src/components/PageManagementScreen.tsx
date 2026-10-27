@@ -28,8 +28,6 @@ export default function PageManagementScreen({
 }: PageManagementScreenProps) {
   const { pages, acceptJoinRequest, rejectJoinRequest, joinPage } = usePages();
 
-  const currentUser = users.find((u) => u.id === currentUserId);
-
   const [activeTab, setActiveTab] = useState<Tab>("my_pages");
   const [discoverCategory, setDiscoverCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,22 +90,22 @@ export default function PageManagementScreen({
     > = {
       admin: {
         bg: "rgba(59, 130, 246, 0.2)",
-        color: "#60a5fa",
+        color: "var(--accent-blue-soft)",
         border: "rgba(59, 130, 246, 0.3)",
       },
       editor: {
         bg: "rgba(139, 92, 246, 0.2)",
-        color: "#a78bfa",
+        color: "var(--accent-purple-soft)",
         border: "rgba(139, 92, 246, 0.3)",
       },
       moderator: {
         bg: "rgba(245, 158, 11, 0.2)",
-        color: "#fbbf24",
+        color: "var(--accent-amber-soft)",
         border: "rgba(245, 158, 11, 0.3)",
       },
       member: {
         bg: "rgba(107, 114, 128, 0.2)",
-        color: "#9ca3af",
+        color: "var(--text-secondary)",
         border: "rgba(107, 114, 128, 0.3)",
       },
     };
@@ -135,7 +133,7 @@ export default function PageManagementScreen({
       >
         <div style={{ flex: 1, minWidth: 200 }}>
           <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Pages</h2>
-          <p style={{ color: "#8a8a8a", fontSize: 13, marginTop: 4 }}>
+          <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>
             Manage your communities and pages
           </p>
         </div>
@@ -146,13 +144,13 @@ export default function PageManagementScreen({
               width: 40,
               height: 40,
               borderRadius: 14,
-              background: "rgba(255,255,255,0.05)",
+              background: "var(--surface-subtle)",
               border: "none",
-              color: "#bfbfbf",
+              color: "var(--text-secondary)",
               display: "grid",
               placeItems: "center",
               cursor: "pointer",
-              boxShadow: "0 8px 20px rgba(255,255,255,0.08)",
+              boxShadow: "0 8px 20px var(--surface-hover)",
               flexShrink: 0,
               transition: "all 0.2s",
             }}
@@ -174,7 +172,7 @@ export default function PageManagementScreen({
           display: "flex",
           gap: 8,
           marginBottom: 20,
-          borderBottom: "0.5px solid #2c2c2c",
+          borderBottom: "0.5px solid var(--border-2)",
           paddingBottom: 12,
           overflowX: "auto",
         }}
@@ -185,8 +183,8 @@ export default function PageManagementScreen({
             key={tab}
             onClick={() => setActiveTab(tab)}
             style={{
-              background: activeTab === tab ? "#fff" : "transparent",
-              color: activeTab === tab ? "#000" : "#8a8a8a",
+              background: activeTab === tab ? "var(--text)" : "transparent",
+              color: activeTab === tab ? "var(--bg)" : "var(--text-muted)",
               border: "none",
               padding: "8px 16px",
               borderRadius: 20,
@@ -204,7 +202,7 @@ export default function PageManagementScreen({
                 style={{
                   marginLeft: 8,
                   background: "#ff4d6d",
-                  color: "#fff",
+                  color: "var(--text)",
                   padding: "2px 8px",
                   borderRadius: 12,
                   fontSize: 11,
@@ -239,9 +237,9 @@ export default function PageManagementScreen({
                 style={{
                   padding: "6px 14px",
                   borderRadius: 20,
-                  border: discoverCategory === cat ? "none" : "1px solid #333",
-                  background: discoverCategory === cat ? "#fff" : "transparent",
-                  color: discoverCategory === cat ? "#000" : "#888",
+                  border: discoverCategory === cat ? "none" : "1px solid var(--border)",
+                  background: discoverCategory === cat ? "var(--text)" : "transparent",
+                  color: discoverCategory === cat ? "var(--bg)" : "var(--text-muted)",
                   fontWeight: 600,
                   fontSize: 12,
                   cursor: "pointer",
@@ -261,7 +259,7 @@ export default function PageManagementScreen({
           >
             <Search
               size={16}
-              color="#666"
+              color="var(--text-tertiary)"
               style={{ position: "absolute", left: 12 }}
             />
             <input
@@ -271,9 +269,9 @@ export default function PageManagementScreen({
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: "100%",
-                background: "#111",
-                border: "1px solid #333",
-                color: "#fff",
+                background: "var(--bg-elevated-2)",
+                border: "1px solid var(--border)",
+                color: "var(--text)",
                 padding: "10px 12px 10px 36px",
                 borderRadius: 12,
                 fontSize: 14,
@@ -297,10 +295,10 @@ export default function PageManagementScreen({
           key={page.id}
           style={{
             position: "relative",
-            background: "#0c0c0c",
+            background: "var(--bg-elevated)",
             borderRadius: 20,
             padding: 16,
-            border: "0.5px solid #2a2a2a",
+            border: "0.5px solid var(--border-subtle)",
             marginBottom: 16,
             overflow: "hidden",
           }}
@@ -316,7 +314,7 @@ export default function PageManagementScreen({
               background: page.coverUrl
                 ? `url(${page.coverUrl}) center/cover`
                 : "",
-              borderBottom: "0.5px solid rgba(255,255,255,0.05)",
+              borderBottom: "0.5px solid var(--surface-subtle)",
               zIndex: 0,
             }}
           />
@@ -368,7 +366,7 @@ export default function PageManagementScreen({
                     <span
                       style={{
                         background: "#3b82f6",
-                        color: "#fff",
+                        color: "var(--text)",
                         fontSize: 10,
                         padding: "2px 8px",
                         borderRadius: 12,
@@ -378,7 +376,7 @@ export default function PageManagementScreen({
                     </span>
                   )}
                 </div>
-                <p style={{ color: "#8a8a8a", fontSize: 13, margin: "4px 0" }}>
+                <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "4px 0" }}>
                   {page.category}
                 </p>
                 <div
@@ -389,7 +387,7 @@ export default function PageManagementScreen({
                     marginTop: 8,
                   }}
                 >
-                  <span style={{ fontSize: 13, color: "#aaa" }}>
+                  <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
                     👥 {page.members.length.toLocaleString()} members
                   </span>
                 </div>
@@ -405,9 +403,9 @@ export default function PageManagementScreen({
                 width: 36,
                 height: 36,
                 borderRadius: 18,
-                background: "rgba(17,17,17,0.92)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                color: "#fff",
+                background: "var(--overlay-surface)",
+                border: "1px solid var(--surface-hover)",
+                color: "var(--text)",
                 display: "grid",
                 placeItems: "center",
                 cursor: "pointer",
@@ -436,13 +434,13 @@ export default function PageManagementScreen({
                       height: 16,
                       borderRadius: 999,
                       background: "#ef4444",
-                      color: "#fff",
+                      color: "var(--text)",
                       fontSize: 10,
                       fontWeight: 700,
                       display: "grid",
                       placeItems: "center",
                       padding: "0 4px",
-                      boxShadow: "0 0 0 2px #0c0c0c",
+                      boxShadow: "0 0 0 2px var(--bg-elevated)",
                     }}
                   >
                     {page.joinRequests?.length || 0}
@@ -463,7 +461,7 @@ export default function PageManagementScreen({
               gap: 12,
               marginTop: 14,
               paddingTop: 14,
-              borderTop: "0.5px solid #2a2a2a",
+              borderTop: "0.5px solid var(--border-subtle)",
             }}
           >
             {(() => {
@@ -496,11 +494,11 @@ export default function PageManagementScreen({
                   disabled={page.joinRequests?.includes(currentUserId)}
                   style={{
                     background: page.joinRequests?.includes(currentUserId)
-                      ? "#333"
+                      ? "var(--border)"
                       : "#3b82f6",
                     color: page.joinRequests?.includes(currentUserId)
-                      ? "#888"
-                      : "#fff",
+                      ? "var(--text-muted)"
+                      : "var(--text)",
                     border: "none",
                     padding: "6px 14px",
                     borderRadius: 20,
@@ -526,7 +524,7 @@ export default function PageManagementScreen({
           style={{
             textAlign: "center",
             padding: "40px 20px",
-            color: "#666",
+            color: "var(--text-tertiary)",
             fontSize: 14,
           }}
         >
@@ -539,7 +537,7 @@ export default function PageManagementScreen({
           style={{
             textAlign: "center",
             padding: "40px 20px",
-            color: "#666",
+            color: "var(--text-tertiary)",
             fontSize: 14,
           }}
         >
@@ -567,10 +565,10 @@ export default function PageManagementScreen({
                   width: 64,
                   height: 64,
                   borderRadius: 32,
-                  background: "rgba(255,255,255,0.05)",
+                  background: "var(--surface-subtle)",
                   display: "grid",
                   placeItems: "center",
-                  color: "#666",
+                  color: "var(--text-tertiary)",
                 }}
               >
                 <Inbox size={28} />
@@ -578,7 +576,7 @@ export default function PageManagementScreen({
               <h3 style={{ margin: 0, fontWeight: 600, fontSize: 16 }}>
                 No Requests
               </h3>
-              <p style={{ margin: 0, color: "#666", fontSize: 13 }}>
+              <p style={{ margin: 0, color: "var(--text-tertiary)", fontSize: 13 }}>
                 You don't have any pending join requests.
               </p>
             </div>
@@ -593,22 +591,22 @@ export default function PageManagementScreen({
                     display: "flex",
                     alignItems: "center",
                     gap: 12,
-                    background: "#0c0c0c",
+                    background: "var(--bg-elevated)",
                     padding: 14,
                     borderRadius: 16,
-                    border: "0.5px solid #2a2a2a",
+                    border: "0.5px solid var(--border-subtle)",
                   }}
                 >
                   <Avatar name={u.name} />
                   <div style={{ flex: 1 }}>
                     <div
-                      style={{ fontWeight: 600, fontSize: 14, color: "#fff" }}
+                      style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}
                     >
                       {u.name}
                     </div>
-                    <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
                       Requested to join{" "}
-                      <strong style={{ color: "#aaa" }}>{page.name}</strong>
+                      <strong style={{ color: "var(--text-secondary)" }}>{page.name}</strong>
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
@@ -622,7 +620,7 @@ export default function PageManagementScreen({
                         borderRadius: 18,
                         background: "#3b82f6",
                         border: "none",
-                        color: "#fff",
+                        color: "var(--text)",
                         cursor: "pointer",
                         display: "grid",
                         placeItems: "center",
@@ -647,9 +645,9 @@ export default function PageManagementScreen({
                         width: 36,
                         height: 36,
                         borderRadius: 18,
-                        background: "rgba(255,255,255,0.1)",
+                        background: "var(--surface-hover)",
                         border: "none",
-                        color: "#fff",
+                        color: "var(--text)",
                         cursor: "pointer",
                         display: "grid",
                         placeItems: "center",
@@ -691,10 +689,10 @@ export default function PageManagementScreen({
               width: 64,
               height: 64,
               borderRadius: 32,
-              background: "rgba(255,255,255,0.05)",
+              background: "var(--surface-subtle)",
               display: "grid",
               placeItems: "center",
-              color: "#666",
+              color: "var(--text-tertiary)",
             }}
           >
             <Inbox size={28} />
@@ -702,7 +700,7 @@ export default function PageManagementScreen({
           <h3 style={{ margin: 0, fontWeight: 600, fontSize: 16 }}>
             No Invites
           </h3>
-          <p style={{ margin: 0, color: "#666", fontSize: 13 }}>
+          <p style={{ margin: 0, color: "var(--text-tertiary)", fontSize: 13 }}>
             When you receive new invites, they will appear here.
           </p>
         </div>

@@ -11,7 +11,6 @@ import {
   Flag,
   ChevronUp,
   Image as ImageIcon,
-  Send,
   X,
   Plus,
   BadgeCheck,
@@ -70,17 +69,11 @@ export default function PageViewScreen({
   const [showMenu, setShowMenu] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
-  const [postText, setPostText] = useState("");
-  const [postImage, setPostImage] = useState<string | null>(null);
-  const [isPosting, setIsPosting] = useState(false);
   const [commentDialogPostId, setCommentDialogPostId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const tabsRef = useRef<HTMLDivElement>(null);
-  const postInputRef = useRef<HTMLDivElement>(null);
 
   const [settingsName, setSettingsName] = useState(page.name);
   const [settingsCategory, setSettingsCategory] = useState(page.category);
@@ -103,6 +96,8 @@ export default function PageViewScreen({
     setSettingsRulesText((page.rules || []).join("\n"));
     setActiveTab(initialTab || "feed");
     setShowMenu(false);
+  // Reset per-page state only when switching pages (not when editing page settings).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page.id, initialTab]);
 
   useEffect(() => {
@@ -138,13 +133,6 @@ export default function PageViewScreen({
       return () => contentElement.removeEventListener("scroll", handleScroll);
     }
   }, []);
-
-  // Focus textarea when clicking on the post container
-  const handlePostContainerClick = () => {
-    if (textAreaRef.current) {
-      textAreaRef.current.focus();
-    }
-  };
 
   const myRole = page.members.find((m) => m.userId === currentUserId)?.role;
   const isMember = !!myRole;
@@ -202,64 +190,13 @@ export default function PageViewScreen({
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPostImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmitPost = () => {
-    if (postText.trim() || postImage) {
-      setIsPosting(true);
-      // Here you would typically send the post data to your backend
-      console.log("Post submitted:", { text: postText, image: postImage });
-
-      // Simulate API call
-      setTimeout(() => {
-        // Add the new post to the list (in a real app, this would come from the backend)
-        const newPost: Post = {
-          id: Date.now().toString(),
-          pageId: page.id,
-          authorId: currentUserId,
-          caption: postText,
-          imageUrl: postImage || undefined,
-          imageAlt: "Post Image",
-          likes: [],
-          comments: [],
-          createdAt: new Date().toISOString(),
-        };
-
-        // In a real app, you would update the posts state through a context or prop
-        // For now, we'll just show a success message
-        alert("Post submitted successfully!");
-        setPostText("");
-        setPostImage(null);
-        setIsPosting(false);
-      }, 500);
-    } else {
-      alert("Please add some text or an image to your post.");
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmitPost();
-    }
-  };
-
   return (
     <div
       style={{
         position: "absolute",
         inset: 0,
         zIndex: 45,
-        background: "#000",
+        background: "var(--bg)",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -280,7 +217,7 @@ export default function PageViewScreen({
           ref={headerRef}
           style={{
             position: "relative",
-            borderBottom: isHeaderSticky ? "none" : "0.5px solid #2a2a2a",
+            borderBottom: isHeaderSticky ? "none" : "0.5px solid var(--border-subtle)",
             transition: "border-bottom 0.3s ease",
           }}
         >
@@ -337,7 +274,7 @@ export default function PageViewScreen({
                   height: 36,
                   borderRadius: 18,
                   border: "none",
-                  color: "#fff",
+                  color: "var(--text-on-media)",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
@@ -357,7 +294,7 @@ export default function PageViewScreen({
                     height: 36,
                     borderRadius: 18,
                     border: "none",
-                    color: "#fff",
+                    color: "var(--text-on-media)",
                     cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
@@ -373,8 +310,8 @@ export default function PageViewScreen({
                       top: "calc(100% + 8px)",
                       right: 0,
                       width: 220,
-                      background: "#141414",
-                      border: "0.5px solid #2a2a2a",
+                      background: "var(--bg-elevated-2)",
+                      border: "0.5px solid var(--border-subtle)",
                       borderRadius: 16,
                       padding: 8,
                       zIndex: 100,
@@ -392,7 +329,7 @@ export default function PageViewScreen({
                           padding: "10px 12px",
                           background: "transparent",
                           border: "none",
-                          color: "#fca5a5",
+                          color: "var(--danger-soft)",
                           borderRadius: 12,
                           cursor: "pointer",
                           textAlign: "left",
@@ -413,7 +350,7 @@ export default function PageViewScreen({
                         padding: "10px 12px",
                         background: "transparent",
                         border: "none",
-                        color: "#e5e5e5",
+                        color: "var(--text-soft)",
                         borderRadius: 12,
                         cursor: "pointer",
                         textAlign: "left",
@@ -437,7 +374,7 @@ export default function PageViewScreen({
                           padding: "10px 12px",
                           background: "transparent",
                           border: "none",
-                          color: "#60a5fa",
+                          color: "var(--accent-blue-soft)",
                           borderRadius: 12,
                           cursor: "pointer",
                           textAlign: "left",
@@ -466,12 +403,12 @@ export default function PageViewScreen({
                   width: 72,
                   height: 72,
                   borderRadius: 36,
-                  background: "#111",
+                  background: "var(--bg-elevated-2)",
                   display: "grid",
                   placeItems: "center",
                   fontSize: 28,
                   fontWeight: 700,
-                  border: "3px solid #000",
+                  border: "3px solid var(--bg)",
                 }}
               >
                 {page.avatar}
@@ -501,7 +438,7 @@ export default function PageViewScreen({
                     <span
                       style={{
                         background: "#3b82f6",
-                        color: "#fff",
+                        color: "var(--text)",
                         fontSize: 10,
                         padding: "2px 8px",
                         borderRadius: 12,
@@ -511,7 +448,7 @@ export default function PageViewScreen({
                     </span>
                   )}
                 </div>
-                <p style={{ color: "#aaa", fontSize: 13, margin: "4px 0 0" }}>
+                <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: "4px 0 0" }}>
                   {page.category}
                 </p>
               </div>
@@ -525,8 +462,8 @@ export default function PageViewScreen({
                   style={{
                     flex: 1,
                     padding: "8px",
-                    background: hasRequestedJoin ? "#333" : "#fff",
-                    color: hasRequestedJoin ? "#888" : "#000",
+                    background: hasRequestedJoin ? "var(--border)" : "var(--text)",
+                    color: hasRequestedJoin ? "var(--text-muted)" : "var(--bg)",
                     border: "none",
                     borderRadius: 12,
                     fontWeight: 700,
@@ -559,13 +496,13 @@ export default function PageViewScreen({
                 gap: "8px 24px",
                 marginTop: 12,
                 paddingTop: 12,
-                borderTop: "0.5px solid #2a2a2a",
+                borderTop: "0.5px solid var(--border-subtle)",
               }}
             >
-              <span style={{ fontSize: 13, color: "#8a8a8a" }}>
+              <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
                 👥 {page.members.length.toLocaleString()} members
               </span>
-              <span style={{ fontSize: 13, color: "#8a8a8a" }}>
+              <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
                 📝 {pagePosts.length} posts
               </span>
             </div>
@@ -579,11 +516,11 @@ export default function PageViewScreen({
             position: isHeaderSticky ? "sticky" : "relative",
             top: isHeaderSticky ? 0 : "auto",
             zIndex: isHeaderSticky ? 40 : 1,
-            background: "#000",
+            background: "var(--bg)",
             display: "flex",
             gap: 4,
             padding: "8px 16px",
-            borderBottom: "0.5px solid #2a2a2a",
+            borderBottom: "0.5px solid var(--border-subtle)",
             overflowX: "auto",
             transition: "box-shadow 0.3s ease",
             boxShadow: isHeaderSticky ? "0 4px 20px rgba(0,0,0,0.3)" : "none",
@@ -596,8 +533,8 @@ export default function PageViewScreen({
               onClick={() => setActiveTab(tab)}
               style={{
                 padding: "6px 16px",
-                background: activeTab === tab ? "#fff" : "transparent",
-                color: activeTab === tab ? "#000" : "#8a8a8a",
+                background: activeTab === tab ? "var(--text)" : "transparent",
+                color: activeTab === tab ? "var(--bg)" : "var(--text-muted)",
                 border: "none",
                 borderRadius: 16,
                 fontWeight: 600,
@@ -629,195 +566,34 @@ export default function PageViewScreen({
         >
           {activeTab === "feed" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {/* Inline Post Creator */}
-              {/* Inline Post Creator - Single line input */}
-              {isMember && (
-                <div
-                  ref={postInputRef}
-                  onClick={handlePostContainerClick}
+              {/* Compose prompt */}
+              {isMember && onNewPostClick && (
+                <button
+                  onClick={onNewPostClick}
                   style={{
-                    background: "#1a1a1a",
-                    border:
-                      postText || postImage
-                        ? "1px solid #3b82f6"
-                        : "0.5px solid #333",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    width: "100%",
+                    background: "var(--bg-raised)",
+                    border: "0.5px solid var(--border)",
                     borderRadius: 12,
                     padding: "10px 12px",
-                    transition: "all 0.2s ease",
                     cursor: "text",
+                    textAlign: "left",
                   }}
                 >
-                  {/* User info */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      marginBottom: 8,
-                    }}
-                  >
-                    <Avatar
-                      name={
-                        users.find((u) => u.id === currentUserId)?.name ||
-                        "User"
-                      }
-                      size="small"
-                    />
-                    <div>
-                      <h4
-                        style={{
-                          margin: 0,
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "#fff",
-                        }}
-                      >
-                        {users.find((u) => u.id === currentUserId)?.name ||
-                          "User"}
-                      </h4>
-                      <p style={{ margin: 0, fontSize: 10, color: "#666" }}>
-                        Posting to {page.name}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Single line input - grows on Enter */}
-                  <input
-                    ref={textAreaRef}
-                    type="text"
-                    value={postText}
-                    onChange={(e) => setPostText(e.target.value)}
-                    placeholder="Share something with the community..."
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        if (postText.trim() || postImage) {
-                          handleSubmitPost();
-                        }
-                      }
-                    }}
-                    style={{
-                      width: "100%",
-                      height: 36,
-                      background: "transparent",
-                      border: "none",
-                      color: "#fff",
-                      fontSize: 13,
-                      fontFamily: "inherit",
-                      outline: "none",
-                      padding: 0,
-                      placeholder: "#666",
-                    }}
+                  <Avatar
+                    name={
+                      users.find((u) => u.id === currentUserId)?.name || "User"
+                    }
+                    size="sm"
                   />
-
-                  {/* Image preview */}
-                  {postImage && (
-                    <div
-                      style={{
-                        position: "relative",
-                        marginTop: 8,
-                        borderRadius: 8,
-                        overflow: "hidden",
-                        background: "#0c0c0c",
-                      }}
-                    >
-                      <img
-                        src={postImage}
-                        alt="Post preview"
-                        style={{
-                          width: "100%",
-                          maxHeight: 200,
-                          objectFit: "contain",
-                        }}
-                      />
-                      <button
-                        onClick={() => setPostImage(null)}
-                        style={{
-                          position: "absolute",
-                          top: 6,
-                          right: 6,
-                          background: "rgba(0,0,0,0.7)",
-                          border: "none",
-                          color: "#fff",
-                          width: 26,
-                          height: 26,
-                          borderRadius: 13,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Action buttons - only show when there's content */}
-                  {(postText.trim() || postImage) && (
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginTop: 8,
-                        paddingTop: 8,
-                        borderTop: "0.5px solid #2a2a2a",
-                      }}
-                    >
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          style={{ display: "none" }}
-                        />
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 6,
-                            padding: "4px 12px",
-                            background: "rgba(59, 130, 246, 0.1)",
-                            color: "#3b82f6",
-                            border: "0.5px solid rgba(59, 130, 246, 0.2)",
-                            borderRadius: 8,
-                            cursor: "pointer",
-                            fontSize: 12,
-                            fontWeight: 500,
-                          }}
-                        >
-                          <ImageIcon size={14} />
-                          Media
-                        </button>
-                      </div>
-
-                      <button
-                        onClick={handleSubmitPost}
-                        disabled={isPosting}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                          padding: "4px 16px",
-                          background: isPosting ? "#2a2a2a" : "#3b82f6",
-                          color: isPosting ? "#666" : "#fff",
-                          border: "none",
-                          borderRadius: 8,
-                          cursor: isPosting ? "not-allowed" : "pointer",
-                          fontSize: 12,
-                          fontWeight: 600,
-                          opacity: isPosting ? 0.6 : 1,
-                        }}
-                      >
-                        <Send size={14} />
-                        {isPosting ? "Posting..." : "Post"}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                  <span style={{ flex: 1, fontSize: 13, color: "var(--text-tertiary)" }}>
+                    Share something with the community...
+                  </span>
+                  <ImageIcon size={18} color="#3b82f6" />
+                </button>
               )}
 
               {/* Posts List */}
@@ -827,10 +603,10 @@ export default function PageViewScreen({
                   <div
                     key={post.id}
                     style={{
-                      background: "#0c0c0c",
+                      background: "var(--bg-elevated)",
                       borderRadius: 16,
                       padding: 14,
-                      border: "0.5px solid #2a2a2a",
+                      border: "0.5px solid var(--border-subtle)",
                     }}
                   >
                     <div
@@ -848,7 +624,7 @@ export default function PageViewScreen({
                         >
                           {u?.name || "Unknown User"}
                         </h4>
-                        <p style={{ margin: 0, fontSize: 12, color: "#666" }}>
+                        <p style={{ margin: 0, fontSize: 12, color: "var(--text-tertiary)" }}>
                           {new Date(post.createdAt).toLocaleDateString()}
                         </p>
                       </div>
@@ -858,7 +634,7 @@ export default function PageViewScreen({
                         margin: "0 0 12px 0",
                         fontSize: 14,
                         lineHeight: 1.5,
-                        color: "#e5e5e5",
+                        color: "var(--text-soft)",
                       }}
                     >
                       {post.caption}
@@ -886,7 +662,7 @@ export default function PageViewScreen({
                           display: "flex",
                           alignItems: "center",
                           gap: 6,
-                          color: "#8a8a8a",
+                          color: "var(--text-muted)",
                           fontSize: 13,
                           background: "none",
                           border: "none",
@@ -894,7 +670,7 @@ export default function PageViewScreen({
                           padding: 0,
                         }}
                       >
-                        <Heart size={16} color={post.likes.includes(currentUserId) ? "#ff4d6d" : "#8a8a8a"} fill={post.likes.includes(currentUserId) ? "#ff4d6d" : "none"} /> {post.likes.length}
+                        <Heart size={16} color={post.likes.includes(currentUserId) ? "#ff4d6d" : "var(--text-muted)"} fill={post.likes.includes(currentUserId) ? "#ff4d6d" : "none"} /> {post.likes.length}
                       </button>
                       <button
                         onClick={() => setCommentDialogPostId(post.id)}
@@ -902,7 +678,7 @@ export default function PageViewScreen({
                           display: "flex",
                           alignItems: "center",
                           gap: 6,
-                          color: "#8a8a8a",
+                          color: "var(--text-muted)",
                           fontSize: 13,
                           background: "none",
                           border: "none",
@@ -921,7 +697,7 @@ export default function PageViewScreen({
                   style={{
                     textAlign: "center",
                     padding: "40px 20px",
-                    color: "#666",
+                    color: "var(--text-tertiary)",
                     fontSize: 14,
                   }}
                 >
@@ -940,7 +716,7 @@ export default function PageViewScreen({
                       style={{
                         textAlign: "center",
                         padding: "40px 20px",
-                        color: "#666",
+                        color: "var(--text-tertiary)",
                         fontSize: 14,
                       }}
                     >
@@ -951,10 +727,10 @@ export default function PageViewScreen({
                       <div
                         key={event.id}
                         style={{
-                          background: "#0c0c0c",
+                          background: "var(--bg-elevated)",
                           borderRadius: 16,
                           padding: 16,
-                          border: "0.5px solid #2a2a2a",
+                          border: "0.5px solid var(--border-subtle)",
                           display: "flex",
                           gap: 16,
                         }}
@@ -979,7 +755,7 @@ export default function PageViewScreen({
                               margin: 0,
                               fontSize: 16,
                               fontWeight: 600,
-                              color: "#fff",
+                              color: "var(--text)",
                             }}
                           >
                             {event.title}
@@ -994,7 +770,7 @@ export default function PageViewScreen({
                           >
                             {new Date(event.date).toLocaleDateString()}
                           </p>
-                          <p style={{ margin: 0, fontSize: 14, color: "#888" }}>
+                          <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)" }}>
                             {event.description}
                           </p>
                         </div>
@@ -1029,17 +805,17 @@ export default function PageViewScreen({
             <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1, overflowY: "auto", minHeight: 0 }}>
               <div
                 style={{
-                  background: "#0c0c0c",
+                  background: "var(--bg-elevated)",
                   borderRadius: 16,
                   padding: 16,
-                  border: "0.5px solid #2a2a2a",
+                  border: "0.5px solid var(--border-subtle)",
                 }}
               >
                 <h4
                   style={{
                     margin: 0,
                     marginBottom: 8,
-                    color: "#fff",
+                    color: "var(--text)",
                     fontSize: 15,
                   }}
                 >
@@ -1048,7 +824,7 @@ export default function PageViewScreen({
                 <p
                   style={{
                     lineHeight: 1.6,
-                    color: "#8a8a8a",
+                    color: "var(--text-muted)",
                     fontSize: 14,
                     margin: 0,
                   }}
@@ -1060,17 +836,17 @@ export default function PageViewScreen({
               {page.rules && page.rules.length > 0 && (
                 <div
                   style={{
-                    background: "#0c0c0c",
+                    background: "var(--bg-elevated)",
                     borderRadius: 16,
                     padding: 16,
-                    border: "0.5px solid #2a2a2a",
+                    border: "0.5px solid var(--border-subtle)",
                   }}
                 >
                   <h4
                     style={{
                       margin: 0,
                       marginBottom: 12,
-                      color: "#fff",
+                      color: "var(--text)",
                       fontSize: 15,
                     }}
                   >
@@ -1085,11 +861,11 @@ export default function PageViewScreen({
                         style={{
                           display: "flex",
                           gap: 12,
-                          color: "#8a8a8a",
+                          color: "var(--text-muted)",
                           fontSize: 14,
                         }}
                       >
-                        <span style={{ fontWeight: 600, color: "#555" }}>
+                        <span style={{ fontWeight: 600, color: "var(--text-dim)" }}>
                           {idx + 1}.
                         </span>
                         <span>{rule}</span>
@@ -1101,17 +877,17 @@ export default function PageViewScreen({
 
               <div
                 style={{
-                  background: "#0c0c0c",
+                  background: "var(--bg-elevated)",
                   borderRadius: 16,
                   padding: 16,
-                  border: "0.5px solid #2a2a2a",
+                  border: "0.5px solid var(--border-subtle)",
                 }}
               >
                 <h4
                   style={{
                     margin: 0,
                     marginBottom: 12,
-                    color: "#fff",
+                    color: "var(--text)",
                     fontSize: 15,
                   }}
                 >
@@ -1122,14 +898,14 @@ export default function PageViewScreen({
                     display: "flex",
                     justifyContent: "space-between",
                     padding: "10px 0",
-                    borderBottom: "0.5px solid #222",
+                    borderBottom: "0.5px solid var(--surface)",
                   }}
                 >
-                  <span style={{ color: "#8a8a8a", fontSize: 14 }}>
+                  <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
                     Category
                   </span>
                   <span
-                    style={{ color: "#fff", fontSize: 14, fontWeight: 500 }}
+                    style={{ color: "var(--text)", fontSize: 14, fontWeight: 500 }}
                   >
                     {page.category}
                   </span>
@@ -1139,15 +915,15 @@ export default function PageViewScreen({
                     display: "flex",
                     justifyContent: "space-between",
                     padding: "10px 0",
-                    borderBottom: "0.5px solid #222",
+                    borderBottom: "0.5px solid var(--surface)",
                   }}
                 >
-                  <span style={{ color: "#8a8a8a", fontSize: 14 }}>
+                  <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
                     Visibility
                   </span>
                   <span
                     style={{
-                      color: "#fff",
+                      color: "var(--text)",
                       fontSize: 14,
                       fontWeight: 500,
                       textTransform: "capitalize",
@@ -1163,11 +939,11 @@ export default function PageViewScreen({
                     paddingTop: 10,
                   }}
                 >
-                  <span style={{ color: "#8a8a8a", fontSize: 14 }}>
+                  <span style={{ color: "var(--text-muted)", fontSize: 14 }}>
                     Members
                   </span>
                   <span
-                    style={{ color: "#fff", fontSize: 14, fontWeight: 500 }}
+                    style={{ color: "var(--text)", fontSize: 14, fontWeight: 500 }}
                   >
                     {page.members.length.toLocaleString()}
                   </span>
@@ -1186,17 +962,17 @@ export default function PageViewScreen({
                 <div
                   style={{
                     flex: 1,
-                    background: "#0c0c0c",
+                    background: "var(--bg-elevated)",
                     borderRadius: 16,
                     padding: 16,
-                    border: "0.5px solid #2a2a2a",
+                    border: "0.5px solid var(--border-subtle)",
                   }}
                 >
                   <p
                     style={{
                       margin: 0,
                       fontSize: 13,
-                      color: "#888",
+                      color: "var(--text-muted)",
                       marginBottom: 8,
                     }}
                   >
@@ -1225,17 +1001,17 @@ export default function PageViewScreen({
                 <div
                   style={{
                     flex: 1,
-                    background: "#0c0c0c",
+                    background: "var(--bg-elevated)",
                     borderRadius: 16,
                     padding: 16,
-                    border: "0.5px solid #2a2a2a",
+                    border: "0.5px solid var(--border-subtle)",
                   }}
                 >
                   <p
                     style={{
                       margin: 0,
                       fontSize: 13,
-                      color: "#888",
+                      color: "var(--text-muted)",
                       marginBottom: 8,
                     }}
                   >
@@ -1267,10 +1043,10 @@ export default function PageViewScreen({
 
               <div
                 style={{
-                  background: "#0c0c0c",
+                  background: "var(--bg-elevated)",
                   borderRadius: 16,
                   padding: 16,
-                  border: "0.5px solid #2a2a2a",
+                  border: "0.5px solid var(--border-subtle)",
                   height: 200,
                   display: "flex",
                   alignItems: "flex-end",
@@ -1307,7 +1083,7 @@ export default function PageViewScreen({
               <p
                 style={{
                   textAlign: "center",
-                  color: "#666",
+                  color: "var(--text-tertiary)",
                   fontSize: 12,
                   margin: 0,
                 }}
@@ -1333,7 +1109,7 @@ export default function PageViewScreen({
               </h3>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>
+                <label style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
                   Page Name
                 </label>
                 <input
@@ -1341,9 +1117,9 @@ export default function PageViewScreen({
                   value={settingsName}
                   onChange={(e) => setSettingsName(e.target.value)}
                   style={{
-                    background: "#0c0c0c",
-                    border: "1px solid #333",
-                    color: "#fff",
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
                     padding: "12px",
                     borderRadius: 12,
                     fontSize: 14,
@@ -1352,7 +1128,7 @@ export default function PageViewScreen({
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>
+                <label style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
                   Category
                 </label>
                 <input
@@ -1360,9 +1136,9 @@ export default function PageViewScreen({
                   value={settingsCategory}
                   onChange={(e) => setSettingsCategory(e.target.value)}
                   style={{
-                    background: "#0c0c0c",
-                    border: "1px solid #333",
-                    color: "#fff",
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
                     padding: "12px",
                     borderRadius: 12,
                     fontSize: 14,
@@ -1371,7 +1147,7 @@ export default function PageViewScreen({
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>
+                <label style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
                   Description
                 </label>
                 <textarea
@@ -1379,9 +1155,9 @@ export default function PageViewScreen({
                   onChange={(e) => setSettingsDesc(e.target.value)}
                   rows={3}
                   style={{
-                    background: "#0c0c0c",
-                    border: "1px solid #333",
-                    color: "#fff",
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
                     padding: "12px",
                     borderRadius: 12,
                     fontSize: 14,
@@ -1392,16 +1168,16 @@ export default function PageViewScreen({
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>
+                <label style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
                   Visibility
                 </label>
                 <select
                   value={settingsVisibility}
                   onChange={(e) => setSettingsVisibility(e.target.value)}
                   style={{
-                    background: "#0c0c0c",
-                    border: "1px solid #333",
-                    color: "#fff",
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
                     padding: "12px",
                     borderRadius: 12,
                     fontSize: 14,
@@ -1416,7 +1192,7 @@ export default function PageViewScreen({
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <label style={{ fontSize: 13, color: "#aaa", fontWeight: 600 }}>
+                <label style={{ fontSize: 13, color: "var(--text-secondary)", fontWeight: 600 }}>
                   Community Rules
                 </label>
                 <textarea
@@ -1427,9 +1203,9 @@ export default function PageViewScreen({
                     "Be respectful and constructive.\nNo spam or self-promotion.\nCredit sources and creators."
                   }
                   style={{
-                    background: "#0c0c0c",
-                    border: "1px solid #333",
-                    color: "#fff",
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
                     padding: "12px",
                     borderRadius: 12,
                     fontSize: 14,
@@ -1437,7 +1213,7 @@ export default function PageViewScreen({
                     resize: "vertical",
                   }}
                 />
-                <div style={{ color: "#666", fontSize: 12 }}>
+                <div style={{ color: "var(--text-tertiary)", fontSize: 12 }}>
                   Add one rule per line.
                 </div>
               </div>
@@ -1445,8 +1221,8 @@ export default function PageViewScreen({
               <button
                 onClick={handleSaveSettings}
                 style={{
-                  background: "#fff",
-                  color: "#000",
+                  background: "var(--text)",
+                  color: "var(--bg)",
                   padding: "12px",
                   borderRadius: 12,
                   border: "none",
@@ -1476,7 +1252,7 @@ export default function PageViewScreen({
               height: 48,
               borderRadius: 24,
               background: "#3b82f6",
-              color: "#fff",
+              color: "var(--text)",
               border: "none",
               cursor: "pointer",
               display: "flex",
@@ -1516,7 +1292,7 @@ export default function PageViewScreen({
             borderRadius: 26,
             background: "#3b82f6",
             border: "none",
-            color: "#fff",
+            color: "var(--text)",
             cursor: "pointer",
             display: "grid",
             placeItems: "center",
@@ -1550,21 +1326,21 @@ export default function PageViewScreen({
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "#1a1a1a",
+              background: "var(--bg-raised)",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               padding: 24,
               paddingBottom: 32,
-              border: "1px solid #2a2a2a",
+              border: "1px solid var(--border-subtle)",
               borderBottom: "none",
               animation: "eventSlideUp 0.3s ease",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h4 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#fff" }}>New Event</h4>
+              <h4 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text)" }}>New Event</h4>
               <button
                 onClick={() => { setShowEventForm(false); setEventTitle(""); setEventDesc(""); setEventDate(""); }}
-                style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 4 }}
+                style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4 }}
               >
                 <X size={22} />
               </button>
@@ -1575,20 +1351,20 @@ export default function PageViewScreen({
                 placeholder="Event title"
                 value={eventTitle}
                 onChange={(e) => setEventTitle(e.target.value)}
-                style={{ background: "#0c0c0c", border: "1px solid #333", color: "#fff", padding: "12px 14px", borderRadius: 12, fontSize: 14, outline: "none" }}
+                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text)", padding: "12px 14px", borderRadius: 12, fontSize: 14, outline: "none" }}
               />
               <input
                 type="date"
                 value={eventDate}
                 onChange={(e) => setEventDate(e.target.value)}
-                style={{ background: "#0c0c0c", border: "1px solid #333", color: "#fff", padding: "12px 14px", borderRadius: 12, fontSize: 14, outline: "none", colorScheme: "dark" }}
+                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text)", padding: "12px 14px", borderRadius: 12, fontSize: 14, outline: "none" }}
               />
               <textarea
                 placeholder="Description"
                 value={eventDesc}
                 onChange={(e) => setEventDesc(e.target.value)}
                 rows={3}
-                style={{ background: "#0c0c0c", border: "1px solid #333", color: "#fff", padding: "12px 14px", borderRadius: 12, fontSize: 14, fontFamily: "inherit", outline: "none", resize: "vertical" }}
+                style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)", color: "var(--text)", padding: "12px 14px", borderRadius: 12, fontSize: 14, fontFamily: "inherit", outline: "none", resize: "vertical" }}
               />
               <button
                 onClick={() => {
@@ -1603,8 +1379,8 @@ export default function PageViewScreen({
                   width: "100%",
                   padding: "14px",
                   borderRadius: 14,
-                  background: eventTitle.trim() && eventDate ? "#3b82f6" : "#333",
-                  color: eventTitle.trim() && eventDate ? "#fff" : "#666",
+                  background: eventTitle.trim() && eventDate ? "#3b82f6" : "var(--border)",
+                  color: eventTitle.trim() && eventDate ? "var(--text)" : "var(--text-tertiary)",
                   border: "none",
                   cursor: eventTitle.trim() && eventDate ? "pointer" : "not-allowed",
                   fontSize: 15,

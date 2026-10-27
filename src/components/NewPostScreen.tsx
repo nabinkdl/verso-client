@@ -50,7 +50,7 @@ export default function NewPostScreen({ onPublish, onClose, targetPageName }: Ne
     <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
       <div
         style={{
-          background: "#0c0c0c",
+          background: "var(--bg-elevated)",
           borderRadius: 24,
           padding: 20,
           display: "flex",
@@ -64,19 +64,19 @@ export default function NewPostScreen({ onPublish, onClose, targetPageName }: Ne
               new post
             </h2>
             {targetPageName && (
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: '#888' }}>Posting in <strong style={{ color: '#aaa' }}>{targetPageName}</strong></p>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>Posting in <strong style={{ color: 'var(--text-secondary)' }}>{targetPageName}</strong></p>
             )}
           </div>
           {onClose && (
             <button
               onClick={onClose}
               style={{
-                background: "rgba(255,255,255,0.05)",
+                background: "var(--surface-subtle)",
                 border: "none",
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                color: "#fff",
+                color: "var(--text)",
                 display: "grid",
                 placeItems: "center",
                 cursor: "pointer",
@@ -99,16 +99,16 @@ export default function NewPostScreen({ onPublish, onClose, targetPageName }: Ne
           type="button"
           onClick={openFilePicker}
           style={{
-            background: "#1a1a1a",
+            background: "var(--bg-raised)",
             minHeight: 180,
             borderRadius: 20,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            color: "#444",
+            color: "var(--text-faint)",
             gap: 8,
-            border: "0.5px solid #2c2c2c",
+            border: "0.5px solid var(--border-2)",
             width: "100%",
             padding: 18,
             cursor: "pointer",
@@ -130,8 +130,8 @@ export default function NewPostScreen({ onPublish, onClose, targetPageName }: Ne
                   maxWidth: 260,
                   borderRadius: 18,
                   overflow: "hidden",
-                  border: "0.5px solid #303030",
-                  background: "#050505",
+                  border: "0.5px solid var(--border-2)",
+                  background: "var(--bg)",
                 }}
               >
                 {draft.type === "video" ? (
@@ -166,12 +166,12 @@ export default function NewPostScreen({ onPublish, onClose, targetPageName }: Ne
                   <ImagePlus size={16} />
                 )}
                 <span
-                  style={{ fontSize: 13, color: "#ddd", textAlign: "center" }}
+                  style={{ fontSize: 13, color: "var(--text-soft)", textAlign: "center" }}
                 >
                   {draft.name}
                 </span>
               </div>
-              <span style={{ fontSize: 12, color: "#666" }}>
+              <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
                 {draft.type === "video" ? "video selected" : "image selected"}
               </span>
             </div>
@@ -195,7 +195,7 @@ export default function NewPostScreen({ onPublish, onClose, targetPageName }: Ne
               alignItems: "center",
               gap: 6,
               background: "transparent",
-              color: "#999",
+              color: "var(--text-secondary)",
               border: "none",
               cursor: "pointer",
               fontSize: 12,
@@ -213,11 +213,11 @@ export default function NewPostScreen({ onPublish, onClose, targetPageName }: Ne
           placeholder="write a caption..."
           rows={3}
           style={{
-            background: "#111",
-            border: "0.5px solid #333",
+            background: "var(--bg-elevated-2)",
+            border: "0.5px solid var(--border)",
             borderRadius: 16,
             padding: 12,
-            color: "white",
+            color: "var(--text)",
             width: "100%",
             fontFamily: "inherit",
             fontSize: 15,
@@ -228,8 +228,8 @@ export default function NewPostScreen({ onPublish, onClose, targetPageName }: Ne
         <button
           onClick={handlePublish}
           style={{
-            background: "white",
-            color: "black",
+            background: "var(--text)",
+            color: "var(--bg)",
             border: "none",
             padding: "13px",
             borderRadius: 40,

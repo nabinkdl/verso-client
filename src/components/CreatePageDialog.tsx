@@ -63,7 +63,6 @@ export default function CreatePageDialog({
     visibility: "public",
     rulesText: "",
   });
-  const [createdPageId, setCreatedPageId] = useState<string | null>(null);
   const [createdPageName, setCreatedPageName] = useState("");
 
   const handleNext = () => setStep(2);
@@ -85,7 +84,6 @@ export default function CreatePageDialog({
       currentUserId,
       rules,
     );
-    setCreatedPageId(id);
     setCreatedPageName(pageData.name);
     setStage("success");
     if (onCreated) onCreated(id);
@@ -101,7 +99,6 @@ export default function CreatePageDialog({
       visibility: "public",
       rulesText: "",
     });
-    setCreatedPageId(null);
     setCreatedPageName("");
   };
 
@@ -113,10 +110,10 @@ export default function CreatePageDialog({
   const inputStyle = {
     width: "100%",
     padding: "14px 16px",
-    background: "#0f0f0f",
-    border: "1px solid #2a2a2a",
+    background: "var(--bg-input)",
+    border: "1px solid var(--border-subtle)",
     borderRadius: 14,
-    color: "#fff",
+    color: "var(--text)",
     fontSize: 15,
     boxSizing: "border-box" as const,
     outline: "none",
@@ -126,7 +123,7 @@ export default function CreatePageDialog({
   const labelStyle = {
     fontSize: 13,
     fontWeight: 600,
-    color: "#a0a0a0",
+    color: "var(--text-secondary)",
     display: "block",
     marginBottom: 8,
   };
@@ -147,7 +144,7 @@ export default function CreatePageDialog({
             style={{
               width: 36,
               height: 4,
-              background: "#2a2a2a",
+              background: "var(--border-subtle)",
               borderRadius: 2,
             }}
           />
@@ -168,9 +165,9 @@ export default function CreatePageDialog({
                 <button
                   onClick={handleBack}
                   style={{
-                    background: "rgba(255,255,255,0.06)",
+                    background: "var(--surface-subtle)",
                     border: "none",
-                    color: "#fff",
+                    color: "var(--text)",
                     cursor: "pointer",
                     width: 40,
                     height: 40,
@@ -181,11 +178,11 @@ export default function CreatePageDialog({
                     transition: "background 0.2s",
                   }}
                   onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "rgba(255,255,255,0.1)")
+                    (e.currentTarget.style.background = "var(--surface-hover)")
                   }
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.background =
-                      "rgba(255,255,255,0.06)")
+                      "var(--surface-subtle)")
                   }
                 >
                   <ArrowLeft size={20} />
@@ -209,7 +206,7 @@ export default function CreatePageDialog({
                       style={{
                         flex: 1,
                         height: 4,
-                        background: s <= step ? "#fff" : "#2a2a2a",
+                        background: s <= step ? "var(--text)" : "var(--border-subtle)",
                         borderRadius: 2,
                         transition: "background 0.3s",
                         maxWidth: 60,
@@ -226,7 +223,7 @@ export default function CreatePageDialog({
             >
               {step === 1 ? (
                 <div>
-                  <p style={{ color: "#888", fontSize: 14, marginBottom: 24 }}>
+                  <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 24 }}>
                     Tell us about the community you want to build.
                   </p>
 
@@ -247,18 +244,18 @@ export default function CreatePageDialog({
                         placeholder="e.g. Indie Hackers Kathmandu"
                         autoFocus
                         onFocus={(e) => {
-                          e.target.style.borderColor = "#444";
+                          e.target.style.borderColor = "var(--text-faint)";
                           e.target.style.boxShadow =
-                            "0 0 0 3px rgba(255,255,255,0.05)";
+                            "0 0 0 3px var(--surface-subtle)";
                         }}
                         onBlur={(e) => {
-                          e.target.style.borderColor = "#2a2a2a";
+                          e.target.style.borderColor = "var(--border-subtle)";
                           e.target.style.boxShadow = "none";
                         }}
                         style={inputStyle}
                       />
                       <div
-                        style={{ fontSize: 12, color: "#555", marginTop: 6 }}
+                        style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 6 }}
                       >
                         {pageData.name.length}/60
                       </div>
@@ -285,14 +282,14 @@ export default function CreatePageDialog({
                               background:
                                 pageData.category === cat
                                   ? "rgba(59,130,246,0.1)"
-                                  : "#0f0f0f",
+                                  : "var(--bg-input)",
                               border:
                                 pageData.category === cat
                                   ? "1px solid rgba(59,130,246,0.4)"
-                                  : "1px solid #2a2a2a",
+                                  : "1px solid var(--border-subtle)",
                               borderRadius: 12,
                               color:
-                                pageData.category === cat ? "#60a5fa" : "#888",
+                                pageData.category === cat ? "var(--accent-blue-soft)" : "var(--text-muted)",
                               fontWeight: 600,
                               fontSize: 13,
                               cursor: "pointer",
@@ -309,7 +306,7 @@ export default function CreatePageDialog({
                     <div>
                       <label style={labelStyle}>
                         Description{" "}
-                        <span style={{ fontWeight: 400, color: "#555" }}>
+                        <span style={{ fontWeight: 400, color: "var(--text-dim)" }}>
                           (optional)
                         </span>
                       </label>
@@ -324,12 +321,12 @@ export default function CreatePageDialog({
                         placeholder="What is this community about?"
                         rows={3}
                         onFocus={(e) => {
-                          e.target.style.borderColor = "#444";
+                          e.target.style.borderColor = "var(--text-faint)";
                           e.target.style.boxShadow =
-                            "0 0 0 3px rgba(255,255,255,0.05)";
+                            "0 0 0 3px var(--surface-subtle)";
                         }}
                         onBlur={(e) => {
-                          e.target.style.borderColor = "#2a2a2a";
+                          e.target.style.borderColor = "var(--border-subtle)";
                           e.target.style.boxShadow = "none";
                         }}
                         style={{
@@ -343,9 +340,9 @@ export default function CreatePageDialog({
                 </div>
               ) : (
                 <div>
-                  <p style={{ color: "#888", fontSize: 14, marginBottom: 24 }}>
+                  <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 24 }}>
                     Choose who can see and join{" "}
-                    <strong style={{ color: "#fff" }}>{pageData.name}</strong>,
+                    <strong style={{ color: "var(--text)" }}>{pageData.name}</strong>,
                     then add a few community rules.
                   </p>
 
@@ -375,9 +372,9 @@ export default function CreatePageDialog({
                               : "transparent",
                             border: isSelected
                               ? `1px solid ${opt.color}50`
-                              : "1px solid #2a2a2a",
+                              : "1px solid var(--border-subtle)",
                             borderRadius: 16,
-                            color: "#fff",
+                            color: "var(--text)",
                             cursor: "pointer",
                             textAlign: "left",
                             width: "100%",
@@ -386,14 +383,14 @@ export default function CreatePageDialog({
                           onMouseEnter={(e) => {
                             if (!isSelected) {
                               e.currentTarget.style.background =
-                                "rgba(255,255,255,0.02)";
-                              e.currentTarget.style.borderColor = "#3a3a3a";
+                                "var(--surface-subtle)";
+                              e.currentTarget.style.borderColor = "var(--border-strong)";
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (!isSelected) {
                               e.currentTarget.style.background = "transparent";
-                              e.currentTarget.style.borderColor = "#2a2a2a";
+                              e.currentTarget.style.borderColor = "var(--border-subtle)";
                             }
                           }}
                         >
@@ -404,7 +401,7 @@ export default function CreatePageDialog({
                               borderRadius: 12,
                               background: isSelected
                                 ? `${opt.color}25`
-                                : "rgba(255,255,255,0.05)",
+                                : "var(--surface-subtle)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -413,7 +410,7 @@ export default function CreatePageDialog({
                           >
                             <opt.Icon
                               size={20}
-                              color={isSelected ? opt.color : "#666"}
+                              color={isSelected ? opt.color : "var(--text-tertiary)"}
                             />
                           </div>
                           <div style={{ flex: 1 }}>
@@ -422,7 +419,7 @@ export default function CreatePageDialog({
                             </div>
                             <div
                               style={{
-                                color: "#666",
+                                color: "var(--text-tertiary)",
                                 fontSize: 13,
                                 marginTop: 2,
                               }}
@@ -443,7 +440,7 @@ export default function CreatePageDialog({
                                 justifyContent: "center",
                               }}
                             >
-                              <Check size={13} color="#fff" strokeWidth={3} />
+                              <Check size={13} color="var(--text)" strokeWidth={3} />
                             </div>
                           )}
                         </button>
@@ -454,7 +451,7 @@ export default function CreatePageDialog({
                   <div style={{ marginTop: 24 }}>
                     <label style={labelStyle}>
                       Community Rules{" "}
-                      <span style={{ fontWeight: 400, color: "#555" }}>
+                      <span style={{ fontWeight: 400, color: "var(--text-dim)" }}>
                         (optional)
                       </span>
                     </label>
@@ -468,12 +465,12 @@ export default function CreatePageDialog({
                       }
                       rows={5}
                       onFocus={(e) => {
-                        e.target.style.borderColor = "#444";
+                        e.target.style.borderColor = "var(--text-faint)";
                         e.target.style.boxShadow =
-                          "0 0 0 3px rgba(255,255,255,0.05)";
+                          "0 0 0 3px var(--surface-subtle)";
                       }}
                       onBlur={(e) => {
-                        e.target.style.borderColor = "#2a2a2a";
+                        e.target.style.borderColor = "var(--border-subtle)";
                         e.target.style.boxShadow = "none";
                       }}
                       style={{
@@ -482,7 +479,7 @@ export default function CreatePageDialog({
                         fontFamily: "inherit",
                       }}
                     />
-                    <div style={{ fontSize: 12, color: "#555", marginTop: 6 }}>
+                    <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 6 }}>
                       Add one rule per line.
                     </div>
                   </div>
@@ -495,8 +492,8 @@ export default function CreatePageDialog({
                       width: "100%",
                       padding: "16px",
                       marginTop: 28,
-                      background: !canProceed ? "#1f1f1f" : "#fff",
-                      color: !canProceed ? "#555" : "#000",
+                      background: !canProceed ? "var(--bg-raised-2)" : "var(--text)",
+                      color: !canProceed ? "var(--text-dim)" : "var(--bg)",
                       border: "none",
                       borderRadius: 16,
                       fontWeight: 700,
@@ -527,7 +524,7 @@ export default function CreatePageDialog({
             <div
               style={{
                 padding: "16px 20px 24px",
-                borderTop: "1px solid #1a1a1a",
+                borderTop: "1px solid var(--bg-raised)",
               }}
             >
               <button
@@ -536,8 +533,8 @@ export default function CreatePageDialog({
                 style={{
                   width: "100%",
                   padding: "16px",
-                  background: !canProceed ? "#1f1f1f" : "#fff",
-                  color: !canProceed ? "#555" : "#000",
+                  background: !canProceed ? "var(--bg-raised-2)" : "var(--text)",
+                  color: !canProceed ? "var(--text-dim)" : "var(--bg)",
                   border: "none",
                   borderRadius: 16,
                   fontWeight: 700,
@@ -614,7 +611,7 @@ export default function CreatePageDialog({
                   animation: "successPop 0.5s cubic-bezier(0.32, 0.72, 0, 1)",
                 }}
               >
-                <Check size={44} color="#fff" strokeWidth={3} />
+                <Check size={44} color="var(--text)" strokeWidth={3} />
               </div>
             </div>
 
@@ -631,13 +628,13 @@ export default function CreatePageDialog({
             <p
               style={{
                 margin: "10px 0 0",
-                color: "#888",
+                color: "var(--text-muted)",
                 fontSize: 15,
                 maxWidth: 320,
                 lineHeight: 1.5,
               }}
             >
-              <strong style={{ color: "#fff" }}>{createdPageName}</strong> is
+              <strong style={{ color: "var(--text)" }}>{createdPageName}</strong> is
               now live. Share it with your community and start adding members.
             </p>
 
@@ -652,8 +649,8 @@ export default function CreatePageDialog({
                 borderRadius: 20,
               }}
             >
-              <Sparkles size={14} color="#a78bfa" />
-              <span style={{ fontSize: 12, color: "#a78bfa", fontWeight: 600 }}>
+              <Sparkles size={14} color="var(--accent-purple-soft)" />
+              <span style={{ fontSize: 12, color: "var(--accent-purple-soft)", fontWeight: 600 }}>
                 You're the admin
               </span>
             </div>
@@ -672,8 +669,8 @@ export default function CreatePageDialog({
                 style={{
                   width: "100%",
                   padding: "14px",
-                  background: "#fff",
-                  color: "#000",
+                  background: "var(--text)",
+                  color: "var(--bg)",
                   border: "none",
                   borderRadius: 14,
                   fontWeight: 700,
@@ -699,7 +696,7 @@ export default function CreatePageDialog({
                   width: "100%",
                   padding: "12px",
                   background: "transparent",
-                  color: "#888",
+                  color: "var(--text-muted)",
                   border: "none",
                   borderRadius: 14,
                   fontWeight: 600,
@@ -707,8 +704,8 @@ export default function CreatePageDialog({
                   cursor: "pointer",
                   transition: "color 0.2s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
               >
                 Create another page
               </button>

@@ -59,10 +59,10 @@ export default function Dialog({
             bottom: 0,
             left: 0,
             right: 0,
-            background: "#0a0a0a",
+            background: "var(--bg-app)",
             borderTopLeftRadius: 28,
             borderTopRightRadius: 28,
-            border: "1px solid #1a1a1a",
+            border: "1px solid var(--border-subtle)",
             borderBottom: "none",
             maxWidth: width,
             margin: "0 auto",
@@ -85,9 +85,9 @@ export default function Dialog({
                 width: 36,
                 height: 36,
                 borderRadius: 12,
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid #2a2a2a",
-                color: "#888",
+                background: "var(--surface-subtle)",
+                border: "1px solid var(--border-subtle)",
+                color: "var(--text-muted)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -96,12 +96,12 @@ export default function Dialog({
                 transition: "all 0.2s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-                e.currentTarget.style.color = "#fff";
+                e.currentTarget.style.background = "var(--surface-hover)";
+                e.currentTarget.style.color = "var(--text)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                e.currentTarget.style.color = "#888";
+                e.currentTarget.style.background = "var(--surface-subtle)";
+                e.currentTarget.style.color = "var(--text-muted)";
               }}
             >
               <X size={18} />
@@ -114,9 +114,9 @@ export default function Dialog({
           onClick={(e) => e.stopPropagation()}
           style={{
             margin: "auto",
-            background: "#0a0a0a",
+            background: "var(--bg-app)",
             borderRadius: 24,
-            border: "1px solid #1a1a1a",
+            border: "1px solid var(--border-subtle)",
             maxWidth: width,
             width: "90%",
             display: "flex",
@@ -138,9 +138,9 @@ export default function Dialog({
                 width: 36,
                 height: 36,
                 borderRadius: 12,
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid #2a2a2a",
-                color: "#888",
+                background: "var(--surface-subtle)",
+                border: "1px solid var(--border-subtle)",
+                color: "var(--text-muted)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -149,12 +149,12 @@ export default function Dialog({
                 transition: "all 0.2s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-                e.currentTarget.style.color = "#fff";
+                e.currentTarget.style.background = "var(--surface-hover)";
+                e.currentTarget.style.color = "var(--text)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                e.currentTarget.style.color = "#888";
+                e.currentTarget.style.background = "var(--surface-subtle)";
+                e.currentTarget.style.color = "var(--text-muted)";
               }}
             >
               <X size={18} />

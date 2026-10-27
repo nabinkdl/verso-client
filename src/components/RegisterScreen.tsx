@@ -39,14 +39,14 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
             marginBottom: 16,
           }}
         >
-          <UserPlus size={48} color="#ffffff" />
+          <UserPlus size={48} color="var(--text)" />
         </div>
         <h1
           style={{ fontSize: 28, fontWeight: 700, margin: 0, marginBottom: 8 }}
         >
           Verso
         </h1>
-        <p style={{ fontSize: 14, color: "#aaa", margin: 0 }}>
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0 }}>
           Create your account
         </p>
       </div>
@@ -69,10 +69,10 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #333",
+            backgroundColor: "var(--bg-raised)",
+            border: "1px solid var(--border)",
             borderRadius: 8,
-            color: "#fff",
+            color: "var(--text)",
             fontSize: 14,
             outline: "none",
             boxSizing: "border-box",
@@ -82,7 +82,7 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
             e.currentTarget.style.borderColor = "#3b82f6";
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = "#333";
+            e.currentTarget.style.borderColor = "var(--border)";
           }}
         />
 
@@ -95,10 +95,10 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #333",
+            backgroundColor: "var(--bg-raised)",
+            border: "1px solid var(--border)",
             borderRadius: 8,
-            color: "#fff",
+            color: "var(--text)",
             fontSize: 14,
             outline: "none",
             boxSizing: "border-box",
@@ -108,7 +108,7 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
             e.currentTarget.style.borderColor = "#3b82f6";
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = "#333";
+            e.currentTarget.style.borderColor = "var(--border)";
           }}
         />
 
@@ -121,10 +121,10 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #333",
+            backgroundColor: "var(--bg-raised)",
+            border: "1px solid var(--border)",
             borderRadius: 8,
-            color: "#fff",
+            color: "var(--text)",
             fontSize: 14,
             outline: "none",
             boxSizing: "border-box",
@@ -134,7 +134,7 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
             e.currentTarget.style.borderColor = "#3b82f6";
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = "#333";
+            e.currentTarget.style.borderColor = "var(--border)";
           }}
         />
 
@@ -147,10 +147,10 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "#1a1a1a",
-            border: "1px solid #333",
+            backgroundColor: "var(--bg-raised)",
+            border: "1px solid var(--border)",
             borderRadius: 8,
-            color: "#fff",
+            color: "var(--text)",
             fontSize: 14,
             outline: "none",
             boxSizing: "border-box",
@@ -160,7 +160,7 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
             e.currentTarget.style.borderColor = "#3b82f6";
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = "#333";
+            e.currentTarget.style.borderColor = "var(--border)";
           }}
         />
 
@@ -169,10 +169,10 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "#fff",
+            backgroundColor: "var(--text)",
             border: "none",
             borderRadius: 8,
-            color: "#000",
+            color: "var(--bg)",
             fontSize: 16,
             fontWeight: 600,
             cursor: "pointer",
@@ -180,10 +180,10 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
             marginTop: 8,
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "#e6e6e6";
+            e.currentTarget.style.backgroundColor = "var(--text-soft)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "#fff";
+            e.currentTarget.style.backgroundColor = "var(--text)";
           }}
         >
           Sign Up

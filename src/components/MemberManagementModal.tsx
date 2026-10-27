@@ -220,11 +220,11 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const ROLE_BADGE_STYLES: Record<string, { bg: string; color: string }> = {
-  admin: { bg: "rgba(59, 130, 246, 0.15)", color: "#60a5fa" },
-  moderator: { bg: "rgba(139, 92, 246, 0.15)", color: "#a78bfa" },
-  editor: { bg: "rgba(139, 92, 246, 0.15)", color: "#a78bfa" },
-  custom: { bg: "rgba(236, 72, 153, 0.15)", color: "#f472b6" },
-  member: { bg: "rgba(255, 255, 255, 0.1)", color: "#aaa" },
+  admin: { bg: "rgba(59, 130, 246, 0.15)", color: "var(--accent-blue-soft)" },
+  moderator: { bg: "rgba(139, 92, 246, 0.15)", color: "var(--accent-purple-soft)" },
+  editor: { bg: "rgba(139, 92, 246, 0.15)", color: "var(--accent-purple-soft)" },
+  custom: { bg: "rgba(236, 72, 153, 0.15)", color: "var(--accent-pink-soft)" },
+  member: { bg: "var(--surface-hover)", color: "var(--text-secondary)" },
 };
 
 export default function PageTeamManager({
@@ -333,7 +333,7 @@ export default function PageTeamManager({
   }, []);
 
   const handleToggleCategory = useCallback(
-    (category: string, allInCat: string[]) => {
+    (_category: string, allInCat: string[]) => {
       setModalRole("custom");
       setModalPerms((prev) => {
         const hasAll = allInCat.every((p) => prev.includes(p));
@@ -400,7 +400,7 @@ export default function PageTeamManager({
         display: "flex",
         flexDirection: "column",
         background: "transparent",
-        color: "#fff",
+        color: "var(--text)",
         overflow: "hidden",
       }}
     >
@@ -416,15 +416,15 @@ export default function PageTeamManager({
       >
         <div
           style={{
-            background: "#111",
+            background: "var(--bg-elevated-2)",
             padding: "12px 16px",
             borderRadius: 12,
             flex: 1,
             minWidth: 100,
-            border: "1px solid #222",
+            border: "1px solid var(--surface)",
           }}
         >
-          <div style={{ color: "#888", fontSize: 12, marginBottom: 4 }}>
+          <div style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 4 }}>
             Total Members
           </div>
           <div style={{ fontSize: 24, fontWeight: 700 }}>{stats.total}</div>
@@ -439,7 +439,7 @@ export default function PageTeamManager({
             border: "1px solid rgba(59, 130, 246, 0.2)",
           }}
         >
-          <div style={{ color: "#60a5fa", fontSize: 12, marginBottom: 4 }}>
+          <div style={{ color: "var(--accent-blue-soft)", fontSize: 12, marginBottom: 4 }}>
             Admins
           </div>
           <div style={{ fontSize: 24, fontWeight: 700, color: "#3b82f6" }}>
@@ -456,7 +456,7 @@ export default function PageTeamManager({
             border: "1px solid rgba(139, 92, 246, 0.2)",
           }}
         >
-          <div style={{ color: "#a78bfa", fontSize: 12, marginBottom: 4 }}>
+          <div style={{ color: "var(--accent-purple-soft)", fontSize: 12, marginBottom: 4 }}>
             Mods/Editors
           </div>
           <div style={{ fontSize: 24, fontWeight: 700, color: "#8b5cf6" }}>
@@ -473,7 +473,7 @@ export default function PageTeamManager({
             border: "1px solid rgba(236, 72, 153, 0.2)",
           }}
         >
-          <div style={{ color: "#f472b6", fontSize: 12, marginBottom: 4 }}>
+          <div style={{ color: "var(--accent-pink-soft)", fontSize: 12, marginBottom: 4 }}>
             Custom
           </div>
           <div style={{ fontSize: 24, fontWeight: 700, color: "#ec4899" }}>
@@ -507,9 +507,9 @@ export default function PageTeamManager({
               style={{
                 padding: "6px 14px",
                 borderRadius: 20,
-                border: filterRole === role ? "none" : "1px solid #333",
-                background: filterRole === role ? "#fff" : "transparent",
-                color: filterRole === role ? "#000" : "#888",
+                border: filterRole === role ? "none" : "1px solid var(--border)",
+                background: filterRole === role ? "var(--text)" : "transparent",
+                color: filterRole === role ? "var(--bg)" : "var(--text-muted)",
                 fontWeight: 600,
                 fontSize: 13,
                 cursor: "pointer",
@@ -530,7 +530,7 @@ export default function PageTeamManager({
         <div style={{ position: "relative" }}>
           <Search
             size={16}
-            color="#666"
+            color="var(--text-tertiary)"
             style={{ position: "absolute", left: 12, top: 12 }}
           />
           <input
@@ -540,10 +540,10 @@ export default function PageTeamManager({
             style={{
               width: "100%",
               padding: "10px 12px 10px 36px",
-              background: "#111",
-              border: "1px solid #222",
+              background: "var(--bg-elevated-2)",
+              border: "1px solid var(--surface)",
               borderRadius: 12,
-              color: "#fff",
+              color: "var(--text)",
               fontSize: 14,
               boxSizing: "border-box",
             }}
@@ -567,8 +567,8 @@ export default function PageTeamManager({
                       gap: 14,
                       padding: "10px 12px",
                       borderRadius: 14,
-                      background: "#111",
-                      border: "0.5px solid #262626",
+                      background: "var(--bg-elevated-2)",
+                      border: "0.5px solid var(--surface-2)",
                     }}
                   >
                     <Avatar name={user.name} />
@@ -585,7 +585,7 @@ export default function PageTeamManager({
                         </span>
                       </div>
                       <div
-                        style={{ color: "#8a8a8a", fontSize: 12, marginTop: 2 }}
+                        style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 2 }}
                       >
                         @{user.username}
                       </div>
@@ -595,9 +595,9 @@ export default function PageTeamManager({
                       onClick={() => handleInvite(user.id)}
                       style={{
                         background: isInvited
-                          ? "rgba(255,255,255,0.1)"
-                          : "#fff",
-                        color: isInvited ? "#888" : "#000",
+                          ? "var(--surface-hover)"
+                          : "var(--text)",
+                        color: isInvited ? "var(--text-muted)" : "var(--bg)",
                         border: "none",
                         padding: "6px 14px",
                         borderRadius: 20,
@@ -619,8 +619,8 @@ export default function PageTeamManager({
                   <div
                     key={m.userId}
                     style={{
-                      background: "#111",
-                      border: "1px solid #222",
+                      background: "var(--bg-elevated-2)",
+                      border: "1px solid var(--surface)",
                       borderRadius: 16,
                       padding: 16,
                       display: "flex",
@@ -663,13 +663,13 @@ export default function PageTeamManager({
                         </div>
                       </div>
                       <div
-                        style={{ color: "#888", fontSize: 13, marginTop: 4 }}
+                        style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}
                       >
                         @{m.username} {m.email && `• ${m.email}`}
                       </div>
                       <div
                         style={{
-                          color: "#666",
+                          color: "var(--text-tertiary)",
                           fontSize: 12,
                           marginTop: 6,
                           display: "flex",
@@ -688,9 +688,9 @@ export default function PageTeamManager({
                           onClick={() => handleOpenEdit(m.userId)}
                           aria-label="Edit permissions"
                           style={{
-                            background: "rgba(255,255,255,0.05)",
+                            background: "var(--surface-subtle)",
                             border: "none",
-                            color: "#ccc",
+                            color: "var(--text-soft-2)",
                             width: 36,
                             height: 36,
                             borderRadius: 18,
@@ -724,7 +724,7 @@ export default function PageTeamManager({
                     ) : (
                       <div
                         style={{
-                          color: "#444",
+                          color: "var(--text-faint)",
                           fontSize: 12,
                           fontStyle: "italic",
                         }}
@@ -742,7 +742,7 @@ export default function PageTeamManager({
               style={{
                 textAlign: "center",
                 padding: "40px 20px",
-                color: "#666",
+                color: "var(--text-tertiary)",
               }}
             >
               No users found matching your criteria.
@@ -767,7 +767,7 @@ export default function PageTeamManager({
         >
           <div
             style={{
-              background: "#111",
+              background: "var(--bg-elevated-2)",
               height: "90%",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
@@ -781,14 +781,14 @@ export default function PageTeamManager({
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "20px 20px 12px",
-                borderBottom: "1px solid #222",
+                borderBottom: "1px solid var(--surface)",
               }}
             >
               <div>
                 <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
                   Edit Permissions
                 </h3>
-                <div style={{ color: "#888", fontSize: 13, marginTop: 4 }}>
+                <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4 }}>
                   Editing {editingUserDisplay.name}
                 </div>
               </div>
@@ -798,7 +798,7 @@ export default function PageTeamManager({
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#888",
+                  color: "var(--text-muted)",
                   cursor: "pointer",
                 }}
               >
@@ -813,7 +813,7 @@ export default function PageTeamManager({
                   style={{
                     fontSize: 13,
                     fontWeight: 600,
-                    color: "#aaa",
+                    color: "var(--text-secondary)",
                     marginBottom: 12,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
@@ -838,11 +838,11 @@ export default function PageTeamManager({
                         borderRadius: 8,
                         background:
                           modalRole === r
-                            ? "rgba(255,255,255,0.1)"
+                            ? "var(--surface-hover)"
                             : "transparent",
                         border:
-                          modalRole === r ? "1px solid #fff" : "1px solid #333",
-                        color: modalRole === r ? "#fff" : "#888",
+                          modalRole === r ? "1px solid var(--text)" : "1px solid var(--border)",
+                        color: modalRole === r ? "var(--text)" : "var(--text-muted)",
                         fontWeight: 600,
                         fontSize: 13,
                         cursor: "pointer",
@@ -856,8 +856,8 @@ export default function PageTeamManager({
                     style={{
                       padding: "8px 16px",
                       borderRadius: 8,
-                      border: "1px dashed #333",
-                      color: modalRole === "custom" ? "#ec4899" : "#555",
+                      border: "1px dashed var(--border)",
+                      color: modalRole === "custom" ? "#ec4899" : "var(--text-dim)",
                       fontWeight: 600,
                       fontSize: 13,
                     }}
@@ -903,7 +903,7 @@ export default function PageTeamManager({
                           style={{
                             background: "none",
                             border: "none",
-                            color: "#aaa",
+                            color: "var(--text-secondary)",
                             fontSize: 12,
                             cursor: "pointer",
                             fontWeight: 600,
@@ -928,11 +928,11 @@ export default function PageTeamManager({
                               onClick={() => handleTogglePerm(perm.id)}
                               style={{
                                 background: isSelected
-                                  ? "rgba(255,255,255,0.05)"
+                                  ? "var(--surface-subtle)"
                                   : "transparent",
                                 border: isSelected
                                   ? `1px solid ${catColor}`
-                                  : "1px solid #333",
+                                  : "1px solid var(--border)",
                                 padding: 12,
                                 borderRadius: 12,
                                 cursor: "pointer",
@@ -948,7 +948,7 @@ export default function PageTeamManager({
                                   borderRadius: 6,
                                   border: isSelected
                                     ? `2px solid ${catColor}`
-                                    : "2px solid #555",
+                                    : "2px solid var(--text-dim)",
                                   background: isSelected
                                     ? catColor
                                     : "transparent",
@@ -959,14 +959,14 @@ export default function PageTeamManager({
                                   marginTop: 2,
                                 }}
                               >
-                                {isSelected && <Check size={14} color="#000" />}
+                                {isSelected && <Check size={14} color="var(--bg)" />}
                               </div>
                               <div>
                                 <div
                                   style={{
                                     fontWeight: 600,
                                     fontSize: 14,
-                                    color: isSelected ? "#fff" : "#aaa",
+                                    color: isSelected ? "var(--text)" : "var(--text-secondary)",
                                   }}
                                 >
                                   {perm.label}
@@ -974,7 +974,7 @@ export default function PageTeamManager({
                                 <div
                                   style={{
                                     fontSize: 11,
-                                    color: "#666",
+                                    color: "var(--text-tertiary)",
                                     marginTop: 4,
                                     lineHeight: 1.3,
                                   }}
@@ -995,16 +995,16 @@ export default function PageTeamManager({
             <div
               style={{
                 padding: 20,
-                borderTop: "1px solid #222",
-                background: "#0a0a0a",
+                borderTop: "1px solid var(--surface)",
+                background: "var(--bg-app)",
               }}
             >
               <button
                 onClick={handleSave}
                 style={{
                   width: "100%",
-                  background: "#fff",
-                  color: "#000",
+                  background: "var(--text)",
+                  color: "var(--bg)",
                   border: "none",
                   padding: 16,
                   borderRadius: 16,

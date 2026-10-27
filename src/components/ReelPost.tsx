@@ -28,7 +28,7 @@ export default function ReelPost({
         flexShrink: 0,
         scrollSnapAlign: "start",
         overflow: "hidden",
-        background: "#0b0b0b",
+        background: "var(--bg)",
       }}
     >
       {post.mediaType === "video" && mediaSource ? (
@@ -77,6 +77,7 @@ export default function ReelPost({
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-end",
+          color: "var(--text-on-media)",
         }}
       >
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
@@ -86,7 +87,7 @@ export default function ReelPost({
               <Avatar name={author.name} />
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <span style={{ fontWeight: 700, fontSize: 16, textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>{author.name}</span>
-                <span style={{ fontSize: 13, color: "#eee", textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>@{author.username}</span>
+                <span style={{ fontSize: 13, color: "var(--text-on-media)", textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>@{author.username}</span>
               </div>
             </div>
             <div>
@@ -106,7 +107,7 @@ export default function ReelPost({
                   borderRadius: 999,
                   border: "none",
                   background: "rgba(0,0,0,0.2)",
-                  color: isLiked ? "#ff4d6d" : "#fff",
+                  color: isLiked ? "#ff4d6d" : "var(--text-on-media)",
                   display: "grid",
                   placeItems: "center",
                   cursor: "pointer",
@@ -134,7 +135,7 @@ export default function ReelPost({
                   cursor: "pointer",
                 }}
               >
-                <MessageCircle size={22} color="#fff" />
+                <MessageCircle size={22} color="var(--text-on-media)" />
               </button>
               <span style={{ fontSize: 12, fontWeight: 600, textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>{post.comments.length}</span>
             </div>

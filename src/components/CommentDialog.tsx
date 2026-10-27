@@ -61,13 +61,13 @@ export default function CommentDialog({
           width: "100%",
           maxWidth: 480,
           height: "65%",
-          background: "#0f0f0f",
+          background: "var(--bg-input)",
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           display: "flex",
           flexDirection: "column",
           padding: 16,
-          borderTop: "0.5px solid rgba(255,255,255,0.08)",
+          borderTop: "0.5px solid var(--surface-hover)",
           boxShadow: "0 -4px 24px rgba(0,0,0,0.5)",
         }}
       >
@@ -75,12 +75,12 @@ export default function CommentDialog({
           <div style={{ width: 40, height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 2 }} />
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#fff" }}>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--text)" }}>
             Comments ({post.comments.length})
           </h3>
           <button
             onClick={onClose}
-            style={{ background: "rgba(255,255,255,0.05)", border: "none", color: "#fff", cursor: "pointer", width: 32, height: 32, borderRadius: 16, display: "grid", placeItems: "center" }}
+            style={{ background: "var(--surface-subtle)", border: "none", color: "var(--text)", cursor: "pointer", width: 32, height: 32, borderRadius: 16, display: "grid", placeItems: "center" }}
           >
             <X size={18} />
           </button>
@@ -88,7 +88,7 @@ export default function CommentDialog({
 
         <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 14, marginBottom: 14 }} className="hide-scrollbar">
           {post.comments.length === 0 && (
-            <div style={{ textAlign: "center", padding: "40px 20px", color: "#666", fontSize: 14 }}>
+            <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-tertiary)", fontSize: 14 }}>
               No comments yet. Be the first to comment!
             </div>
           )}
@@ -101,7 +101,7 @@ export default function CommentDialog({
               <div key={comment.id} style={{ display: "flex", gap: 10, position: "relative" }}>
                 <Avatar name={author?.name ?? "U"} size="sm" />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#999", marginBottom: 2 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>
                     {author?.username || "user"}
                   </div>
                   {isEditing ? (
@@ -111,11 +111,11 @@ export default function CommentDialog({
                         value={editText}
                         onChange={(e) => setEditText(e.target.value)}
                         style={{
-                          background: "#1a1a1a",
-                          border: "0.5px solid #333",
+                          background: "var(--bg-raised)",
+                          border: "0.5px solid var(--border)",
                           borderRadius: 8,
                           padding: "8px 12px",
-                          color: "#fff",
+                          color: "var(--text)",
                           fontSize: 13,
                           outline: "none",
                           fontFamily: "inherit",
@@ -124,7 +124,7 @@ export default function CommentDialog({
                       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                         <button
                           onClick={() => setEditingCommentId(null)}
-                          style={{ background: "transparent", color: "#999", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, padding: "4px 8px" }}
+                          style={{ background: "transparent", color: "var(--text-secondary)", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, padding: "4px 8px" }}
                         >
                           Cancel
                         </button>
@@ -135,14 +135,14 @@ export default function CommentDialog({
                             }
                             setEditingCommentId(null);
                           }}
-                          style={{ background: "#3b82f6", color: "#fff", border: "none", borderRadius: 12, padding: "4px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
+                          style={{ background: "#3b82f6", color: "var(--text)", border: "none", borderRadius: 12, padding: "4px 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
                         >
                           Save
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div style={{ fontSize: 14, color: "#eee", lineHeight: 1.4 }}>
+                    <div style={{ fontSize: 14, color: "var(--text)", lineHeight: 1.4 }}>
                       {comment.text}
                     </div>
                   )}
@@ -152,7 +152,7 @@ export default function CommentDialog({
                   <div style={{ position: "relative" }}>
                   <button
                     onClick={() => setCommentMenuId(commentMenuId === comment.id ? null : comment.id)}
-                    style={{ background: "transparent", border: "none", color: "#666", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}
+                    style={{ background: "transparent", border: "none", color: "var(--text-tertiary)", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}
                   >
                     <MoreHorizontal size={14} />
                   </button>
@@ -163,8 +163,8 @@ export default function CommentDialog({
           position: "fixed",
                         top: 24,
                         right: 0,
-                        background: "#1a1a1a",
-                        border: "0.5px solid #333",
+                        background: "var(--bg-raised)",
+                        border: "0.5px solid var(--border)",
                         borderRadius: 10,
                         padding: 6,
                         display: "flex",
@@ -181,7 +181,7 @@ export default function CommentDialog({
                           setEditText(comment.text);
                           setCommentMenuId(null);
                         }}
-                        style={{ background: "transparent", border: "none", color: "#fff", textAlign: "left", padding: "8px 10px", borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+                        style={{ background: "transparent", border: "none", color: "var(--text)", textAlign: "left", padding: "8px 10px", borderRadius: 8, fontWeight: 600, fontSize: 13, cursor: "pointer" }}
                       >
                         Edit Comment
                       </button>
@@ -216,11 +216,11 @@ export default function CommentDialog({
             placeholder="Add a comment..."
             style={{
               flex: 1,
-              background: "#1a1a1a",
-              border: "0.5px solid #333",
+              background: "var(--bg-raised)",
+              border: "0.5px solid var(--border)",
               borderRadius: 20,
               padding: "10px 16px",
-              color: "#fff",
+              color: "var(--text)",
               fontSize: 14,
               outline: "none",
               fontFamily: "inherit",
@@ -230,11 +230,11 @@ export default function CommentDialog({
             onClick={handleSubmit}
             disabled={!text.trim()}
             style={{
-              background: text.trim() ? "#3b82f6" : "#333",
+              background: text.trim() ? "#3b82f6" : "var(--border)",
               border: "none",
               borderRadius: 20,
               padding: "0 18px",
-              color: text.trim() ? "#fff" : "#666",
+              color: text.trim() ? "var(--text)" : "var(--text-tertiary)",
               fontWeight: 600,
               fontSize: 14,
               cursor: text.trim() ? "pointer" : "not-allowed",

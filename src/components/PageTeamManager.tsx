@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Settings, Shield, ShieldAlert, Check, X, UserPlus } from 'lucide-react';
+import { Search, Settings, Shield, Check, X } from 'lucide-react';
 import { AdminRole, PermissionDef, Page, User } from '../types';
 import Avatar from './Avatar';
 import { usePages } from '../contexts/PageContext';
@@ -65,7 +65,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
         ...pm,
         name: u?.name || 'Unknown User',
         username: u?.username || 'unknown',
-        email: (u as any)?.email || '',
+        email: u && 'email' in u ? String((u as { email?: string }).email ?? '') : '',
         permissions: pm.permissions || TEMPLATES[pm.role as AdminRole] || []
       };
     });
@@ -129,7 +129,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
     );
   };
 
-  const handleToggleCategory = (category: string, allInCat: string[]) => {
+  const handleToggleCategory = (_category: string, allInCat: string[]) => {
     setModalRole('custom');
     const hasAll = allInCat.every(p => modalPerms.includes(p));
     if (hasAll) {
@@ -151,28 +151,28 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
   }, [editingUserId, members]);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'transparent', color: '#fff', overflow: 'hidden' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'transparent', color: 'var(--text)', overflow: 'hidden' }}>
       
       {/* Stats Bar */}
       <div style={{ display: 'flex', gap: 12, padding: '0 0 16px', overflowX: 'auto' }} className="hide-scrollbar">
         <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '12px 16px', borderRadius: 12, flex: 1, minWidth: 100, border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-          <div style={{ color: '#a78bfa', fontSize: 12, marginBottom: 4 }}>Pending</div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: '#c4b5fd' }}>{(page.joinRequests?.length || 0) + (page.invitedUsers?.length || 0)}</div>
+          <div style={{ color: 'var(--accent-purple-soft)', fontSize: 12, marginBottom: 4 }}>Pending</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent-purple-soft)' }}>{(page.joinRequests?.length || 0) + (page.invitedUsers?.length || 0)}</div>
         </div>
-        <div style={{ background: '#111', padding: '12px 16px', borderRadius: 12, flex: 1, minWidth: 100, border: '1px solid #222' }}>
-          <div style={{ color: '#888', fontSize: 12, marginBottom: 4 }}>Total Members</div>
+        <div style={{ background: 'var(--bg-elevated-2)', padding: '12px 16px', borderRadius: 12, flex: 1, minWidth: 100, border: '1px solid var(--surface)' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: 12, marginBottom: 4 }}>Total Members</div>
           <div style={{ fontSize: 24, fontWeight: 700 }}>{stats.total}</div>
         </div>
         <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '12px 16px', borderRadius: 12, flex: 1, minWidth: 100, border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-          <div style={{ color: '#60a5fa', fontSize: 12, marginBottom: 4 }}>Admins</div>
+          <div style={{ color: 'var(--accent-blue-soft)', fontSize: 12, marginBottom: 4 }}>Admins</div>
           <div style={{ fontSize: 24, fontWeight: 700, color: '#3b82f6' }}>{stats.admins}</div>
         </div>
         <div style={{ background: 'rgba(139, 92, 246, 0.1)', padding: '12px 16px', borderRadius: 12, flex: 1, minWidth: 100, border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-          <div style={{ color: '#a78bfa', fontSize: 12, marginBottom: 4 }}>Mods/Editors</div>
+          <div style={{ color: 'var(--accent-purple-soft)', fontSize: 12, marginBottom: 4 }}>Mods/Editors</div>
           <div style={{ fontSize: 24, fontWeight: 700, color: '#8b5cf6' }}>{stats.mods}</div>
         </div>
         <div style={{ background: 'rgba(236, 72, 153, 0.1)', padding: '12px 16px', borderRadius: 12, flex: 1, minWidth: 100, border: '1px solid rgba(236, 72, 153, 0.2)' }}>
-          <div style={{ color: '#f472b6', fontSize: 12, marginBottom: 4 }}>Custom</div>
+          <div style={{ color: 'var(--accent-pink-soft)', fontSize: 12, marginBottom: 4 }}>Custom</div>
           <div style={{ fontSize: 24, fontWeight: 700, color: '#ec4899' }}>{stats.custom}</div>
         </div>
       </div>
@@ -187,9 +187,9 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
               style={{
                 padding: '6px 14px',
                 borderRadius: 20,
-                border: filterRole === role ? 'none' : '1px solid #333',
-                background: filterRole === role ? '#fff' : 'transparent',
-                color: filterRole === role ? '#000' : '#888',
+                border: filterRole === role ? 'none' : '1px solid var(--border)',
+                background: filterRole === role ? 'var(--text)' : 'transparent',
+                color: filterRole === role ? 'var(--bg)' : 'var(--text-muted)',
                 fontWeight: 600,
                 fontSize: 13,
                 cursor: 'pointer',
@@ -202,7 +202,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
               {role === 'invite' && (() => {
                 const pending = (page.joinRequests?.length || 0) + (page.invitedUsers?.length || 0);
                 return pending > 0 ? (
-                  <span style={{ marginLeft: 6, background: '#ff4d6d', color: '#fff', padding: '1px 7px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
+                  <span style={{ marginLeft: 6, background: '#ff4d6d', color: 'var(--text)', padding: '1px 7px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
                     {pending}
                   </span>
                 ) : '';
@@ -212,7 +212,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
         </div>
         
         <div style={{ position: 'relative' }}>
-          <Search size={16} color="#666" style={{ position: 'absolute', left: 12, top: 12 }} />
+          <Search size={16} color="var(--text-tertiary)" style={{ position: 'absolute', left: 12, top: 12 }} />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -220,10 +220,10 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
             style={{
               width: '100%',
               padding: '10px 12px 10px 36px',
-              background: '#111',
-              border: '1px solid #222',
+              background: 'var(--bg-elevated-2)',
+              border: '1px solid var(--surface)',
               borderRadius: 12,
-              color: '#fff',
+              color: 'var(--text)',
               fontSize: 14,
               boxSizing: 'border-box'
             }}
@@ -239,35 +239,35 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
               const isInvited = page.invitedUsers?.includes(user.id);
               const hasRequested = page.joinRequests?.includes(user.id);
               return (
-                <div key={user.id} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14, padding: '10px 12px', borderRadius: 14, background: '#111', border: '0.5px solid #262626' }}>
+                <div key={user.id} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14, padding: '10px 12px', borderRadius: 14, background: 'var(--bg-elevated-2)', border: '0.5px solid var(--surface-2)' }}>
                   <Avatar name={user.name.charAt(0)} />
                   <div style={{ flex: 1, minWidth: 150 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontWeight: 600, fontSize: 14 }}>{user.name}</span>
                       {hasRequested && (
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: 'rgba(245, 158, 11, 0.15)', color: 'var(--accent-amber-soft)' }}>
                           Requested
                         </span>
                       )}
                       {isInvited && !hasRequested && (
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa' }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent-blue-soft)' }}>
                           Invited
                         </span>
                       )}
                     </div>
-                    <div style={{ color: '#8a8a8a', fontSize: 12, marginTop: 2 }}>@{user.username}</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 2 }}>@{user.username}</div>
                   </div>
                   {hasRequested ? (
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
                         onClick={() => acceptJoinRequest(page.id, user.id, currentUserId)}
-                        style={{ width: 36, height: 36, borderRadius: 18, background: '#3b82f6', border: 'none', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+                        style={{ width: 36, height: 36, borderRadius: 18, background: '#3b82f6', border: 'none', color: 'var(--text)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
                       >
                         <Check size={16} />
                       </button>
                       <button
                         onClick={() => rejectJoinRequest(page.id, user.id, currentUserId)}
-                        style={{ width: 36, height: 36, borderRadius: 18, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
+                        style={{ width: 36, height: 36, borderRadius: 18, background: 'var(--surface-hover)', border: 'none', color: 'var(--text)', cursor: 'pointer', display: 'grid', placeItems: 'center' }}
                       >
                         <X size={16} />
                       </button>
@@ -283,8 +283,8 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
                     <button
                       onClick={() => inviteUser(page.id, user.id, currentUserId)}
                       style={{
-                        background: '#fff',
-                        color: '#000',
+                        background: 'var(--text)',
+                        color: 'var(--bg)',
                         border: 'none',
                         padding: '6px 14px',
                         borderRadius: 20,
@@ -303,7 +303,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
             filteredMembers.map(m => {
               const canEdit = isSuperAdmin || m.role !== 'admin';
               return (
-                <div key={m.userId} style={{ background: '#111', border: '1px solid #222', borderRadius: 16, padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div key={m.userId} style={{ background: 'var(--bg-elevated-2)', border: '1px solid var(--surface)', borderRadius: 16, padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
                   <Avatar name={m.name} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -312,18 +312,18 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
                         fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, textTransform: 'uppercase',
                         background: m.role === 'admin' ? 'rgba(59, 130, 246, 0.15)' : 
                                     (m.role === 'moderator' || m.role === 'editor') ? 'rgba(139, 92, 246, 0.15)' : 
-                                    m.role === 'custom' ? 'rgba(236, 72, 153, 0.15)' : 'rgba(255, 255, 255, 0.1)',
-                        color: m.role === 'admin' ? '#60a5fa' : 
-                               (m.role === 'moderator' || m.role === 'editor') ? '#a78bfa' : 
-                               m.role === 'custom' ? '#f472b6' : '#aaa',
+                                    m.role === 'custom' ? 'rgba(236, 72, 153, 0.15)' : 'var(--surface-hover)',
+                        color: m.role === 'admin' ? 'var(--accent-blue-soft)' :
+                               (m.role === 'moderator' || m.role === 'editor') ? 'var(--accent-purple-soft)' :
+                               m.role === 'custom' ? 'var(--accent-pink-soft)' : 'var(--text-secondary)',
                       }}>
                         {m.role}
                       </div>
                     </div>
-                    <div style={{ color: '#888', fontSize: 13, marginTop: 4 }}>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
                       @{m.username} {m.email && `• ${m.email}`}
                     </div>
-                    <div style={{ color: '#666', fontSize: 12, marginTop: 6, display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <div style={{ color: 'var(--text-tertiary)', fontSize: 12, marginTop: 6, display: 'flex', gap: 6, alignItems: 'center' }}>
                       <Shield size={12} />
                       {m.permissions.length} permissions
                     </div>
@@ -333,7 +333,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
                         onClick={() => handleOpenEdit(m.userId)}
-                        style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: '#ccc', width: 36, height: 36, borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                        style={{ background: 'var(--surface-subtle)', border: 'none', color: 'var(--text-soft-2)', width: 36, height: 36, borderRadius: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                       >
                         <Settings size={18} />
                       </button>
@@ -345,7 +345,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
                       </button>
                     </div>
                   ) : (
-                    <div style={{ color: '#444', fontSize: 12, fontStyle: 'italic' }}>{m.userId === currentUserId ? 'You' : 'Protected'}</div>
+                    <div style={{ color: 'var(--text-faint)', fontSize: 12, fontStyle: 'italic' }}>{m.userId === currentUserId ? 'You' : 'Protected'}</div>
                   )}
                 </div>
               );
@@ -353,7 +353,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
           )}
           
           {(filterRole === 'invite' ? filteredNonMembers : filteredMembers).length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666' }}>
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-tertiary)' }}>
               No users found matching your criteria.
             </div>
           )}
@@ -363,13 +363,13 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
       {/* Permission Editor Modal */}
       {editingUserId && editingUserDisplay && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-          <div style={{ background: '#111', height: '90%', borderTopLeftRadius: 24, borderTopRightRadius: 24, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 20px 12px', borderBottom: '1px solid #222' }}>
+          <div style={{ background: 'var(--bg-elevated-2)', height: '90%', borderTopLeftRadius: 24, borderTopRightRadius: 24, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 20px 12px', borderBottom: '1px solid var(--surface)' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Edit Permissions</h3>
-                <div style={{ color: '#888', fontSize: 13, marginTop: 4 }}>Editing {editingUserDisplay.name}</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>Editing {editingUserDisplay.name}</div>
               </div>
-              <button onClick={() => setEditingUserId(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>
+              <button onClick={() => setEditingUserId(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                 <X size={24} />
               </button>
             </div>
@@ -377,7 +377,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
             <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
               {/* Quick Templates */}
               <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#aaa', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Quick Templates</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>Quick Templates</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {(['admin', 'editor', 'moderator', 'member'] as AdminRole[]).map(r => (
                     <button
@@ -386,9 +386,9 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
                       style={{
                         padding: '8px 16px',
                         borderRadius: 8,
-                        background: modalRole === r ? 'rgba(255,255,255,0.1)' : 'transparent',
-                        border: modalRole === r ? '1px solid #fff' : '1px solid #333',
-                        color: modalRole === r ? '#fff' : '#888',
+                        background: modalRole === r ? 'var(--surface-hover)' : 'transparent',
+                        border: modalRole === r ? '1px solid var(--text)' : '1px solid var(--border)',
+                        color: modalRole === r ? 'var(--text)' : 'var(--text-muted)',
                         fontWeight: 600,
                         fontSize: 13,
                         cursor: 'pointer',
@@ -398,7 +398,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
                       {r}
                     </button>
                   ))}
-                  <div style={{ padding: '8px 16px', borderRadius: 8, border: '1px dashed #333', color: modalRole === 'custom' ? '#ec4899' : '#555', fontWeight: 600, fontSize: 13 }}>
+                  <div style={{ padding: '8px 16px', borderRadius: 8, border: '1px dashed var(--border)', color: modalRole === 'custom' ? '#ec4899' : 'var(--text-dim)', fontWeight: 600, fontSize: 13 }}>
                     Custom
                   </div>
                 </div>
@@ -425,7 +425,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
                       </div>
                       <button
                         onClick={() => handleToggleCategory(cat, allInCat)}
-                        style={{ background: 'none', border: 'none', color: '#aaa', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
                       >
                         {hasAll ? 'Deselect All' : 'Select All'}
                       </button>
@@ -439,8 +439,8 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
                             key={perm.id}
                             onClick={() => handleTogglePerm(perm.id)}
                             style={{
-                              background: isSelected ? 'rgba(255,255,255,0.05)' : 'transparent',
-                              border: isSelected ? `1px solid ${catColors[cat]}` : '1px solid #333',
+                              background: isSelected ? 'var(--surface-subtle)' : 'transparent',
+                              border: isSelected ? `1px solid ${catColors[cat]}` : '1px solid var(--border)',
                               padding: 12,
                               borderRadius: 12,
                               cursor: 'pointer',
@@ -451,15 +451,15 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
                           >
                             <div style={{ 
                               width: 20, height: 20, borderRadius: 6, 
-                              border: isSelected ? `2px solid ${catColors[cat]}` : '2px solid #555',
+                              border: isSelected ? `2px solid ${catColors[cat]}` : '2px solid var(--text-dim)',
                               background: isSelected ? catColors[cat] : 'transparent',
                               display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2
                             }}>
-                              {isSelected && <Check size={14} color="#000" />}
+                              {isSelected && <Check size={14} color="var(--bg)" />}
                             </div>
                             <div>
-                              <div style={{ fontWeight: 600, fontSize: 14, color: isSelected ? '#fff' : '#aaa' }}>{perm.label}</div>
-                              <div style={{ fontSize: 11, color: '#666', marginTop: 4, lineHeight: 1.3 }}>{perm.description}</div>
+                              <div style={{ fontWeight: 600, fontSize: 14, color: isSelected ? 'var(--text)' : 'var(--text-secondary)' }}>{perm.label}</div>
+                              <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 4, lineHeight: 1.3 }}>{perm.description}</div>
                             </div>
                           </div>
                         );
@@ -470,13 +470,13 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
               })}
             </div>
 
-            <div style={{ padding: 20, borderTop: '1px solid #222', background: '#0a0a0a' }}>
+            <div style={{ padding: 20, borderTop: '1px solid var(--surface)', background: 'var(--bg-app)' }}>
               <button
                 onClick={handleSave}
                 style={{
                   width: '100%',
-                  background: '#fff',
-                  color: '#000',
+                  background: 'var(--text)',
+                  color: 'var(--bg)',
                   border: 'none',
                   padding: 16,
                   borderRadius: 16,

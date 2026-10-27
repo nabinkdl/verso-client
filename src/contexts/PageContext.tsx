@@ -21,6 +21,7 @@ interface PageContextType {
 
 const PageContext = createContext<PageContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const usePages = () => {
   const context = useContext(PageContext);
   if (!context) {

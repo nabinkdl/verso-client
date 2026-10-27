@@ -39,7 +39,7 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
         return (
           <>
             <h3 style={{ fontWeight: 700, fontSize: 18, margin: 0, marginBottom: 8 }}>Page Details</h3>
-            <p style={{ color: '#8a8a8a', fontSize: 13, marginBottom: 20 }}>Give your page a name and category</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 20 }}>Give your page a name and category</p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
@@ -51,10 +51,10 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
                   style={{
                     width: '100%',
                     padding: '12px 16px',
-                    background: '#111',
-                    border: '0.5px solid #333',
+                    background: 'var(--bg-elevated-2)',
+                    border: '0.5px solid var(--border)',
                     borderRadius: 12,
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: 14,
                     boxSizing: 'border-box',
                   }}
@@ -69,10 +69,10 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
                   style={{
                     width: '100%',
                     padding: '12px 16px',
-                    background: '#111',
-                    border: '0.5px solid #333',
+                    background: 'var(--bg-elevated-2)',
+                    border: '0.5px solid var(--border)',
                     borderRadius: 12,
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: 14,
                     appearance: 'none',
                     boxSizing: 'border-box',
@@ -95,10 +95,10 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
                   style={{
                     width: '100%',
                     padding: '12px 16px',
-                    background: '#111',
-                    border: '0.5px solid #333',
+                    background: 'var(--bg-elevated-2)',
+                    border: '0.5px solid var(--border)',
                     borderRadius: 12,
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: 14,
                     fontFamily: 'inherit',
                     resize: 'vertical',
@@ -114,7 +114,7 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
         return (
           <>
             <h3 style={{ fontWeight: 700, fontSize: 18, margin: 0, marginBottom: 8 }}>Privacy & Rules</h3>
-            <p style={{ color: '#8a8a8a', fontSize: 13, marginBottom: 20 }}>Choose who can see and join your page, then add community rules</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 20 }}>Choose who can see and join your page, then add community rules</p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -131,26 +131,26 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
                       alignItems: 'center',
                       gap: 14,
                       padding: '14px 16px',
-                      background: pageData.visibility === option.value ? 'rgba(255,255,255,0.05)' : 'transparent',
-                      border: pageData.visibility === option.value ? '1px solid #fff' : '0.5px solid #333',
+                      background: pageData.visibility === option.value ? 'var(--surface-subtle)' : 'transparent',
+                      border: pageData.visibility === option.value ? '1px solid var(--text)' : '0.5px solid var(--border)',
                       borderRadius: 14,
-                      color: '#fff',
+                      color: 'var(--text)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       width: '100%',
                     }}
                   >
-                    <option.icon size={20} color={pageData.visibility === option.value ? '#fff' : '#666'} />
+                    <option.icon size={20} color={pageData.visibility === option.value ? 'var(--text)' : 'var(--text-tertiary)'} />
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{option.label}</div>
-                      <div style={{ color: '#8a8a8a', fontSize: 12 }}>{option.desc}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>{option.desc}</div>
                     </div>
                   </button>
                 ))}
               </div>
 
               <div>
-                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>Community Rules <span style={{ color: '#8a8a8a', fontWeight: 400 }}>(optional)</span></label>
+                <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>Community Rules <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span></label>
                 <textarea
                   value={pageData.rulesText}
                   onChange={(e) => setPageData({ ...pageData, rulesText: e.target.value })}
@@ -159,17 +159,17 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
                   style={{
                     width: '100%',
                     padding: '12px 16px',
-                    background: '#111',
-                    border: '0.5px solid #333',
+                    background: 'var(--bg-elevated-2)',
+                    border: '0.5px solid var(--border)',
                     borderRadius: 12,
-                    color: '#fff',
+                    color: 'var(--text)',
                     fontSize: 14,
                     fontFamily: 'inherit',
                     resize: 'vertical',
                     boxSizing: 'border-box',
                   }}
                 />
-                <div style={{ color: '#8a8a8a', fontSize: 12, marginTop: 6 }}>Add one rule per line.</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 6 }}>Add one rule per line.</div>
               </div>
             </div>
           </>
@@ -197,7 +197,7 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
         style={{
           width: '100%',
           height: '90%',
-          background: '#0c0c0c',
+          background: 'var(--bg-elevated)',
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           display: 'flex',
@@ -207,11 +207,11 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
       >
         {/* Drag Handle */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-          <div style={{ width: 40, height: 4, background: '#333', borderRadius: 2 }} />
+          <div style={{ width: 40, height: 4, background: 'var(--border)', borderRadius: 2 }} />
         </div>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-          <button onClick={step === 1 ? onClose : handleBack} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>
+          <button onClick={step === 1 ? onClose : handleBack} style={{ background: 'none', border: 'none', color: 'var(--text)', cursor: 'pointer' }}>
             <ArrowLeft size={24} />
           </button>
           <div>
@@ -223,7 +223,7 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
                   style={{
                     width: 40,
                     height: 3,
-                    background: s <= step ? '#fff' : '#333',
+                    background: s <= step ? 'var(--text)' : 'var(--border)',
                     borderRadius: 2,
                   }}
                 />
@@ -238,15 +238,15 @@ export default function CreatePageScreen({ onClose, currentUserId }: CreatePageS
         </div>
 
         {/* Footer */}
-        <div style={{ paddingTop: 16, borderTop: '0.5px solid #2a2a2a' }}>
+        <div style={{ paddingTop: 16, borderTop: '0.5px solid var(--border-subtle)' }}>
           <button
             onClick={step === 2 ? handleCreate : handleNext}
             disabled={step === 1 && (!pageData.name || !pageData.category)}
             style={{
               width: '100%',
               padding: '14px',
-              background: (step === 1 && (!pageData.name || !pageData.category)) ? '#333' : '#fff',
-              color: (step === 1 && (!pageData.name || !pageData.category)) ? '#666' : '#000',
+              background: (step === 1 && (!pageData.name || !pageData.category)) ? 'var(--border)' : 'var(--text)',
+              color: (step === 1 && (!pageData.name || !pageData.category)) ? 'var(--text-tertiary)' : 'var(--bg)',
               border: 'none',
               borderRadius: 16,
               fontWeight: 700,

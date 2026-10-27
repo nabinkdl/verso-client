@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Screen, User, Post, Chat, NotificationItem, Page, AdminUser } from "./types";
+import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
+import { Screen, Post, Chat, NotificationItem, AdminUser } from "./types";
 import { PageProvider, usePages } from './contexts/PageContext';
 import {
   CURRENT_USER_ID,
-  initialUsers,
   initialPosts,
   initialChats,
   initialNotifications,
@@ -24,9 +24,10 @@ import ProfileScreen from "./components/ProfileScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ForgetScreen from "./components/ForgetScreen";
+import PageManagementScreen from "./components/PageManagementScreen";
+import PageViewScreen from "./components/PageViewScreen";
+import CreatePageDialog from "./components/CreatePageDialog";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-
-const CURRENT_USER_ID = "u1";
 
 const makePostImage = (seed: string) => {
   const svg = `
@@ -53,6 +54,23 @@ const makePostImage = (seed: string) => {
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeScreen, setActiveScreen] = useState<Screen>("login");
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      return localStorage.getItem("verso-theme") !== "light";
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+    try {
+      localStorage.setItem("verso-theme", darkMode ? "dark" : "light");
+    } catch {
+      // Storage unavailable — keep the theme in memory only.
+    }
+  }, [darkMode]);
+
   const memberPerms = ['read','post','comment','like','edit_own','follow','dm','mention'];
   const allPerms = ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','suspend','ban','view_reports','pin_posts','manage_roles','manage_perms','analytics','settings','audit_log'];
   const [users, setUsers] = useState<AdminUser[]>([
@@ -112,7 +130,6 @@ function AppContent() {
   const [activePageMemberFilter, setActivePageMemberFilter] = useState<'all' | 'invite'>('all');
   const [newPostTargetPageId, setNewPostTargetPageId] = useState<string | null>(null);
   const [isCreatingPage, setIsCreatingPage] = useState(false);
-  const [confirmLogout, setConfirmLogout] = useState(false);
 
   const pushNotification = (
     item: Omit<NotificationItem, "id" | "createdAt">,
@@ -120,7 +137,7 @@ function AppContent() {
     setNotifications((prev) => addNotification(prev, item));
   };
 
-  const handleLogin = (email: string, password: string) => {
+  const handleLogin = () => {
     setIsLoggedIn(true);
     setActiveScreen("home");
   };
@@ -129,7 +146,6 @@ function AppContent() {
     name: string,
     username: string,
     email: string,
-    password: string,
   ) => {
     const newUser: AdminUser = {
       id: `u${Date.now()}`,
@@ -283,13 +299,54 @@ function AppContent() {
         justifyContent: "center",
         alignItems: "center",
         minHeight: "100vh",
-        background: "#0a0a0a",
+        background: "var(--bg-app)",
         fontFamily:
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
         padding: 20,
         boxSizing: "border-box",
       }}
     >
+      {/* Theme toggle — outside the app window, top-right */}
+      <button
+        type="button"
+        onClick={() => setDarkMode((prev) => !prev)}
+        aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+        title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+        style={{
+          position: "fixed",
+          top: 20,
+          right: 20,
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "8px 14px",
+          borderRadius: 999,
+          background: "var(--surface-subtle)",
+          border: "0.5px solid var(--border-strong)",
+          color: "var(--text-soft)",
+          backdropFilter: "blur(10px)",
+          cursor: "pointer",
+          fontSize: 13,
+          fontWeight: 600,
+          boxShadow: "0 8px 24px var(--shadow-color)",
+          transition: "transform 0.2s ease, background 0.2s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+          e.currentTarget.style.background = "var(--surface-hover)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.background = "var(--surface-subtle)";
+        }}
+        onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+        onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+      >
+        {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+        {darkMode ? "Light" : "Dark"}
+      </button>
+
       {/* Mobile Frame */}
       <div
         style={{
@@ -297,9 +354,9 @@ function AppContent() {
           height: "calc(100vh - 40px)",
           maxHeight: 900,
           borderRadius: 44,
-          background: "#1a1a1a",
+          background: "var(--bg-raised)",
           padding: 12,
-          boxShadow: "0 0 0 1px #333, 0 20px 60px rgba(0,0,0,0.5)",
+          boxShadow: "0 0 0 1px var(--border), 0 20px 60px rgba(0,0,0,0.5)",
           boxSizing: "border-box",
           position: "relative",
           flexShrink: 0,
@@ -312,10 +369,10 @@ function AppContent() {
             height: "100%",
             borderRadius: 32,
             overflow: "hidden",
-            background: "#000",
+            background: "var(--bg)",
             display: "flex",
             flexDirection: "column",
-            color: "#fff",
+            color: "var(--text)",
             position: "relative",
           }}
         >
@@ -383,8 +440,8 @@ function AppContent() {
                 borderRadius: 28,
                 overflow: "hidden",
                 boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                background: "#090909",
+                border: "1px solid var(--surface-hover)",
+                background: "var(--bg)",
               }}
             >
               <NewPostScreen
@@ -463,7 +520,6 @@ function AppContent() {
               });
               // Auto-navigate into the freshly-created page
               setActivePageId(id);
-              setIsCreatingPage(false);
             }}
           />
         )}
@@ -491,11 +547,14 @@ function AppContent() {
             onMessage={() => handleMessageUser(profileUserId)}
             onLike={handleLike}
             onComment={handleComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
           />
         )}
         {isLoggedIn && <BottomNav active={activeScreen} onChange={handleNav} />}
+        </div>
+        <SpeedInsights />
       </div>
-      <SpeedInsights />
     </div>
   );
 }
