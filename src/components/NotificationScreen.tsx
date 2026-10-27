@@ -4,13 +4,11 @@ import {
   MessageCircle,
   UserPlus,
   Clapperboard,
-  X,
 } from "lucide-react";
 import { NotificationItem } from "../types";
 
 interface NotificationScreenProps {
   notifications: NotificationItem[];
-  onClose: () => void;
 }
 
 const ICONS = {
@@ -23,7 +21,6 @@ const ICONS = {
 
 export default function NotificationScreen({
   notifications,
-  onClose,
 }: NotificationScreenProps) {
   return (
     <div
@@ -36,18 +33,13 @@ export default function NotificationScreen({
         gap: 14,
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <h2 style={{ fontWeight: 800, fontSize: 22, margin: 0 }}>
-            notifications
-          </h2>
-          <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>
-            recent activity and updates
-          </div>
+      <div>
+        <h2 style={{ fontWeight: 800, fontSize: 22, margin: 0 }}>
+          notifications
+        </h2>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
+          recent activity and updates
         </div>
-        <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 4 }}>
-          <X size={20} />
-        </button>
       </div>
 
       {notifications.map((notification) => {
@@ -58,10 +50,10 @@ export default function NotificationScreen({
             style={{
               display: "flex",
               gap: 12,
-              background: "var(--bg-card)",
+              background: "var(--bg-elevated)",
               borderRadius: 18,
               padding: 14,
-              border: "0.5px solid var(--border)",
+              border: "0.5px solid var(--border-subtle)",
             }}
           >
             <div
@@ -69,10 +61,10 @@ export default function NotificationScreen({
                 width: 42,
                 height: 42,
                 borderRadius: 14,
-                background: "var(--bg-card)",
+                background: "var(--bg-elevated-2)",
                 display: "grid",
                 placeItems: "center",
-                border: "0.5px solid var(--border)",
+                border: "0.5px solid var(--border-2)",
                 flex: "0 0 auto",
               }}
             >
@@ -91,7 +83,7 @@ export default function NotificationScreen({
       })}
 
       {notifications.length === 0 && (
-        <div style={{ color: "var(--text-secondary)", textAlign: "center", marginTop: 40 }}>
+        <div style={{ color: "var(--text-tertiary)", textAlign: "center", marginTop: 40 }}>
           no notifications yet
         </div>
       )}

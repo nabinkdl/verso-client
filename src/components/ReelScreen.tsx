@@ -12,6 +12,8 @@ interface ReelScreenProps {
   onToggleSave: (postId: string) => void;
   onLike: (postId: string) => void;
   onComment: (postId: string, text: string) => void;
+  onEditComment?: (postId: string, commentId: string, text: string) => void;
+  onDeleteComment?: (postId: string, commentId: string) => void;
 }
 
 export default function ReelScreen({
@@ -22,6 +24,8 @@ export default function ReelScreen({
   onToggleSave,
   onLike,
   onComment,
+  onEditComment,
+  onDeleteComment,
 }: ReelScreenProps) {
   const [activeCommentPostId, setActiveCommentPostId] = useState<string | null>(null);
 
@@ -46,11 +50,12 @@ export default function ReelScreen({
           justifyContent: "space-between",
           zIndex: 10,
           pointerEvents: "none",
+          color: "var(--text-on-media)",
         }}
       >
         <div>
-          <h2 style={{ fontWeight: 800, fontSize: 22, margin: 0 }}>reels</h2>
-          <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>
+          <h2 style={{ fontWeight: 800, fontSize: 22, margin: 0, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>reels</h2>
+          <div style={{ fontSize: 12, color: "var(--text-on-media)", marginTop: 4, textShadow: "0 1px 4px rgba(0,0,0,0.5)" }}>
             short videos and fast cuts
           </div>
         </div>
@@ -59,14 +64,14 @@ export default function ReelScreen({
             width: 42,
             height: 42,
             borderRadius: 14,
-            background: "color-mix(in srgb, var(--bg) 80%, transparent)",
+            background: "var(--overlay-surface-soft)",
             backdropFilter: "blur(10px)",
             display: "grid",
             placeItems: "center",
-            border: "0.5px solid var(--border)",
+            border: "0.5px solid var(--surface-hover)",
           }}
         >
-          <Play size={18} color="var(--text)" />
+          <Play size={18} color="var(--text-on-media)" />
         </div>
       </div>
 
@@ -109,6 +114,8 @@ export default function ReelScreen({
           currentUserId={currentUserId}
           onClose={() => setActiveCommentPostId(null)}
           onComment={onComment}
+          onEditComment={onEditComment}
+          onDeleteComment={onDeleteComment}
         />
       )}
     </div>

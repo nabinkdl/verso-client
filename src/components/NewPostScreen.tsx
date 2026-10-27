@@ -9,10 +9,11 @@ type MediaDraft = {
 
 interface NewPostScreenProps {
   onPublish: (caption: string, media?: MediaDraft) => void;
-  onClose: () => void;
+  onClose?: () => void;
+  targetPageName?: string;
 }
 
-export default function NewPostScreen({ onPublish, onClose }: NewPostScreenProps) {
+export default function NewPostScreen({ onPublish, onClose, targetPageName }: NewPostScreenProps) {
   const [caption, setCaption] = useState("");
   const [draft, setDraft] = useState<MediaDraft | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -46,22 +47,45 @@ export default function NewPostScreen({ onPublish, onClose }: NewPostScreenProps
   };
 
   return (
-    <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: 0 }}>
       <div
         style={{
-          background: "var(--bg-card)",
-          borderRadius: 24,
-          padding: 20,
+          minHeight: "100%",
+          background: "var(--bg-elevated)",
+          borderRadius: 0,
+          padding: 16,
           display: "flex",
           flexDirection: "column",
           gap: 14,
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-          <h2 style={{ fontWeight: 700, fontSize: 18 }}>new post</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 4 }}>
-            <X size={20} />
-          </button>
+          <div>
+            <h2 style={{ fontWeight: 700, fontSize: 18, margin: 0 }}>
+              new post
+            </h2>
+            {targetPageName && (
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>Posting in <strong style={{ color: 'var(--text-secondary)' }}>{targetPageName}</strong></p>
+            )}
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              style={{
+                background: "var(--surface-subtle)",
+                border: "none",
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                color: "var(--text)",
+                display: "grid",
+                placeItems: "center",
+                cursor: "pointer",
+              }}
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
 
         <input
@@ -76,16 +100,16 @@ export default function NewPostScreen({ onPublish, onClose }: NewPostScreenProps
           type="button"
           onClick={openFilePicker}
           style={{
-            background: "var(--bg-input)",
+            background: "var(--bg-raised)",
             minHeight: 180,
             borderRadius: 20,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            color: "var(--text-tertiary)",
+            color: "var(--text-faint)",
             gap: 8,
-            border: "0.5px solid var(--border)",
+            border: "0.5px solid var(--border-2)",
             width: "100%",
             padding: 18,
             cursor: "pointer",
@@ -107,7 +131,7 @@ export default function NewPostScreen({ onPublish, onClose }: NewPostScreenProps
                   maxWidth: 260,
                   borderRadius: 18,
                   overflow: "hidden",
-                  border: "0.5px solid var(--border)",
+                  border: "0.5px solid var(--border-2)",
                   background: "var(--bg)",
                 }}
               >
@@ -143,12 +167,12 @@ export default function NewPostScreen({ onPublish, onClose }: NewPostScreenProps
                   <ImagePlus size={16} />
                 )}
                 <span
-                  style={{ fontSize: 13, color: "var(--text-secondary)", textAlign: "center" }}
+                  style={{ fontSize: 13, color: "var(--text-soft)", textAlign: "center" }}
                 >
                   {draft.name}
                 </span>
               </div>
-              <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+              <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
                 {draft.type === "video" ? "video selected" : "image selected"}
               </span>
             </div>
@@ -190,7 +214,7 @@ export default function NewPostScreen({ onPublish, onClose }: NewPostScreenProps
           placeholder="write a caption..."
           rows={3}
           style={{
-            background: "var(--bg-card)",
+            background: "var(--bg-elevated-2)",
             border: "0.5px solid var(--border)",
             borderRadius: 16,
             padding: 12,
@@ -215,10 +239,7 @@ export default function NewPostScreen({ onPublish, onClose }: NewPostScreenProps
             width: "100%",
             cursor: "pointer",
             fontFamily: "inherit",
-            transition: "opacity 0.2s",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.8"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
         >
           publish post
         </button>

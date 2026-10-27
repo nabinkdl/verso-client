@@ -47,7 +47,7 @@ export default function LoginScreen({
         >
           Verso
         </h1>
-        <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0 }}>
+        <p style={{ fontSize: 14, color: "#ffff", margin: 0 }}>
           Sign in to your account
         </p>
       </div>
@@ -69,9 +69,9 @@ export default function LoginScreen({
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "var(--bg-input)",
-            border: "0.5px solid var(--border)",
-            borderRadius: 12,
+            backgroundColor: "var(--bg-raised)",
+            border: "1px solid var(--border)",
+            borderRadius: 8,
             color: "var(--text)",
             fontSize: 14,
             outline: "none",
@@ -79,7 +79,7 @@ export default function LoginScreen({
             transition: "border-color 0.2s",
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = "var(--accent)";
+            e.currentTarget.style.borderColor = "#3b82f6";
           }}
           onBlur={(e) => {
             e.currentTarget.style.borderColor = "var(--border)";
@@ -94,9 +94,9 @@ export default function LoginScreen({
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "var(--bg-input)",
-            border: "0.5px solid var(--border)",
-            borderRadius: 12,
+            backgroundColor: "var(--bg-raised)",
+            border: "1px solid var(--border)",
+            borderRadius: 8,
             color: "var(--text)",
             fontSize: 14,
             outline: "none",
@@ -104,7 +104,7 @@ export default function LoginScreen({
             transition: "border-color 0.2s",
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = "var(--accent)";
+            e.currentTarget.style.borderColor = "#3b82f6";
           }}
           onBlur={(e) => {
             e.currentTarget.style.borderColor = "var(--border)";
@@ -116,17 +116,21 @@ export default function LoginScreen({
           style={{
             width: "100%",
             padding: "12px 16px",
-            backgroundColor: "var(--text)",
+            backgroundColor: "var(--text)", // black background
             border: "none",
-            borderRadius: 40,
-            color: "var(--bg)",
+            borderRadius: 8,
+            color: "var(--bg)", // white text
             fontSize: 16,
-            fontWeight: 700,
+            fontWeight: 600,
             cursor: "pointer",
-            transition: "opacity 0.2s",
+            transition: "background-color 0.2s",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.8"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--border)"; // dark gray on hover
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--text)"; // back to black
+          }}
         >
           Sign In
         </button>
@@ -136,7 +140,7 @@ export default function LoginScreen({
         <p
           style={{
             fontSize: 13,
-            color: "var(--text-secondary)",
+            color: "var(--text-tertiary)",
             margin: 0,
             marginBottom: 12,
           }}
@@ -149,7 +153,7 @@ export default function LoginScreen({
           style={{
             background: "none",
             border: "none",
-            color: "var(--accent)",
+            color: "#3b82f6",
             fontSize: 14,
             cursor: "pointer",
             padding: 0,
@@ -167,7 +171,7 @@ export default function LoginScreen({
           style={{
             background: "none",
             border: "none",
-            color: "var(--accent)",
+            color: "#3b82f6",
             fontSize: 14,
             cursor: "pointer",
             padding: 0,

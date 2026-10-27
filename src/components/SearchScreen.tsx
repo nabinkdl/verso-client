@@ -21,13 +21,13 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ position: 'relative' }}>
-        <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }} />
+        <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
         <input
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="search by username..."
           style={{
-            background: 'var(--bg-card)',
+            background: 'var(--bg-elevated-2)',
             border: '0.5px solid var(--border)',
             borderRadius: 40,
             padding: '12px 16px 12px 38px',
@@ -50,15 +50,15 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: 'var(--bg-card)',
+                background: 'var(--bg-elevated)',
                 padding: 12,
                 borderRadius: 16,
-                border: '0.5px solid var(--border)',
+                border: '0.5px solid var(--border-subtle)',
                 cursor: 'pointer',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Avatar name={user.name} />
+                <Avatar name={user.name} src={user.avatarUrl} />
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{user.name}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>@{user.username}</div>
@@ -69,17 +69,14 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
                 style={{
                   background: isFollowing ? 'transparent' : 'var(--text)',
                   color: isFollowing ? 'var(--text)' : 'var(--bg)',
-                  border: isFollowing ? '0.5px solid var(--border)' : 'none',
+                  border: isFollowing ? '0.5px solid var(--text)' : 'none',
                   padding: '6px 16px',
                   borderRadius: 30,
                   fontWeight: 600,
                   fontSize: 13,
                   cursor: 'pointer',
                   fontFamily: 'inherit',
-                  transition: 'opacity 0.2s',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = '0.7'; }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
               >
                 {isFollowing ? 'unfollow' : 'follow'}
               </button>
@@ -87,7 +84,7 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
           );
         })}
         {filtered.length === 0 && query && (
-          <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', marginTop: 40, fontSize: 14 }}>no users found</div>
+          <div style={{ textAlign: 'center', color: 'var(--text-dim)', marginTop: 40, fontSize: 14 }}>no users found</div>
         )}
       </div>
     </div>

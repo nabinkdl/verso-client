@@ -1,11 +1,19 @@
-import { useState } from "react";
-import { Screen, User, Post, Chat, NotificationItem } from "./types";
+import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
+import { Screen, Post, Chat, NotificationItem, AdminUser, CartItem } from "./types";
+import { PageProvider, usePages } from './contexts/PageContext';
 import {
-  initialUsers,
+  CURRENT_USER_ID,
   initialPosts,
   initialChats,
   initialNotifications,
+  initialPages,
+  initialMarketplaceCart,
 } from "./data";
+import { likePost, editPost, deletePost, addComment, editComment, deleteComment } from "./services/postService";
+import { toggleFollow, editProfile, addUser } from "./services/userService";
+import { sendMessage, findOrCreateChat } from "./services/chatService";
+import { addNotification } from "./services/notificationService";
 import BottomNav from "./components/BottomNav";
 import HomeScreen from "./components/HomeScreen";
 import SearchScreen from "./components/SearchScreen";
@@ -14,14 +22,14 @@ import ReelScreen from "./components/ReelScreen";
 import NotificationScreen from "./components/NotificationScreen";
 import ChatScreen from "./components/ChatScreen";
 import ProfileScreen from "./components/ProfileScreen";
-import SavedScreen from "./components/SavedScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ForgetScreen from "./components/ForgetScreen";
-import { DarkModeProvider, useDarkMode } from "./context/DarkModeContext";
+import PageManagementScreen from "./components/PageManagementScreen";
+import PageViewScreen from "./components/PageViewScreen";
+import CreatePageDialog from "./components/CreatePageDialog";
+import MarketplaceScreen from "./components/MarketplaceScreen";
 import { SpeedInsights } from "@vercel/speed-insights/react";
-
-const CURRENT_USER_ID = "u1";
 
 const makePostImage = (seed: string) => {
   const svg = `
@@ -46,32 +54,96 @@ const makePostImage = (seed: string) => {
 };
 
 function AppContent() {
-  const { darkMode, toggleDarkMode } = useDarkMode();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeScreen, setActiveScreen] = useState<Screen>("login");
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      return localStorage.getItem("verso-theme") !== "light";
+    } catch {
+      return true;
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+    try {
+      localStorage.setItem("verso-theme", darkMode ? "dark" : "light");
+    } catch {
+      // Storage unavailable — keep the theme in memory only.
+    }
+  }, [darkMode]);
+
+  const memberPerms = ['read','post','comment','like','edit_own','follow','dm','mention'];
+  const allPerms = ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','suspend','ban','view_reports','pin_posts','manage_roles','manage_perms','analytics','settings','audit_log'];
+  const [users, setUsers] = useState<AdminUser[]>([
+    { id: 'u1', name: 'Alex Morgan', username: 'alexm', email: 'alex@verso.app', role: 'admin', status: 'active', joinedAt: Date.now() - 86400000 * 180, followers: ['u2'], following: ['u3'], permissions: allPerms },
+    { id: 'u2', name: 'Jamie Lin', username: 'jamieL', email: 'jamie@verso.app', role: 'moderator', status: 'active', joinedAt: Date.now() - 86400000 * 140, followers: [], following: ['u1'], permissions: ['read','post','comment','like','edit_own','edit_any','delete_any','follow','dm','mention','suspend','ban','view_reports','pin_posts'] },
+    { id: 'u3', name: 'Taylor Ray', username: 'tray', email: 'taylor@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 120, followers: ['u1'], following: [], permissions: memberPerms },
+    { id: 'u4', name: 'Casey Wong', username: 'caseyw', email: 'casey@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 95, followers: [], following: [], permissions: memberPerms },
+    { id: 'u5', name: 'Jordan Smith', username: 'jsmith', email: 'jordan@verso.app', role: 'member', status: 'pending', joinedAt: Date.now() - 86400000 * 7, followers: [], following: [], permissions: memberPerms },
+    { id: 'u6', name: 'Riley Park', username: 'rpark', email: 'riley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 3, followers: [], following: [], permissions: ['read'] },
+    { id: 'u7', name: 'Morgan Lee', username: 'morgs', email: 'morgan@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 90, followers: [], following: [], permissions: memberPerms },
+    { id: 'u8', name: 'Drew Kim', username: 'dkim', email: 'drew@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 85, followers: [], following: [], permissions: memberPerms },
+    { id: 'u9', name: 'Sam Rivera', username: 'srivera', email: 'sam@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 80, followers: [], following: [], permissions: memberPerms },
+    { id: 'u10', name: 'Avery Chen', username: 'averyc', email: 'avery@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 75, followers: [], following: [], permissions: memberPerms },
+    { id: 'u11', name: 'Quinn Davis', username: 'quinnD', email: 'quinn@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 70, followers: [], following: [], permissions: memberPerms },
+    { id: 'u12', name: 'Blake Turner', username: 'blaket', email: 'blake@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 65, followers: [], following: [], permissions: memberPerms },
+    { id: 'u13', name: 'Cameron Reed', username: 'creed', email: 'cameron@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 60, followers: [], following: [], permissions: memberPerms },
+    { id: 'u14', name: 'Dakota Hayes', username: 'dhayes', email: 'dakota@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 55, followers: [], following: [], permissions: memberPerms },
+    { id: 'u15', name: 'Emerson Blake', username: 'eblake', email: 'emerson@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 50, followers: [], following: [], permissions: memberPerms },
+    { id: 'u16', name: 'Finley Gray', username: 'fgray', email: 'finley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 48, followers: [], following: [], permissions: memberPerms },
+    { id: 'u17', name: 'Grayson Cole', username: 'gcole', email: 'grayson@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 45, followers: [], following: [], permissions: memberPerms },
+    { id: 'u18', name: 'Harper Wells', username: 'hwells', email: 'harper@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 42, followers: [], following: [], permissions: memberPerms },
+    { id: 'u19', name: 'Indigo Nash', username: 'inash', email: 'indigo@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 40, followers: [], following: [], permissions: memberPerms },
+    { id: 'u20', name: 'Jesse Fox', username: 'jfox', email: 'jesse@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 38, followers: [], following: [], permissions: memberPerms },
+    { id: 'u21', name: 'Kai Morrow', username: 'kmorrow', email: 'kai@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 35, followers: [], following: [], permissions: memberPerms },
+    { id: 'u22', name: 'Logan Pierce', username: 'lpierce', email: 'logan@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 32, followers: [], following: [], permissions: memberPerms },
+    { id: 'u23', name: 'Morgan Sage', username: 'msage', email: 'morgan.s@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 30, followers: [], following: [], permissions: memberPerms },
+    { id: 'u24', name: 'Nico Valentine', username: 'nval', email: 'nico@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 28, followers: [], following: [], permissions: memberPerms },
+    { id: 'u25', name: 'Oakley Frost', username: 'ofrost', email: 'oakley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 25, followers: [], following: [], permissions: memberPerms },
+    { id: 'u26', name: 'Parker Snow', username: 'psnow', email: 'parker@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 22, followers: [], following: [], permissions: memberPerms },
+    { id: 'u27', name: 'Reese Storm', username: 'rstorm', email: 'reese@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 20, followers: [], following: [], permissions: memberPerms },
+    { id: 'u28', name: 'Skyler Wren', username: 'swren', email: 'skyler@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 18, followers: [], following: [], permissions: memberPerms },
+    { id: 'u29', name: 'Tatum Birch', username: 'tbirch', email: 'tatum@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 15, followers: [], following: [], permissions: memberPerms },
+    { id: 'u30', name: 'Ainsley Cruz', username: 'acruz', email: 'ainsley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 14, followers: [], following: [], permissions: memberPerms },
+    { id: 'u31', name: 'Briar Dean', username: 'bdean', email: 'briar@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 12, followers: [], following: [], permissions: memberPerms },
+    { id: 'u32', name: 'Colby Hart', username: 'chart', email: 'colby@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 10, followers: [], following: [], permissions: memberPerms },
+    { id: 'u33', name: 'Devon Ivey', username: 'divey', email: 'devon@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 9, followers: [], following: [], permissions: memberPerms },
+    { id: 'u34', name: 'Ellis Johns', username: 'ejohns', email: 'ellis@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 8, followers: [], following: [], permissions: memberPerms },
+    { id: 'u35', name: 'Frankie Knox', username: 'fknox', email: 'frankie@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 7, followers: [], following: [], permissions: memberPerms },
+    { id: 'u36', name: 'Gray Luna', username: 'gluna', email: 'gray@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 6, followers: [], following: [], permissions: memberPerms },
+    { id: 'u37', name: 'Hadley Moss', username: 'hmoss', email: 'hadley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 5, followers: [], following: [], permissions: memberPerms },
+    { id: 'u38', name: 'Jay North', username: 'jnorth', email: 'jay@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 4, followers: [], following: [], permissions: memberPerms },
+    { id: 'u39', name: 'Kendall Ortiz', username: 'kortiz', email: 'kendall@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 3, followers: [], following: [], permissions: memberPerms },
+    { id: 'u40', name: 'Leighton Pace', username: 'lpace', email: 'leighton@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 2, followers: [], following: [], permissions: memberPerms },
+    { id: 'u41', name: 'Marley Quinn', username: 'mquinn', email: 'marley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 1, followers: [], following: [], permissions: memberPerms },
+    { id: 'u42', name: 'Nova Reyes', username: 'nreyes', email: 'nova@verso.app', role: 'member', status: 'active', joinedAt: Date.now(), followers: [], following: [], permissions: memberPerms },
+  ]);
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [chats, setChats] = useState<Chat[]>(initialChats);
   const [notifications, setNotifications] =
     useState<NotificationItem[]>(initialNotifications);
   const [profileUserId, setProfileUserId] = useState(CURRENT_USER_ID);
   const [targetChatId, setTargetChatId] = useState<string | null>(null);
+  const [chatOrigin, setChatOrigin] = useState<"marketplace" | null>(null);
+  const [marketplaceCart, setMarketplaceCart] =
+    useState<CartItem[]>(initialMarketplaceCart);
   const [savedPosts, setSavedPosts] = useState<string[]>([]);
+
+  const { pages } = usePages();
+  const [activePageId, setActivePageId] = useState<string | null>(null);
+  const [activePageTab, setActivePageTab] = useState<"feed" | "members" | null>(null);
+  const [activePageMemberFilter, setActivePageMemberFilter] = useState<'all' | 'invite'>('all');
+  const [newPostTargetPageId, setNewPostTargetPageId] = useState<string | null>(null);
+  const [isCreatingPage, setIsCreatingPage] = useState(false);
 
   const pushNotification = (
     item: Omit<NotificationItem, "id" | "createdAt">,
   ) => {
-    setNotifications((prev) => [
-      {
-        ...item,
-        id: `n${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-        createdAt: Date.now(),
-      },
-      ...prev,
-    ]);
+    setNotifications((prev) => addNotification(prev, item));
   };
 
-  const handleLogin = (email: string, password: string) => {
+  const handleLogin = () => {
     setIsLoggedIn(true);
     setActiveScreen("home");
   };
@@ -80,17 +152,20 @@ function AppContent() {
     name: string,
     username: string,
     email: string,
-    password: string,
   ) => {
-    // Add the new user to the users list
-    const newUser: User = {
+    const newUser: AdminUser = {
       id: `u${Date.now()}`,
       name,
       username,
+      email,
+      role: 'member',
+      status: 'active',
+      joinedAt: Date.now(),
       followers: [],
       following: [],
+      permissions: ['read','post','comment','like','edit_own','follow','dm','mention']
     };
-    setUsers((prev) => [...prev, newUser]);
+    setUsers((prev) => addUser(prev, newUser));
 
     // Auto-login after registration
     setIsLoggedIn(true);
@@ -115,18 +190,7 @@ function AppContent() {
   };
 
   const handleLike = (postId: string) => {
-    setPosts((prev) =>
-      prev.map((p) => {
-        if (p.id !== postId) return p;
-        const liked = p.likes.includes(CURRENT_USER_ID);
-        return {
-          ...p,
-          likes: liked
-            ? p.likes.filter((id) => id !== CURRENT_USER_ID)
-            : [...p.likes, CURRENT_USER_ID],
-        };
-      }),
-    );
+    setPosts((prev) => likePost(prev, postId, CURRENT_USER_ID));
     pushNotification({
       title: "Like updated",
       message: "You reacted to a post from the feed.",
@@ -135,34 +199,20 @@ function AppContent() {
   };
 
   const handleEditPost = (postId: string, caption: string) => {
-    setPosts((prev) =>
-      prev.map((post) => (post.id === postId ? { ...post, caption } : post)),
-    );
+    setPosts((prev) => editPost(prev, postId, caption));
   };
 
   const handleDeletePost = (postId: string) => {
-    setPosts((prev) => prev.filter((post) => post.id !== postId));
+    setPosts((prev) => deletePost(prev, postId));
   };
 
   const handleComment = (postId: string, text: string) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id !== postId
-          ? p
-          : {
-              ...p,
-              comments: [
-                ...p.comments,
-                {
-                  id: `c${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-                  userId: CURRENT_USER_ID,
-                  text,
-                  createdAt: Date.now(),
-                },
-              ],
-            },
-      ),
-    );
+    const comment = {
+      id: `c${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+      userId: CURRENT_USER_ID,
+      text,
+    };
+    setPosts((prev) => addComment(prev, postId, comment));
     pushNotification({
       title: "Comment posted",
       message: text,
@@ -175,33 +225,11 @@ function AppContent() {
     commentId: string,
     text: string,
   ) => {
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id !== postId
-          ? post
-          : {
-              ...post,
-              comments: post.comments.map((comment) =>
-                comment.id === commentId ? { ...comment, text } : comment,
-              ),
-            },
-      ),
-    );
+    setPosts((prev) => editComment(prev, postId, commentId, text));
   };
 
   const handleDeleteComment = (postId: string, commentId: string) => {
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id !== postId
-          ? post
-          : {
-              ...post,
-              comments: post.comments.filter(
-                (comment) => comment.id !== commentId,
-              ),
-            },
-      ),
-    );
+    setPosts((prev) => deleteComment(prev, postId, commentId));
   };
 
   const handleToggleSave = (postId: string) => {
@@ -213,18 +241,7 @@ function AppContent() {
   };
 
   const handleToggleFollow = (targetId: string) => {
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id !== CURRENT_USER_ID) return u;
-        const isFollowing = u.following.includes(targetId);
-        return {
-          ...u,
-          following: isFollowing
-            ? u.following.filter((id) => id !== targetId)
-            : [...u.following, targetId],
-        };
-      }),
-    );
+    setUsers((prev) => toggleFollow(prev, CURRENT_USER_ID, targetId));
     pushNotification({
       title: "Following updated",
       message: "You changed who you follow.",
@@ -235,12 +252,14 @@ function AppContent() {
   const handlePublish = (
     caption: string,
     media?: { url: string; type: "image" | "video"; name: string },
+    pageId?: string
   ) => {
     const isVideo = media?.type === "video";
     const fallbackMedia = makePostImage(`NEW`);
     const newPost: Post = {
       id: `p${Date.now()}`,
       authorId: CURRENT_USER_ID,
+      pageId,
       caption,
       imageUrl: isVideo ? undefined : (media?.url ?? fallbackMedia),
       imageAlt: caption || "New post image",
@@ -261,45 +280,51 @@ function AppContent() {
 
   const handleSendMessage = (chatId: string, text: string) => {
     setChats((prev) =>
-      prev.map((c) =>
-        c.id !== chatId
-          ? c
-          : {
-              ...c,
-              messages: [
-                ...c.messages,
-                { from: CURRENT_USER_ID, text, timestamp: Date.now() },
-              ],
-              lastUpdated: Date.now(),
-            },
-      ),
+      sendMessage(prev, chatId, { from: CURRENT_USER_ID, text, timestamp: Date.now() }),
     );
   };
 
-  const handleEditName = (newName: string) => {
+  const handleEditProfile = (
+    newName: string,
+    newUsername: string,
+    avatarUrl?: string,
+  ) => {
     setUsers((prev) =>
-      prev.map((u) => (u.id !== CURRENT_USER_ID ? u : { ...u, name: newName })),
+      editProfile(prev, CURRENT_USER_ID, newName, newUsername, avatarUrl),
     );
   };
 
   const handleMessageUser = (userId: string) => {
-    let existingChat = chats.find(c => c.participants.includes(CURRENT_USER_ID) && c.participants.includes(userId));
-    if (!existingChat) {
-       existingChat = {
-         id: `c${Date.now()}`,
-         participants: [CURRENT_USER_ID, userId],
-         messages: [],
-         lastUpdated: Date.now()
-       };
-       setChats(prev => [...prev, existingChat!]);
-    }
-    setTargetChatId(existingChat.id);
+    const { chats: updatedChats, chatId } = findOrCreateChat(chats, CURRENT_USER_ID, userId);
+    setChats(updatedChats);
+    setTargetChatId(chatId);
+    setActiveScreen("chat");
+  };
+
+  const handleMessageSeller = (sellerId: string, productTitle: string) => {
+    const { chats: updatedChats, chatId } = findOrCreateChat(
+      chats,
+      CURRENT_USER_ID,
+      sellerId,
+    );
+    setChats(
+      sendMessage(updatedChats, chatId, {
+        from: CURRENT_USER_ID,
+        text: `Hi, I'm interested in "${productTitle}"`,
+        timestamp: Date.now(),
+      }),
+    );
+    setTargetChatId(chatId);
+    setChatOrigin("marketplace");
     setActiveScreen("chat");
   };
 
   const handleNav = (screen: Screen) => {
     if (screen === "profile") setProfileUserId(CURRENT_USER_ID);
-    if (screen !== "chat") setTargetChatId(null);
+    if (screen !== "chat") {
+      setTargetChatId(null);
+      setChatOrigin(null);
+    }
     setActiveScreen(screen);
   };
 
@@ -309,40 +334,89 @@ function AppContent() {
   };
 
   return (
-      <div
-      className={`relative flex items-center justify-center min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}
+    <div
       style={{
-        background: darkMode ? "#121212" : "#f2f2f7",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        background: "var(--bg-app)",
         fontFamily:
           "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+        padding: 20,
+        boxSizing: "border-box",
       }}
     >
-      <div
-        className="w-full max-w-[390px] h-[780px] rounded-[28px] overflow-hidden flex flex-col transition-[background,color,box-shadow] duration-300"
-        style={{ background: "var(--bg)", color: "var(--text)", boxShadow: "var(--shadow)" }}
+      {/* Theme toggle — outside the app window, top-right */}
+      <button
+        type="button"
+        onClick={() => setDarkMode((prev) => !prev)}
+        aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+        title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+        style={{
+          position: "fixed",
+          top: 20,
+          right: 20,
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "8px 14px",
+          borderRadius: 999,
+          background: "var(--surface-subtle)",
+          border: "0.5px solid var(--border-strong)",
+          color: "var(--text-soft)",
+          backdropFilter: "blur(10px)",
+          cursor: "pointer",
+          fontSize: 13,
+          fontWeight: 600,
+          boxShadow: "0 8px 24px var(--shadow-color)",
+          transition: "transform 0.2s ease, background 0.2s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+          e.currentTarget.style.background = "var(--surface-hover)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.background = "var(--surface-subtle)";
+        }}
+        onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+        onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
       >
-        <button
-          onClick={toggleDarkMode}
-          className="absolute top-4 right-4 bg-transparent rounded-full px-3 py-1.5 cursor-pointer text-xs z-10 backdrop-blur-sm transition-all duration-200 hover:scale-105 active:scale-95"
+        {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+        {darkMode ? "Light" : "Dark"}
+      </button>
+
+      {/* Mobile Frame */}
+      <div
+        style={{
+          width: 480,
+          height: "calc(100vh - 40px)",
+          maxHeight: 900,
+          borderRadius: 44,
+          background: "var(--bg-raised)",
+          padding: 12,
+          boxShadow: "0 0 0 1px var(--border), 0 20px 60px rgba(0,0,0,0.5)",
+          boxSizing: "border-box",
+          position: "relative",
+          flexShrink: 0,
+        }}
+      >
+        {/* Screen */}
+        <div
           style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: 32,
+            overflow: "hidden",
+            background: "var(--bg)",
+            display: "flex",
+            flexDirection: "column",
             color: "var(--text)",
-            border: "0.5px solid var(--separator)",
+            position: "relative",
           }}
         >
-          <span className="flex items-center gap-2">
-            {darkMode ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-                Light
-              </>
-            ) : (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                Dark
-              </>
-            )}
-          </span>
-        </button>
         {activeScreen === "login" && (
           <LoginScreen
             onLogin={handleLogin}
@@ -374,9 +448,9 @@ function AppContent() {
             onDeletePost={handleDeletePost}
             onEditComment={handleEditComment}
             onDeleteComment={handleDeleteComment}
-            onToggleFollow={handleToggleFollow}
             onCreatePost={() => setActiveScreen("newPost")}
             onOpenNotifications={() => setActiveScreen("notifications")}
+            onSearch={() => setActiveScreen("search")}
           />
         )}
         {activeScreen === "search" && (
@@ -388,9 +462,47 @@ function AppContent() {
           />
         )}
         {activeScreen === "newPost" && (
-          <NewPostScreen onPublish={handlePublish} onClose={() => setActiveScreen("home")} />
-        )}
-        {activeScreen === "reels" && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 80,
+              background: "rgba(0,0,0,0.72)",
+              backdropFilter: "blur(14px)",
+              display: "flex",
+              alignItems: "stretch",
+              justifyContent: "stretch",
+              padding: 0,
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                borderRadius: 0,
+                overflow: "hidden",
+                border: "none",
+                boxShadow: "none",
+                background: "var(--bg)",
+              }}
+            >
+              <NewPostScreen
+                targetPageName={newPostTargetPageId ? pages.find(p => p.id === newPostTargetPageId)?.name : undefined}
+                onClose={() => {
+                  setNewPostTargetPageId(null);
+                  setActiveScreen(newPostTargetPageId ? "pages" : "home");
+                }}
+                onPublish={(caption, media) => {
+                  handlePublish(caption, media, newPostTargetPageId || undefined);
+                  setNewPostTargetPageId(null);
+                  setActiveScreen(newPostTargetPageId ? "pages" : "home");
+                }}
+              />
+            </div>
+          </div>
+        )}{activeScreen === "reels" && (
           <ReelScreen
             posts={posts}
             users={users}
@@ -399,10 +511,77 @@ function AppContent() {
             onToggleSave={handleToggleSave}
             onLike={handleLike}
             onComment={handleComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
           />
         )}
         {activeScreen === "notifications" && (
-          <NotificationScreen notifications={notifications} onClose={() => setActiveScreen("home")} />
+          <NotificationScreen notifications={notifications} />
+        )}
+        {activeScreen === "pages" && (
+          <PageManagementScreen
+            currentUserId={CURRENT_USER_ID}
+            users={users}
+            onCreatePage={() => setIsCreatingPage(true)}
+            onOpenMarketplace={() => setActiveScreen("marketplace")}
+            marketplaceCartCount={marketplaceCart.reduce(
+              (sum, item) => sum + item.quantity,
+              0,
+            )}
+            onViewPage={(id, initialTab, memberFilter) => {
+              setActivePageId(id);
+              setActivePageTab(initialTab || "feed");
+              setActivePageMemberFilter(memberFilter || 'all');
+            }}
+          />
+        )}
+        {activePageId && (
+          <PageViewScreen
+            page={pages.find(p => p.id === activePageId)!}
+            users={users}
+            posts={posts}
+            currentUserId={CURRENT_USER_ID}
+            initialTab={activePageTab || "feed"}
+            defaultMemberFilter={activePageMemberFilter}
+            savedPosts={savedPosts}
+            onToggleSave={handleToggleSave}
+            onClose={() => {
+              setActivePageId(null);
+              setActivePageTab(null);
+              setActivePageMemberFilter('all');
+            }}
+            onNewPostClick={() => {
+              setNewPostTargetPageId(activePageId);
+              setActiveScreen("newPost");
+            }}
+            onLike={handleLike}
+            onComment={handleComment}
+            onEditComment={handleEditComment}
+            onDeleteComment={handleDeleteComment}
+          />
+        )}
+        {isCreatingPage && (
+          <CreatePageDialog
+            open={isCreatingPage}
+            onClose={() => setIsCreatingPage(false)}
+            currentUserId={CURRENT_USER_ID}
+            onCreated={(id) => {
+              pushNotification({
+                title: 'New page created',
+                message: 'Your new community is ready to grow.',
+                kind: 'post',
+              });
+              // Auto-navigate into the freshly-created page
+              setActivePageId(id);
+            }}
+          />
+        )}
+        {activeScreen === "marketplace" && (
+          <MarketplaceScreen
+            cart={marketplaceCart}
+            setCart={setMarketplaceCart}
+            onMessageSeller={handleMessageSeller}
+          />
         )}
         {activeScreen === "chat" && (
           <ChatScreen
@@ -411,7 +590,13 @@ function AppContent() {
             currentUserId={CURRENT_USER_ID}
             onSendMessage={handleSendMessage}
             targetChatId={targetChatId}
-            onClearTargetChat={() => setTargetChatId(null)}
+            onClearTargetChat={() => {
+              setTargetChatId(null);
+              if (chatOrigin === "marketplace") {
+                setChatOrigin(null);
+                setActiveScreen("marketplace");
+              }
+            }}
           />
         )}
         {activeScreen === "profile" && (
@@ -420,46 +605,37 @@ function AppContent() {
             currentUserId={CURRENT_USER_ID}
             users={users}
             posts={posts}
-            onNewPost={() => setActiveScreen("newPost")}
-            onEditName={handleEditName}
-            onLogout={handleLogout}
-            onLike={handleLike}
-            onToggleSave={handleToggleSave}
             savedPosts={savedPosts}
+            onToggleSave={handleToggleSave}
+            onNewPost={() => setActiveScreen("newPost")}
+            onEditProfile={handleEditProfile}
+            onLogout={handleLogout}
             onEditPost={handleEditPost}
             onDeletePost={handleDeletePost}
-            onComment={handleComment}
-            onEditComment={handleEditComment}
-            onDeleteComment={handleDeleteComment}
-            onToggleFollow={handleToggleFollow}
             onMessage={() => handleMessageUser(profileUserId)}
-          />
-        )}
-        {activeScreen === "saved" && (
-          <SavedScreen
-            posts={posts}
-            users={users}
-            currentUserId={CURRENT_USER_ID}
-            savedPosts={savedPosts}
-            onToggleSave={handleToggleSave}
             onLike={handleLike}
             onComment={handleComment}
             onEditComment={handleEditComment}
             onDeleteComment={handleDeleteComment}
-            onClose={() => setActiveScreen("profile")}
           />
         )}
-        {isLoggedIn && <BottomNav active={activeScreen} onChange={handleNav} />}
+        {isLoggedIn && (
+          <BottomNav
+            active={activeScreen === "marketplace" ? "pages" : activeScreen}
+            onChange={handleNav}
+          />
+        )}
+        </div>
+        <SpeedInsights />
       </div>
-      <SpeedInsights />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <DarkModeProvider>
+    <PageProvider initialPages={initialPages}>
       <AppContent />
-    </DarkModeProvider>
+    </PageProvider>
   );
 }

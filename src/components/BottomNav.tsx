@@ -1,4 +1,4 @@
-import { Home, Search, MessageCircle, User, Clapperboard } from "lucide-react";
+import { Home, MessageCircle, User, PlaySquare, Layers, type LucideIcon } from "lucide-react";
 import { Screen } from "../types";
 
 interface BottomNavProps {
@@ -8,14 +8,14 @@ interface BottomNavProps {
 
 const ITEMS: {
   screen: Screen;
-  Icon: React.FC<{ size?: number; strokeWidth?: number }>;
+  Icon: LucideIcon;
 }[] = [
-  { screen: "home", Icon: Home },
-  { screen: "search", Icon: Search },
-  { screen: "reels", Icon: Clapperboard },
-  { screen: "chat", Icon: MessageCircle },
-  { screen: "profile", Icon: User },
-];
+    { screen: "home", Icon: Home },
+    { screen: "pages", Icon: Layers },
+    { screen: "reels", Icon: PlaySquare },
+    { screen: "chat", Icon: MessageCircle },
+    { screen: "profile", Icon: User },
+  ];
 
 export default function BottomNav({ active, onChange }: BottomNavProps) {
   return (
@@ -26,7 +26,7 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
         alignItems: "center",
         padding: "12px 16px 18px",
         background: "var(--bg)",
-        borderTop: "0.5px solid var(--border-light)",
+        borderTop: "0.5px solid var(--border-2)",
       }}
     >
       {ITEMS.map(({ screen, Icon }) => (
@@ -36,7 +36,7 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
           style={{
             background: "none",
             border: "none",
-            color: active === screen ? "var(--text)" : "var(--text-secondary)",
+            color: active === screen ? "var(--text)" : "var(--text-tertiary)",
             cursor: "pointer",
             padding: 6,
             display: "flex",

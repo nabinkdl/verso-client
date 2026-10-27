@@ -52,10 +52,10 @@ export default function ChatScreen({ chats, users, currentUserId, onSendMessage,
           >
             <ArrowLeft size={22} />
           </button>
-          <Avatar name={otherUser.name} />
+          <Avatar name={otherUser.name} src={otherUser.avatarUrl} />
           <div>
             <div style={{ fontWeight: 600, fontSize: 15 }}>{otherUser.name}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>@{otherUser.username}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>@{otherUser.username}</div>
           </div>
         </div>
 
@@ -78,10 +78,10 @@ export default function ChatScreen({ chats, users, currentUserId, onSendMessage,
                     maxWidth: '80%',
                     padding: '8px 14px',
                     borderRadius: 20,
-                    background: isMe ? 'var(--bg)' : 'var(--bg-card)',
-                    color: 'var(--text)',
+                    background: isMe ? 'var(--text)' : 'var(--surface)',
+                    color: isMe ? 'var(--bg)' : 'var(--text)',
                     fontSize: 14,
-                    border: isMe ? 'none' : '0.5px solid var(--border)',
+                    border: isMe ? 'none' : '0.5px solid var(--border-2)',
                   }}
                 >
                   {msg.text}
@@ -100,7 +100,7 @@ export default function ChatScreen({ chats, users, currentUserId, onSendMessage,
             placeholder="type message..."
             style={{
               flex: 1,
-              background: 'var(--bg-card)',
+              background: 'var(--bg-elevated-2)',
               border: '0.5px solid var(--border)',
               borderRadius: 30,
               padding: '10px 16px',
@@ -112,7 +112,7 @@ export default function ChatScreen({ chats, users, currentUserId, onSendMessage,
           <button
             onClick={handleSend}
             style={{
-              background: 'white',
+              background: 'var(--text)',
               border: 'none',
               borderRadius: 30,
               padding: '0 16px',
@@ -121,7 +121,7 @@ export default function ChatScreen({ chats, users, currentUserId, onSendMessage,
               alignItems: 'center',
             }}
           >
-            <Send size={16} color="var(--text)" />
+            <Send size={16} color="var(--bg)" />
           </button>
         </div>
       </div>
@@ -144,14 +144,14 @@ export default function ChatScreen({ chats, users, currentUserId, onSendMessage,
               display: 'flex',
               alignItems: 'center',
               gap: 14,
-              background: 'var(--bg-card)',
+              background: 'var(--bg-elevated)',
               padding: 12,
               borderRadius: 20,
-              border: '0.5px solid var(--border)',
+              border: '0.5px solid var(--border-subtle)',
               cursor: 'pointer',
             }}
           >
-            <Avatar name={otherUser.name} />
+            <Avatar name={otherUser.name} src={otherUser.avatarUrl} />
             <div>
               <div style={{ fontWeight: 600, fontSize: 14 }}>{otherUser.name}</div>
               <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>

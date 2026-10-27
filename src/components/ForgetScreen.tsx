@@ -43,7 +43,7 @@ export default function ForgetScreen({ onNavigateToLogin }: ForgetScreenProps) {
         >
           Forgot Password
         </h1>
-        <p style={{ fontSize: 14, color: "var(--text-tertiary)", margin: 0 }}>
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0 }}>
           {submitted
             ? "Check your email for reset instructions."
             : "Enter your email to reset your password."}
@@ -69,20 +69,20 @@ export default function ForgetScreen({ onNavigateToLogin }: ForgetScreenProps) {
             style={{
               width: "100%",
               padding: "12px 16px",
-            backgroundColor: "var(--bg-input)",
-            border: "0.5px solid var(--border)",
-            borderRadius: 12,
-            color: "var(--text)",
+              backgroundColor: "var(--bg-raised)",
+              border: "1px solid var(--border)",
+              borderRadius: 8,
+              color: "var(--text)",
               fontSize: 14,
               outline: "none",
               boxSizing: "border-box",
               transition: "border-color 0.2s",
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--accent)";
+              e.currentTarget.style.borderColor = "#3b82f6";
             }}
             onBlur={(e) => {
-            e.currentTarget.style.borderColor = "var(--border)";
+              e.currentTarget.style.borderColor = "var(--border)";
             }}
           />
 
@@ -91,17 +91,21 @@ export default function ForgetScreen({ onNavigateToLogin }: ForgetScreenProps) {
             style={{
               width: "100%",
               padding: "12px 16px",
-            backgroundColor: "var(--text)",
-            border: "none",
-            borderRadius: 40,
-            color: "var(--bg)",
+              backgroundColor: "var(--text)",
+              border: "none",
+              borderRadius: 8,
+              color: "var(--bg)",
               fontSize: 16,
-              fontWeight: 700,
+              fontWeight: 600,
               cursor: "pointer",
-              transition: "opacity 0.2s",
+              transition: "background-color 0.2s",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.8"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--text-soft)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "var(--text)";
+            }}
           >
             Send Reset Link
           </button>
@@ -113,16 +117,20 @@ export default function ForgetScreen({ onNavigateToLogin }: ForgetScreenProps) {
             width: "100%",
             padding: "12px 16px",
             backgroundColor: "transparent",
-            border: "0.5px solid var(--border)",
-            borderRadius: 40,
+            border: "1px solid var(--border)",
+            borderRadius: 8,
             color: "var(--text)",
             fontSize: 16,
             fontWeight: 600,
             cursor: "pointer",
-            transition: "opacity 0.2s",
+            transition: "border-color 0.2s",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.7"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "var(--text-tertiary)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "var(--border)";
+          }}
         >
           Try Another Email
         </button>
@@ -134,7 +142,7 @@ export default function ForgetScreen({ onNavigateToLogin }: ForgetScreenProps) {
           style={{
             background: "none",
             border: "none",
-            color: "var(--accent)",
+            color: "#3b82f6",
             fontSize: 14,
             cursor: "pointer",
             padding: 0,
