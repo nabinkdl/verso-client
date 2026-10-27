@@ -1,47 +1,37 @@
+# Mononet
 
-# Client (Verso) — Project Objective
-<img width="1392" height="848" alt="Screenshot 2026-07-15 at 3 32 43 pm" src="https://github.com/user-attachments/assets/4c4327e4-f397-493b-9540-fc7bd175013b" />
-## Objective
+Monorepo for the Verso social app and its supporting services.
 
-Build a small, **mobile-style social app UI prototype** named **Verso**. The client focuses on demonstrating core social interactions in a clean black/white interface:
+## Structure
 
-- Sign in (UI only)
-- Feed of posts with likes and comments
-- Search users and follow/unfollow
-- Create/publish a new post
-- Chat list and in-chat messaging
-- Profile view/edit (e.g., change display name) and logout
+| Path | Purpose |
+| --- | --- |
+| `ui/` | Verso frontend — React, TypeScript, and Vite |
+| `backend/` | Backend services (next stage) |
 
-This client is designed as a **front-end prototype**: screens, interactions, and state updates are implemented locally to help validate UX and flows before connecting a real backend.
+## Getting started
 
-## What it is / isn’t
+### UI
 
-- ✅ Works as a functional UI demo using seeded data and in-memory state
-- ✅ Good for showcasing layout and interaction patterns
-- ❌ Not production auth (login does not validate credentials)
-- ❌ No persistence (refresh resets data)
-- ❌ No backend integration yet (Supabase is installed but not wired in)
+```bash
+cd ui
+npm install
+npm run dev
+```
 
-## Tech Stack
+The Vite development server runs at `http://localhost:5173`.
 
-- React + TypeScript
-- Vite
-- Tailwind CSS (plus inline styles in components)
+### Backend
 
-## App Structure (high level)
+The backend will be added in the next stage. Once it exists, its setup and run instructions will be documented here.
 
-- `src/App.tsx`: screen routing + in-memory state (users, posts, chats)
-- `src/components/*`: UI screens (Home, Search, New Post, Chat, Profile, Login) + shared UI pieces
-- `src/data.ts`: seeded sample users/posts/chats
-- `src/types.ts`: shared TypeScript types
+## Documentation
 
-## Run Locally
+- [UI README](ui/README.md)
+- [User Guide](ui/docs/USER_GUIDE.md)
 
-From the `client` folder:
+## Notes
 
-- Install dependencies: `npm install`
-- Start dev server: `npm run dev`
-- Build: `npm run build`
-- Lint: `npm run lint`
-- Typecheck: `npm run typecheck`
-
+- The UI is a front-end prototype using seeded, in-memory data.
+- Most UI state resets on a full page reload.
+- Git history for the frontend is preserved after moving it into `ui/`.
