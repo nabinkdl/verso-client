@@ -10,6 +10,8 @@ Monorepo for the Verso social app and its API.
 | `apps/backend/` | Mononet API — NestJS, Prisma, PostgreSQL |
 | `Dockerfile` | Single-image build serving the UI + API on one port |
 
+Project memory for agents: [`apps/ui/.brain.md`](apps/ui/.brain.md) and [`apps/backend/.brain.md`](apps/backend/.brain.md). Keep them current when architecture, conventions, or known issues change.
+
 ## Requirements
 
 - Node.js 22+
@@ -75,6 +77,8 @@ The API uses NestJS 12 with Prisma ORM 7 and PostgreSQL. It provides:
 - Password reset emails via Resend with single-use, expiring tokens
 
 See [apps/backend/README.md](apps/backend/README.md) for the API reference, data model, and deployment notes.
+
+See [docs/API-DESIGN.md](docs/API-DESIGN.md) for the full API design: conventions, the built endpoints, and the proposed modules for pages, marketplace, chat, notifications, reels, and media uploads.
 
 ## Frontend
 
