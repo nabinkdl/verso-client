@@ -4,39 +4,21 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '../generated/prisma/client.js';
+import { Prisma } from '../../generated/prisma/client.js';
 import {
   buildPaginatedResult,
   type PaginatedResult,
-} from '../common/dto/pagination-query.dto.js';
-import { PrismaService } from '../prisma/prisma.service.js';
-import type { CreateCommentDto } from './dto/create-comment.dto.js';
-import type { CreatePostDto } from './dto/create-post.dto.js';
-import type { QueryPostsDto } from './dto/query-posts.dto.js';
-import type { UpdatePostDto } from './dto/update-post.dto.js';
-
-const POST_AUTHOR_SELECT = {
-  id: true,
-  username: true,
-  name: true,
-  avatarUrl: true,
-} satisfies Prisma.UserSelect;
-
-const COMMENT_AUTHOR_SELECT = {
-  id: true,
-  username: true,
-  name: true,
-  avatarUrl: true,
-} satisfies Prisma.UserSelect;
-
-const postInclude = (viewerId?: string) =>
-  ({
-    author: { select: POST_AUTHOR_SELECT },
-    _count: { select: { likes: true, comments: true } },
-    likes: { where: { userId: viewerId ?? '' }, select: { userId: true } },
-  }) satisfies Prisma.PostInclude;
-
-type PostWithRelations = Prisma.PostGetPayload<{ include: ReturnType<typeof postInclude> }>;
+} from '../../common/dto/pagination-query.dto.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import type { CreateCommentDto } from '../models/dto/create-comment.dto.js';
+import type { CreatePostDto } from '../models/dto/create-post.dto.js';
+import type { QueryPostsDto } from '../models/dto/query-posts.dto.js';
+import type { UpdatePostDto } from '../models/dto/update-post.dto.js';
+import {
+  COMMENT_AUTHOR_SELECT,
+  postInclude,
+  type PostWithRelations,
+} from '../models/post.model.js';
 
 @Injectable()
 export class PostsService {

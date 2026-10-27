@@ -1,5 +1,8 @@
 const DEFAULT_PORT = 3000;
 const MIN_JWT_SECRET_LENGTH = 32;
+const DEFAULT_RESEND_FROM = 'Verso <onboarding@resend.dev>';
+const DEFAULT_APP_URL = 'http://localhost:5173';
+const DEFAULT_PASSWORD_RESET_TTL_MINUTES = 60;
 
 function requiredString(env: Record<string, unknown>, key: string): string {
   const value = env[key];
@@ -9,6 +12,37 @@ function requiredString(env: Record<string, unknown>, key: string): string {
   }
 
   return value.trim();
+}
+
+function optionalStringFromEnv(
+  env: Record<string, unknown>,
+  key: string,
+  fallback: string,
+): string {
+  const value = env[key];
+  return typeof value === 'string' && value.trim().length > 0
+    ? value.trim()
+    : fallback;
+}
+
+function positiveIntegerFromEnv(
+  env: Record<string, unknown>,
+  key: string,
+  fallback: number,
+): number {
+  const raw = env[key];
+
+  if (raw === undefined || raw === '') {
+    return fallback;
+  }
+
+  const value = Number(raw);
+
+  if (!Number.isInteger(value) || value < 1) {
+    throw new Error(`${key} must be a positive integer`);
+  }
+
+  return value;
 }
 
 export function validateEnv(env: Record<string, unknown>): Record<string, unknown> {
@@ -27,7 +61,9 @@ export function validateEnv(env: Record<string, unknown>): Record<string, unknow
   const jwtSecret = requiredString(env, 'JWT_SECRET');
 
   if (jwtSecret.length < MIN_JWT_SECRET_LENGTH) {
-    throw new Error(`JWT_SECRET must be at least ${MIN_JWT_SECRET_LENGTH} characters long`);
+    throw new Error(
+      `JWT_SECRET must be at least ${MIN_JWT_SECRET_LENGTH} characters long`,
+    );
   }
 
   return {
@@ -38,6 +74,19 @@ export function validateEnv(env: Record<string, unknown>): Record<string, unknow
     CORS_ORIGIN: typeof env.CORS_ORIGIN === 'string' ? env.CORS_ORIGIN : 'http://localhost:5173',
     DATABASE_URL: requiredString(env, 'DATABASE_URL'),
     JWT_SECRET: jwtSecret,
-    JWT_EXPIRES_IN: typeof env.JWT_EXPIRES_IN === 'string' ? env.JWT_EXPIRES_IN : '7d',
+    JWT_EXPIRES_IN:
+      typeof env.JWT_EXPIRES_IN === 'string' ? env.JWT_EXPIRES_IN : '7d',
+    RESEND_API_KEY: optionalStringFromEnv(env, 'RESEND_API_KEY', ''),
+    RESEND_FROM_EMAIL: optionalStringFromEnv(
+      env,
+      'RESEND_FROM_EMAIL',
+      DEFAULT_RESEND_FROM,
+    ),
+    APP_URL: optionalStringFromEnv(env, 'APP_URL', DEFAULT_APP_URL),
+    PASSWORD_RESET_TOKEN_TTL_MINUTES: positiveIntegerFromEnv(
+      env,
+      'PASSWORD_RESET_TOKEN_TTL_MINUTES',
+      DEFAULT_PASSWORD_RESET_TTL_MINUTES,
+    ),
   };
 }

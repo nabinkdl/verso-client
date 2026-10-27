@@ -2,17 +2,32 @@ import { useState } from "react";
 import { KeyRound } from "lucide-react";
 
 interface ForgetScreenProps {
+  onRequestReset: (email: string) => Promise<void>;
   onNavigateToLogin: () => void;
 }
 
-export default function ForgetScreen({ onNavigateToLogin }: ForgetScreenProps) {
+export default function ForgetScreen({ onRequestReset, onNavigateToLogin }: ForgetScreenProps) {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (!email.trim()) return;
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await onRequestReset(email.trim());
       setSubmitted(true);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not send the reset email.",
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -86,8 +101,13 @@ export default function ForgetScreen({ onNavigateToLogin }: ForgetScreenProps) {
             }}
           />
 
+          {error && (
+            <p style={{ margin: 0, color: "#ff4d4d", fontSize: 13 }}>{error}</p>
+          )}
+
           <button
             type="submit"
+            disabled={submitting}
             style={{
               width: "100%",
               padding: "12px 16px",
@@ -97,7 +117,8 @@ export default function ForgetScreen({ onNavigateToLogin }: ForgetScreenProps) {
               color: "var(--bg)",
               fontSize: 16,
               fontWeight: 600,
-              cursor: "pointer",
+              cursor: submitting ? "wait" : "pointer",
+              opacity: submitting ? 0.6 : 1,
               transition: "background-color 0.2s",
             }}
             onMouseEnter={(e) => {
@@ -107,12 +128,15 @@ export default function ForgetScreen({ onNavigateToLogin }: ForgetScreenProps) {
               e.currentTarget.style.backgroundColor = "var(--text)";
             }}
           >
-            Send Reset Link
+            {submitting ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
       ) : (
         <button
-          onClick={() => setSubmitted(false)}
+          onClick={() => {
+            setSubmitted(false);
+            setError(null);
+          }}
           style={{
             width: "100%",
             padding: "12px 16px",

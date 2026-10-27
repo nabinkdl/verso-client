@@ -1,17 +1,16 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
-import { Screen, Post, Chat, NotificationItem, AdminUser, CartItem } from "./types";
+import { Screen, Post, Chat, NotificationItem, AdminUser, CartItem, User } from "./types";
 import { PageProvider, usePages } from './contexts/PageContext';
 import {
   CURRENT_USER_ID,
-  initialPosts,
   initialChats,
   initialNotifications,
   initialPages,
   initialMarketplaceCart,
 } from "./data";
 import { likePost, editPost, deletePost, addComment, editComment, deleteComment } from "./services/postService";
-import { toggleFollow, editProfile, addUser } from "./services/userService";
+import { api, getToken, setToken, toUiComment, toUiPost, toUiUser } from "./services/api";
 import { sendMessage, findOrCreateChat } from "./services/chatService";
 import { addNotification } from "./services/notificationService";
 import BottomNav from "./components/BottomNav";
@@ -25,37 +24,21 @@ import ProfileScreen from "./components/ProfileScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ForgetScreen from "./components/ForgetScreen";
+import ResetPasswordScreen from "./components/ResetPasswordScreen";
 import PageManagementScreen from "./components/PageManagementScreen";
 import PageViewScreen from "./components/PageViewScreen";
 import CreatePageDialog from "./components/CreatePageDialog";
 import MarketplaceScreen from "./components/MarketplaceScreen";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
-const makePostImage = (seed: string) => {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">
-      <defs>
-        <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#f2f2f2"/>
-          <stop offset="45%" stop-color="#6a6a6a"/>
-          <stop offset="100%" stop-color="#050505"/>
-        </linearGradient>
-      </defs>
-      <rect width="900" height="900" fill="url(#g)"/>
-      <circle cx="170" cy="180" r="92" fill="rgba(255,255,255,0.22)"/>
-      <rect x="96" y="634" width="708" height="106" rx="53" fill="rgba(0,0,0,0.26)"/>
-      <text x="96" y="592" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="700">${seed}</text>
-    </svg>
-  `
-    .replace(/\s+/g, " ")
-    .trim();
-
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
-};
-
 function AppContent() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [activeScreen, setActiveScreen] = useState<Screen>("login");
+  const resetToken = new URLSearchParams(window.location.search).get("resetToken");
+  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [activeScreen, setActiveScreen] = useState<Screen>(() =>
+    resetToken ? "reset-password" : "login",
+  );
   const [darkMode, setDarkMode] = useState(() => {
     try {
       return localStorage.getItem("verso-theme") !== "light";
@@ -119,7 +102,7 @@ function AppContent() {
     { id: 'u41', name: 'Marley Quinn', username: 'mquinn', email: 'marley@verso.app', role: 'member', status: 'active', joinedAt: Date.now() - 86400000 * 1, followers: [], following: [], permissions: memberPerms },
     { id: 'u42', name: 'Nova Reyes', username: 'nreyes', email: 'nova@verso.app', role: 'member', status: 'active', joinedAt: Date.now(), followers: [], following: [], permissions: memberPerms },
   ]);
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [chats, setChats] = useState<Chat[]>(initialChats);
   const [notifications, setNotifications] =
     useState<NotificationItem[]>(initialNotifications);
@@ -143,33 +126,120 @@ function AppContent() {
     setNotifications((prev) => addNotification(prev, item));
   };
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    setActiveScreen("home");
+  const currentUserId = currentUser?.id ?? CURRENT_USER_ID;
+
+  const mergeUsers = useCallback((incoming: AdminUser[]) => {
+    setUsers((prev) => {
+      const map = new Map(prev.map((user) => [user.id, user]));
+      for (const user of incoming) {
+        const existing = map.get(user.id);
+        map.set(user.id, {
+          ...existing,
+          ...user,
+          followerCount: user.followerCount ?? existing?.followerCount,
+          followingCount: user.followingCount ?? existing?.followingCount,
+          followers: user.followers.length
+            ? user.followers
+            : (existing?.followers ?? []),
+          following: user.following.length
+            ? user.following
+            : (existing?.following ?? []),
+        });
+      }
+      return Array.from(map.values());
+    });
+  }, []);
+
+  const loadFeed = useCallback(
+    async (me: AdminUser) => {
+      const page = await api.listPosts({ limit: 20 });
+      const commentLists = await Promise.all(
+        page.data.map((post) => api.comments(post.id).catch(() => [])),
+      );
+      const nextPosts = page.data.map((post, index) => {
+        const mapped = toUiPost(post, me.id);
+        mapped.comments = commentLists[index].map(toUiComment);
+        return mapped;
+      });
+      setPosts(nextPosts);
+      mergeUsers([
+        me,
+        ...page.data.map((post) => toUiUser(post.author)),
+        ...commentLists.flat().map((comment) => toUiUser(comment.author)),
+      ]);
+    },
+    [mergeUsers],
+  );
+
+  useEffect(() => {
+    if (!getToken()) return;
+    let active = true;
+    (async () => {
+      try {
+        const me = toUiUser(await api.me());
+        if (!active) return;
+        setCurrentUser(me);
+        mergeUsers([me]);
+        await loadFeed(me);
+        if (active && !resetToken) setActiveScreen("home");
+      } catch {
+        setToken(null);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [loadFeed, mergeUsers, resetToken]);
+
+  const handleLogin = async (identifier: string, password: string) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const response = await api.login(identifier, password);
+      setToken(response.accessToken);
+      const me = toUiUser(response.user);
+      setCurrentUser(me);
+      mergeUsers([me]);
+      await loadFeed(me);
+      setActiveScreen("home");
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Sign in failed");
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
-  const handleRegister = (
+  const handleForgotPassword = async (email: string) => {
+    await api.forgotPassword(email);
+  };
+
+  const handleResetPassword = async (token: string, password: string) => {
+    await api.resetPassword(token, password);
+  };
+
+  const handleRegister = async (
     name: string,
     username: string,
     email: string,
+    password: string,
   ) => {
-    const newUser: AdminUser = {
-      id: `u${Date.now()}`,
-      name,
-      username,
-      email,
-      role: 'member',
-      status: 'active',
-      joinedAt: Date.now(),
-      followers: [],
-      following: [],
-      permissions: ['read','post','comment','like','edit_own','follow','dm','mention']
-    };
-    setUsers((prev) => addUser(prev, newUser));
-
-    // Auto-login after registration
-    setIsLoggedIn(true);
-    setActiveScreen("home");
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const response = await api.register(name, username, email, password);
+      setToken(response.accessToken);
+      const me = toUiUser(response.user);
+      setCurrentUser(me);
+      mergeUsers([me]);
+      await loadFeed(me);
+      setActiveScreen("home");
+    } catch (error) {
+      setAuthError(
+        error instanceof Error ? error.message : "Could not create account",
+      );
+    } finally {
+      setAuthLoading(false);
+    }
   };
 
   const handleNavigateToRegister = () => {
@@ -185,39 +255,90 @@ function AppContent() {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    setToken(null);
+    setCurrentUser(null);
+    setPosts([]);
+    setProfileUserId(CURRENT_USER_ID);
+    setAuthError(null);
     setActiveScreen("login");
   };
 
-  const handleLike = (postId: string) => {
-    setPosts((prev) => likePost(prev, postId, CURRENT_USER_ID));
-    pushNotification({
-      title: "Like updated",
-      message: "You reacted to a post from the feed.",
-      kind: "like",
-    });
+  const handleLike = async (postId: string) => {
+    const uid = currentUser?.id;
+    if (!uid) return;
+
+    const target = posts.find((post) => post.id === postId);
+    if (!target) return;
+    const wasLiked = target.likes.includes(uid);
+
+    setPosts((prev) => likePost(prev, postId, uid));
+
+    try {
+      const result = wasLiked
+        ? await api.unlikePost(postId)
+        : await api.likePost(postId);
+      setPosts((prev) =>
+        prev.map((post) => {
+          if (post.id !== postId) return post;
+          const likes = Array.from(
+            { length: result.likeCount },
+            (_, index) => `like-${postId}-${index}`,
+          );
+          if (result.liked) likes[0] = uid;
+          return { ...post, likes };
+        }),
+      );
+      pushNotification({
+        title: "Like updated",
+        message: "You reacted to a post from the feed.",
+        kind: "like",
+      });
+    } catch {
+      setPosts((prev) => likePost(prev, postId, uid));
+    }
   };
 
-  const handleEditPost = (postId: string, caption: string) => {
+  const handleEditPost = async (postId: string, caption: string) => {
+    const previous = posts;
     setPosts((prev) => editPost(prev, postId, caption));
+    try {
+      await api.updatePost(postId, { caption });
+    } catch (error) {
+      setPosts(previous);
+      window.alert(
+        error instanceof Error ? error.message : "Could not update post",
+      );
+    }
   };
 
-  const handleDeletePost = (postId: string) => {
+  const handleDeletePost = async (postId: string) => {
+    const previous = posts;
     setPosts((prev) => deletePost(prev, postId));
+    try {
+      await api.deletePost(postId);
+    } catch (error) {
+      setPosts(previous);
+      window.alert(
+        error instanceof Error ? error.message : "Could not delete post",
+      );
+    }
   };
 
-  const handleComment = (postId: string, text: string) => {
-    const comment = {
-      id: `c${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
-      userId: CURRENT_USER_ID,
-      text,
-    };
-    setPosts((prev) => addComment(prev, postId, comment));
-    pushNotification({
-      title: "Comment posted",
-      message: text,
-      kind: "comment",
-    });
+  const handleComment = async (postId: string, text: string) => {
+    try {
+      const comment = await api.addComment(postId, text);
+      setPosts((prev) => addComment(prev, postId, toUiComment(comment)));
+      mergeUsers([toUiUser(comment.author)]);
+      pushNotification({
+        title: "Comment posted",
+        message: text,
+        kind: "comment",
+      });
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "Could not post comment",
+      );
+    }
   };
 
   const handleEditComment = (
@@ -225,11 +346,21 @@ function AppContent() {
     commentId: string,
     text: string,
   ) => {
+    // The API does not expose comment editing; keep this change local.
     setPosts((prev) => editComment(prev, postId, commentId, text));
   };
 
-  const handleDeleteComment = (postId: string, commentId: string) => {
+  const handleDeleteComment = async (postId: string, commentId: string) => {
+    const previous = posts;
     setPosts((prev) => deleteComment(prev, postId, commentId));
+    try {
+      await api.deleteComment(postId, commentId);
+    } catch (error) {
+      setPosts(previous);
+      window.alert(
+        error instanceof Error ? error.message : "Could not delete comment",
+      );
+    }
   };
 
   const handleToggleSave = (postId: string) => {
@@ -240,42 +371,93 @@ function AppContent() {
     );
   };
 
-  const handleToggleFollow = (targetId: string) => {
-    setUsers((prev) => toggleFollow(prev, CURRENT_USER_ID, targetId));
-    pushNotification({
-      title: "Following updated",
-      message: "You changed who you follow.",
-      kind: "follow",
-    });
+  const handleToggleFollow = async (target: User) => {
+    if (!currentUser || target.id === currentUser.id) return;
+    const wasFollowing = currentUser.following.includes(target.id);
+
+    try {
+      const result = wasFollowing
+        ? await api.unfollow(target.username)
+        : await api.follow(target.username);
+      const nextFollowing = result.following
+        ? Array.from(new Set([...currentUser.following, target.id]))
+        : currentUser.following.filter((id) => id !== target.id);
+
+      setCurrentUser((prev) =>
+        prev ? { ...prev, following: nextFollowing } : prev,
+      );
+      setUsers((prev) =>
+        prev.map((user) => {
+          if (user.id === currentUser.id) {
+            return { ...user, following: nextFollowing };
+          }
+          if (
+            user.id === target.id &&
+            typeof user.followerCount === "number"
+          ) {
+            return {
+              ...user,
+              followerCount: Math.max(
+                user.followerCount + (result.following ? 1 : -1),
+                0,
+              ),
+            };
+          }
+          return user;
+        }),
+      );
+      pushNotification({
+        title: "Following updated",
+        message: "You changed who you follow.",
+        kind: "follow",
+      });
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "Could not update follow",
+      );
+    }
   };
 
-  const handlePublish = (
+  const handlePublish = async (
     caption: string,
     media?: { url: string; type: "image" | "video"; name: string },
     pageId?: string
   ) => {
     const isVideo = media?.type === "video";
-    const fallbackMedia = makePostImage(`NEW`);
-    const newPost: Post = {
-      id: `p${Date.now()}`,
-      authorId: CURRENT_USER_ID,
-      pageId,
-      caption,
-      imageUrl: isVideo ? undefined : (media?.url ?? fallbackMedia),
-      imageAlt: caption || "New post image",
-      mediaUrl: media?.url ?? fallbackMedia,
-      mediaType: media?.type ?? "image",
-      likes: [],
-      comments: [],
-      createdAt: Date.now(),
-    };
-    setPosts((prev) => [newPost, ...prev]);
-    pushNotification({
-      title: isVideo ? "Reel uploaded" : "Post uploaded",
-      message: media?.name ?? (caption || "New content is now live."),
-      kind: isVideo ? "reel" : "post",
-    });
-    setActiveScreen("home");
+    const usableMediaUrl =
+      media?.url &&
+      /^https?:\/\//i.test(media.url) &&
+      media.url.length <= 2048
+        ? media.url
+        : undefined;
+
+    try {
+      const created = await api.createPost({
+        caption,
+        ...(usableMediaUrl
+          ? {
+              imageUrl: isVideo ? undefined : usableMediaUrl,
+              mediaUrl: usableMediaUrl,
+              mediaType: isVideo ? "VIDEO" : "IMAGE",
+              imageAlt: caption || "New post image",
+            }
+          : {}),
+      });
+      const newPost = toUiPost(created, currentUserId);
+      if (pageId) newPost.pageId = pageId;
+      setPosts((prev) => [newPost, ...prev]);
+      mergeUsers([toUiUser(created.author)]);
+      pushNotification({
+        title: isVideo ? "Reel uploaded" : "Post uploaded",
+        message: media?.name ?? (caption || "New content is now live."),
+        kind: isVideo ? "reel" : "post",
+      });
+      setActiveScreen("home");
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "Could not publish post",
+      );
+    }
   };
 
   const handleSendMessage = (chatId: string, text: string) => {
@@ -284,14 +466,40 @@ function AppContent() {
     );
   };
 
-  const handleEditProfile = (
+  const handleEditProfile = async (
     newName: string,
     newUsername: string,
     avatarUrl?: string,
   ) => {
-    setUsers((prev) =>
-      editProfile(prev, CURRENT_USER_ID, newName, newUsername, avatarUrl),
-    );
+    if (!currentUser) return;
+
+    const payload: { name: string; avatarUrl?: string } = { name: newName };
+    if (
+      avatarUrl &&
+      /^https?:\/\//i.test(avatarUrl) &&
+      avatarUrl.length <= 2048
+    ) {
+      payload.avatarUrl = avatarUrl;
+    }
+
+    try {
+      const updated = toUiUser(await api.updateProfile(payload));
+      const merged: AdminUser = {
+        ...currentUser,
+        ...updated,
+        username: newUsername || currentUser.username,
+        followers: currentUser.followers,
+        following: currentUser.following,
+        followerCount: currentUser.followerCount,
+        followingCount: currentUser.followingCount,
+      };
+      setCurrentUser(merged);
+      mergeUsers([merged]);
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "Could not update profile",
+      );
+    }
   };
 
   const handleMessageUser = (userId: string) => {
@@ -320,7 +528,7 @@ function AppContent() {
   };
 
   const handleNav = (screen: Screen) => {
-    if (screen === "profile") setProfileUserId(CURRENT_USER_ID);
+    if (screen === "profile") setProfileUserId(currentUserId);
     if (screen !== "chat") {
       setTargetChatId(null);
       setChatOrigin(null);
@@ -331,7 +539,36 @@ function AppContent() {
   const handleViewProfile = (userId: string) => {
     setProfileUserId(userId);
     setActiveScreen("profile");
+
+    const target = users.find((user) => user.id === userId);
+    if (!target) return;
+
+    api
+      .profile(target.username)
+      .then((profile) => {
+        const merged = toUiUser(profile);
+        mergeUsers([merged]);
+        if (profile.isFollowing) {
+          setCurrentUser((prev) =>
+            prev && !prev.following.includes(merged.id)
+              ? { ...prev, following: [...prev.following, merged.id] }
+              : prev,
+          );
+        }
+      })
+      .catch(() => {
+        // Profile details are optional; keep the local copy.
+      });
   };
+
+  const handleSearchUsers = useCallback(
+    async (query: string): Promise<User[]> => {
+      const results = (await api.searchUsers(query)).map(toUiUser);
+      mergeUsers(results);
+      return results;
+    },
+    [mergeUsers],
+  );
 
   return (
     <div
@@ -422,24 +659,39 @@ function AppContent() {
             onLogin={handleLogin}
             onNavigateToRegister={handleNavigateToRegister}
             onNavigateToForget={handleNavigateToForget}
+            error={authError}
+            submitting={authLoading}
           />
         )}
         {activeScreen === "register" && (
           <RegisterScreen
             onRegister={handleRegister}
             onNavigateToLogin={handleNavigateToLogin}
+            error={authError}
+            submitting={authLoading}
           />
         )}
         {activeScreen === "forget" && (
           <ForgetScreen
+            onRequestReset={handleForgotPassword}
             onNavigateToLogin={handleNavigateToLogin}
+          />
+        )}
+        {activeScreen === "reset-password" && resetToken && (
+          <ResetPasswordScreen
+            token={resetToken}
+            onResetPassword={handleResetPassword}
+            onNavigateToLogin={() => {
+              window.history.replaceState({}, "", window.location.pathname);
+              setActiveScreen("login");
+            }}
           />
         )}
         {activeScreen === "home" && (
           <HomeScreen
             posts={posts}
             users={users}
-            currentUserId={CURRENT_USER_ID}
+            currentUserId={currentUserId}
             savedPosts={savedPosts}
             onToggleSave={handleToggleSave}
             onLike={handleLike}
@@ -456,9 +708,10 @@ function AppContent() {
         {activeScreen === "search" && (
           <SearchScreen
             users={users}
-            currentUserId={CURRENT_USER_ID}
+            currentUserId={currentUserId}
             onToggleFollow={handleToggleFollow}
             onViewProfile={handleViewProfile}
+            onSearchUsers={handleSearchUsers}
           />
         )}
         {activeScreen === "newPost" && (
@@ -506,7 +759,7 @@ function AppContent() {
           <ReelScreen
             posts={posts}
             users={users}
-            currentUserId={CURRENT_USER_ID}
+            currentUserId={currentUserId}
             savedPosts={savedPosts}
             onToggleSave={handleToggleSave}
             onLike={handleLike}
@@ -540,7 +793,7 @@ function AppContent() {
             page={pages.find(p => p.id === activePageId)!}
             users={users}
             posts={posts}
-            currentUserId={CURRENT_USER_ID}
+            currentUserId={currentUserId}
             initialTab={activePageTab || "feed"}
             defaultMemberFilter={activePageMemberFilter}
             savedPosts={savedPosts}
@@ -602,7 +855,7 @@ function AppContent() {
         {activeScreen === "profile" && (
           <ProfileScreen
             profileUserId={profileUserId}
-            currentUserId={CURRENT_USER_ID}
+            currentUserId={currentUserId}
             users={users}
             posts={posts}
             savedPosts={savedPosts}
@@ -619,7 +872,7 @@ function AppContent() {
             onDeleteComment={handleDeleteComment}
           />
         )}
-        {isLoggedIn && (
+        {currentUser !== null && (
           <BottomNav
             active={activeScreen === "marketplace" ? "pages" : activeScreen}
             onChange={handleNav}

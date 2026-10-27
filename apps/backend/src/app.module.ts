@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller.js';
+import { AppController } from './app/controllers/app.controller.js';
+import { AuthModule } from './auth/auth.module.js';
 import { validateEnv } from './config/env.validation.js';
 import { PrismaModule } from './prisma/prisma.module.js';
-import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
 import { PostsModule } from './posts/posts.module.js';
 import { HealthModule } from './health/health.module.js';
@@ -16,8 +16,8 @@ import { HealthModule } from './health/health.module.js';
       envFilePath: ['.env', 'backend/.env'],
       validate: validateEnv,
     }),
-    PrismaModule,
     AuthModule,
+    PrismaModule,
     UsersModule,
     PostsModule,
     HealthModule,

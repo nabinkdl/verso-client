@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
-import { MediaType } from '../../generated/prisma/client.js';
+import { MediaType } from '../../../generated/prisma/client.js';
 
 export class CreatePostDto {
   @ApiPropertyOptional({

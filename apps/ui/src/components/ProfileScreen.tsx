@@ -104,8 +104,8 @@ export default function ProfileScreen({
     selectedPost !== null &&
     (selectedPost.authorId === currentUserId || !isOwn);
   const postsCount = userPosts.length;
-  const followersCount = user.followers.length;
-  const followingCount = user.following.length;
+  const followersCount = user.followerCount ?? user.followers.length;
+  const followingCount = user.followingCount ?? user.following.length;
 
   const startEditing = () => {
     setNameInput(user.name);

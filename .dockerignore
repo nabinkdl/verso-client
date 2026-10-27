@@ -1,0 +1,25 @@
+# Dependencies and build output
+**/node_modules
+**/dist
+**/build
+**/coverage
+**/*.tsbuildinfo
+
+# Local env and secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local tooling and caches
+**/.git
+**/.DS_Store
+**/*.log
+graphify-out
+.agents
+.opencode
+.neon
+.cache
+.graphify-cache
+
+# Prisma generated client (regenerated during the build)
+apps/backend/src/generated

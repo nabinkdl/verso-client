@@ -10,13 +10,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
-import { CurrentUser } from '../common/decorators/current-user.decorator.js';
-import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard.js';
-import type { AuthenticatedUser } from '../common/types/authenticated-user.js';
-import { SearchUsersDto } from './dto/search-users.dto.js';
-import { UpdateProfileDto } from './dto/update-profile.dto.js';
-import { UsersService } from './users.service.js';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard.js';
+import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
+import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard.js';
+import type { AuthenticatedUser } from '../../common/types/authenticated-user.js';
+import { SearchUsersDto } from '../models/dto/search-users.dto.js';
+import { UpdateProfileDto } from '../models/dto/update-profile.dto.js';
+import { UsersService } from '../services/users.service.js';
 
 @ApiTags('users')
 @Controller('users')

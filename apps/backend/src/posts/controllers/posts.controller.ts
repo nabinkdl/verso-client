@@ -12,15 +12,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
-import { CurrentUser } from '../common/decorators/current-user.decorator.js';
-import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard.js';
-import type { AuthenticatedUser } from '../common/types/authenticated-user.js';
-import { CreateCommentDto } from './dto/create-comment.dto.js';
-import { CreatePostDto } from './dto/create-post.dto.js';
-import { QueryPostsDto } from './dto/query-posts.dto.js';
-import { UpdatePostDto } from './dto/update-post.dto.js';
-import { PostsService } from './posts.service.js';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard.js';
+import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
+import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard.js';
+import type { AuthenticatedUser } from '../../common/types/authenticated-user.js';
+import { CreateCommentDto } from '../models/dto/create-comment.dto.js';
+import { CreatePostDto } from '../models/dto/create-post.dto.js';
+import { QueryPostsDto } from '../models/dto/query-posts.dto.js';
+import { UpdatePostDto } from '../models/dto/update-post.dto.js';
+import { PostsService } from '../services/posts.service.js';
 
 @ApiTags('posts')
 @Controller('posts')

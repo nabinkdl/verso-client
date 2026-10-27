@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-import { PaginationQueryDto } from '../../common/dto/pagination-query.dto.js';
+import { PaginationQueryDto } from '../../../common/dto/pagination-query.dto.js';
 
 export class QueryPostsDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: 'Only return posts written by this username' })

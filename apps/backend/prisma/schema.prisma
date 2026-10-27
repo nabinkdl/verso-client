@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -23,13 +24,28 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  posts     Post[]
-  comments  Comment[]
-  likes     Like[]
-  following Follow[] @relation("follower")
-  followers Follow[] @relation("following")
+  posts               Post[]
+  comments            Comment[]
+  likes               Like[]
+  following           Follow[]             @relation("follower")
+  followers           Follow[]             @relation("following")
+  passwordResetTokens PasswordResetToken[]
 
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model Follow {
@@ -92,3 +108,5 @@ model Comment {
   @@index([postId, createdAt])
   @@map("comments")
 }
+
+

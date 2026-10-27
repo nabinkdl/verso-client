@@ -4,8 +4,7 @@
   "private": true,
   "description": "Monorepo for the Verso social app and its API",
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/*"
   ],
   "scripts": {
     "dev": "concurrently -n ui,api -c magenta,cyan \"npm:dev:ui\" \"npm:dev:api\"",
@@ -15,18 +14,23 @@
     "build:all": "npm run build --workspaces --if-present",
     "build:ui": "npm run build --workspace @mononet/ui",
     "build:api": "npm run build --workspace @mononet/backend",
+    "build:ui:single": "VITE_API_URL=/api npm run build --workspace @mononet/ui",
     "start:api": "npm run start:prod --workspace @mononet/backend",
+    "start:single": "npm run build:ui:single && npm run build:api && node scripts/prepare-single.mjs && APP_URL=http://localhost:3000 CORS_ORIGIN=http://localhost:3000 npm run start:api",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "format": "npm run format --workspace @mononet/backend",
-    "db:up": "docker compose up -d postgres",
-    "db:down": "docker compose down",
     "db:generate": "npm run db:generate --workspace @mononet/backend",
     "db:migrate": "npm run db:migrate --workspace @mononet/backend",
     "db:deploy": "npm run db:deploy --workspace @mononet/backend",
     "db:seed": "npm run db:seed --workspace @mononet/backend",
-    "db:studio": "npm run db:studio --workspace @mononet/backend"
+    "db:studio": "npm run db:studio --workspace @mononet/backend",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:ps": "docker compose ps"
   },
   "devDependencies": {
     "concurrently": "^9.2.5"

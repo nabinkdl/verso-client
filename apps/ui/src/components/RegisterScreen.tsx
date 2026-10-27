@@ -2,11 +2,13 @@ import { useState } from "react";
 import { UserPlus } from "lucide-react";
 
 interface RegisterScreenProps {
-  onRegister: (name: string, username: string, email: string, password: string) => void;
+  onRegister: (name: string, username: string, email: string, password: string) => void | Promise<void>;
   onNavigateToLogin: () => void;
+  error?: string | null;
+  submitting?: boolean;
 }
 
-export default function RegisterScreen({ onRegister, onNavigateToLogin }: RegisterScreenProps) {
+export default function RegisterScreen({ onRegister, onNavigateToLogin, error, submitting = false }: RegisterScreenProps) {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -164,8 +166,13 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
           }}
         />
 
+        {error && (
+          <p style={{ margin: 0, color: "#ff4d4d", fontSize: 13 }}>{error}</p>
+        )}
+
         <button
           type="submit"
+          disabled={submitting}
           style={{
             width: "100%",
             padding: "12px 16px",
@@ -175,7 +182,8 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
             color: "var(--bg)",
             fontSize: 16,
             fontWeight: 600,
-            cursor: "pointer",
+            cursor: submitting ? "wait" : "pointer",
+            opacity: submitting ? 0.6 : 1,
             transition: "background-color 0.2s",
             marginTop: 8,
           }}
@@ -186,7 +194,7 @@ export default function RegisterScreen({ onRegister, onNavigateToLogin }: Regist
             e.currentTarget.style.backgroundColor = "var(--text)";
           }}
         >
-          Sign Up
+          {submitting ? "Creating account..." : "Sign Up"}
         </button>
       </form>
 

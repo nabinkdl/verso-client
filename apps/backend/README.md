@@ -8,6 +8,7 @@ NestJS REST API for the Mononet (Verso) social app, backed by Prisma ORM and Pos
 - Prisma ORM 7 with the PostgreSQL driver adapter
 - PostgreSQL 16
 - JWT authentication (Passport)
+- Resend for transactional email (password reset)
 - Swagger / OpenAPI docs
 - Vitest for tests
 
@@ -15,7 +16,7 @@ NestJS REST API for the Mononet (Verso) social app, backed by Prisma ORM and Pos
 
 - Node.js 22+
 - npm 10+
-- Docker (for the local PostgreSQL container)
+- A PostgreSQL database (this project uses Neon)
 
 ## Setup
 
@@ -23,8 +24,8 @@ From the repository root:
 
 ```bash
 npm install
-npm run db:up          # start PostgreSQL on localhost:5432
 cp apps/backend/.env.example apps/backend/.env
+# Set DATABASE_URL, DATABASE_URL_UNPOOLED, and JWT_SECRET in apps/backend/.env.
 npm run db:migrate     # apply migrations
 npm run db:seed        # load demo users and posts
 ```
@@ -62,6 +63,8 @@ All routes use the `/api` prefix.
 | --- | --- | --- |
 | `POST` | `/auth/register` | Create an account |
 | `POST` | `/auth/login` | Sign in with email or username |
+| `POST` | `/auth/forgot-password` | Email a single-use password reset link |
+| `POST` | `/auth/reset-password` | Reset a password with an emailed token |
 | `GET` | `/auth/me` | Current account |
 
 ### Users
@@ -109,7 +112,6 @@ Run from the repository root:
 | `npm run db:deploy` | Apply committed migrations (production) |
 | `npm run db:seed` | Reset and seed demo data |
 | `npm run db:studio` | Open Prisma Studio |
-| `npm run db:up` / `npm run db:down` | Start/stop PostgreSQL |
 
 ## Project layout
 
@@ -124,7 +126,8 @@ apps/backend/
 │   ├── users/              # profiles, search, follows
 │   ├── posts/              # posts, likes, comments, feed
 │   ├── prisma/             # Prisma client provider
-│   ├── common/             # decorators, guards, filters, DTOs
+│   ├── email/              # Resend password-reset email
+│   ├── common/             # DTOs and filters
 │   ├── config/             # environment validation
 │   ├── health/             # database health check
 │   ├── generated/prisma/   # generated client (gitignored)
@@ -135,7 +138,9 @@ apps/backend/
 
 ## Environment variables
 
-See `.env.example`. `DATABASE_URL` and `JWT_SECRET` are required; `JWT_SECRET` must be at least 32 characters.
+See `.env.example`. `DATABASE_URL` and `JWT_SECRET` are required; `JWT_SECRET` must be at least 32 characters. `JWT_EXPIRES_IN` defaults to `7d`.
+
+Password reset email uses `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and `APP_URL` (the public UI URL used to build the reset link). Reset links are single-use and expire after `PASSWORD_RESET_TOKEN_TTL_MINUTES` (default 60). Without a verified Resend domain, the test sender `onboarding@resend.dev` can only deliver to the Resend account owner's address.
 
 ## Production
 

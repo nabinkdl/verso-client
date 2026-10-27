@@ -2,15 +2,19 @@ import { useState } from "react";
 import { LogIn } from "lucide-react";
 
 interface LoginScreenProps {
-  onLogin: (email: string, password: string) => void;
+  onLogin: (email: string, password: string) => void | Promise<void>;
   onNavigateToRegister: () => void;
   onNavigateToForget: () => void;
+  error?: string | null;
+  submitting?: boolean;
 }
 
 export default function LoginScreen({
   onLogin,
   onNavigateToRegister,
   onNavigateToForget,
+  error,
+  submitting = false,
 }: LoginScreenProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,7 +66,7 @@ export default function LoginScreen({
         }}
       >
         <input
-          type="email"
+          type="text"
           placeholder="Email or Username"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -111,8 +115,13 @@ export default function LoginScreen({
           }}
         />
 
+        {error && (
+          <p style={{ margin: 0, color: "#ff4d4d", fontSize: 13 }}>{error}</p>
+        )}
+
         <button
           type="submit"
+          disabled={submitting}
           style={{
             width: "100%",
             padding: "12px 16px",
@@ -122,7 +131,8 @@ export default function LoginScreen({
             color: "var(--bg)", // white text
             fontSize: 16,
             fontWeight: 600,
-            cursor: "pointer",
+            cursor: submitting ? "wait" : "pointer",
+            opacity: submitting ? 0.6 : 1,
             transition: "background-color 0.2s",
           }}
           onMouseEnter={(e) => {
@@ -132,7 +142,7 @@ export default function LoginScreen({
             e.currentTarget.style.backgroundColor = "var(--text)"; // back to black
           }}
         >
-          Sign In
+          {submitting ? "Signing in..." : "Sign In"}
         </button>
       </form>
 
@@ -145,7 +155,7 @@ export default function LoginScreen({
             marginBottom: 12,
           }}
         >
-          Demo: Use any email and password
+          Demo: alex@mononet.dev / Password123!
         </p>
         <button
           type="button"

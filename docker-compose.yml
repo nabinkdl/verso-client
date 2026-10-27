@@ -1,21 +1,29 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: mononet-postgres
-    restart: unless-stopped
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    env_file:
+      - path: apps/backend/.env
+        required: false
+    # Neon's pooler hostname can resolve to an edge that is unreachable from
+    # Docker's bridge network on some hosts. Pin it to a reachable IPv4.
+    # Override NEON_DB_HOST / NEON_DB_IP when the project or IP changes.
+    extra_hosts:
+      - "${NEON_DB_HOST:-ep-misty-bonus-b4db8c0d-pooler.c-6.us-east-2.aws.neon.tech}:${NEON_DB_IP:-52.95.251.153}"
     environment:
-      POSTGRES_USER: mononet
-      POSTGRES_PASSWORD: mononet
-      POSTGRES_DB: mononet
+      NODE_ENV: production
+      PORT: '3000'
+      APP_URL: ${PUBLIC_URL:-http://localhost:3000}
+      CORS_ORIGIN: ${PUBLIC_URL:-http://localhost:3000}
     ports:
-      - '5432:5432'
-    volumes:
-      - mononet-postgres-data:/var/lib/postgresql/data
+      - '3000:3000'
+    restart: unless-stopped
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U mononet -d mononet']
-      interval: 5s
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/api/health >/dev/null 2>&1 || exit 1']
+      interval: 15s
       timeout: 5s
-      retries: 10
-
-volumes:
-  mononet-postgres-data:
+      start_period: 30s
+      retries: 5

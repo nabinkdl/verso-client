@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import { User } from '../types';
 import Avatar from './Avatar';
@@ -6,16 +6,40 @@ import Avatar from './Avatar';
 interface SearchScreenProps {
   users: User[];
   currentUserId: string;
-  onToggleFollow: (targetId: string) => void;
+  onToggleFollow: (user: User) => void;
   onViewProfile: (userId: string) => void;
+  onSearchUsers: (query: string) => Promise<User[]>;
 }
 
-export default function SearchScreen({ users, currentUserId, onToggleFollow, onViewProfile }: SearchScreenProps) {
+export default function SearchScreen({ users, currentUserId, onToggleFollow, onViewProfile, onSearchUsers }: SearchScreenProps) {
   const [query, setQuery] = useState('');
+  const [results, setResults] = useState<User[] | null>(null);
 
-  const currentUser = users.find(u => u.id === currentUserId)!;
-  const filtered = users.filter(
-    u => u.id !== currentUserId && u.username.toLowerCase().includes(query.toLowerCase())
+  const currentUser = users.find(u => u.id === currentUserId);
+  const following = currentUser?.following ?? [];
+
+  useEffect(() => {
+    const term = query.trim();
+    if (!term) {
+      setResults(null);
+      return;
+    }
+
+    let active = true;
+    const timer = setTimeout(() => {
+      onSearchUsers(term)
+        .then(next => { if (active) setResults(next); })
+        .catch(() => { if (active) setResults([]); });
+    }, 250);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [query, onSearchUsers]);
+
+  const filtered = (results ?? users).filter(
+    u => u.id !== currentUserId
   );
 
   return (
@@ -41,7 +65,7 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {filtered.map(user => {
-          const isFollowing = currentUser.following.includes(user.id);
+          const isFollowing = following.includes(user.id);
           return (
             <div
               key={user.id}
@@ -65,7 +89,7 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
                 </div>
               </div>
               <button
-                onClick={e => { e.stopPropagation(); onToggleFollow(user.id); }}
+                onClick={e => { e.stopPropagation(); onToggleFollow(user); }}
                 style={{
                   background: isFollowing ? 'transparent' : 'var(--text)',
                   color: isFollowing ? 'var(--text)' : 'var(--bg)',
@@ -83,7 +107,7 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
             </div>
           );
         })}
-        {filtered.length === 0 && query && (
+        {filtered.length === 0 && query.trim() && results !== null && (
           <div style={{ textAlign: 'center', color: 'var(--text-dim)', marginTop: 40, fontSize: 14 }}>no users found</div>
         )}
       </div>

@@ -5,6 +5,9 @@ export interface User {
   avatarUrl?: string;
   followers: string[];
   following: string[];
+  /** Server-side counts, when the user came from the API. */
+  followerCount?: number;
+  followingCount?: number;
 }
 
 export interface Comment {
@@ -79,7 +82,7 @@ export interface Page {
   analytics?: { views: number; membersTrend: number };
 }
 
-export type Screen = 'login' | 'register' | 'forget' | 'home' | 'search' | 'newPost' | 'reels' | "notifications"
+export type Screen = 'login' | 'register' | 'forget' | 'reset-password' | 'home' | 'search' | 'newPost' | 'reels' | "notifications"
   | "chat"
   | "profile"
   | "pages"

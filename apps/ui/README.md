@@ -19,15 +19,16 @@ Build a small, **mobile-style social app UI prototype** named **Verso**. The UI 
 - Profile view/edit with profile photos and logout
 - Light/dark theme
 
-This UI is designed as a **front-end prototype**: screens, interactions, and state updates are implemented locally to help validate UX and flows before connecting a real backend.
+This UI is a **front-end prototype** that is now wired to the Mononet API for its core social flows. Pages, Marketplace, Chat, Notifications, and Reels remain local screens.
 
 ## What it is / isn’t
 
-- ✅ Works as a functional UI demo using seeded data and in-memory state
+- ✅ Real authentication, feed, posts, likes, comments, profiles, follows, and user search backed by the API
 - ✅ Good for showcasing layout and interaction patterns
-- ❌ Not production auth (login does not validate credentials)
-- ❌ No persistence (refresh resets data)
-- ❌ No backend integration yet (Supabase is installed but not wired in)
+- ✅ Session persists across refreshes via a stored JWT access token
+- ❌ Media uploads are not persisted — the API stores URLs, not files
+- ❌ Comment editing is local-only (the API supports add/delete)
+- ❌ Username changes and media/file uploads are not persisted by the API
 
 ## Documentation
 

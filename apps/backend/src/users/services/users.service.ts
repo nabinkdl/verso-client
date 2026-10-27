@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
-import type { UpdateProfileDto } from './dto/update-profile.dto.js';
-import { PRIVATE_USER_SELECT, PUBLIC_USER_SELECT } from './user.selects.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import type { UpdateProfileDto } from '../models/dto/update-profile.dto.js';
+import { PRIVATE_USER_SELECT, PUBLIC_USER_SELECT } from '../models/user.selects.js';
 
 @Injectable()
 export class UsersService {
