@@ -27,6 +27,7 @@ import ForgetScreen from "./components/ForgetScreen";
 import PageManagementScreen from "./components/PageManagementScreen";
 import PageViewScreen from "./components/PageViewScreen";
 import CreatePageDialog from "./components/CreatePageDialog";
+import MarketplaceScreen from "./components/MarketplaceScreen";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 const makePostImage = (seed: string) => {
@@ -123,6 +124,7 @@ function AppContent() {
     useState<NotificationItem[]>(initialNotifications);
   const [profileUserId, setProfileUserId] = useState(CURRENT_USER_ID);
   const [targetChatId, setTargetChatId] = useState<string | null>(null);
+  const [chatOrigin, setChatOrigin] = useState<"marketplace" | null>(null);
 
   const { pages } = usePages();
   const [activePageId, setActivePageId] = useState<string | null>(null);
@@ -281,9 +283,30 @@ function AppContent() {
     setActiveScreen("chat");
   };
 
+  const handleMessageSeller = (sellerId: string, productTitle: string) => {
+    const { chats: updatedChats, chatId } = findOrCreateChat(
+      chats,
+      CURRENT_USER_ID,
+      sellerId,
+    );
+    setChats(
+      sendMessage(updatedChats, chatId, {
+        from: CURRENT_USER_ID,
+        text: `Hi, I'm interested in "${productTitle}"`,
+        timestamp: Date.now(),
+      }),
+    );
+    setTargetChatId(chatId);
+    setChatOrigin("marketplace");
+    setActiveScreen("chat");
+  };
+
   const handleNav = (screen: Screen) => {
     if (screen === "profile") setProfileUserId(CURRENT_USER_ID);
-    if (screen !== "chat") setTargetChatId(null);
+    if (screen !== "chat") {
+      setTargetChatId(null);
+      setChatOrigin(null);
+    }
     setActiveScreen(screen);
   };
 
@@ -477,6 +500,7 @@ function AppContent() {
             currentUserId={CURRENT_USER_ID}
             users={users}
             onCreatePage={() => setIsCreatingPage(true)}
+            onOpenMarketplace={() => setActiveScreen("marketplace")}
             onViewPage={(id, initialTab, memberFilter) => {
               setActivePageId(id);
               setActivePageTab(initialTab || "feed");
@@ -523,6 +547,11 @@ function AppContent() {
             }}
           />
         )}
+        {activeScreen === "marketplace" && (
+          <MarketplaceScreen
+            onMessageSeller={handleMessageSeller}
+          />
+        )}
         {activeScreen === "chat" && (
           <ChatScreen
             chats={chats}
@@ -530,7 +559,13 @@ function AppContent() {
             currentUserId={CURRENT_USER_ID}
             onSendMessage={handleSendMessage}
             targetChatId={targetChatId}
-            onClearTargetChat={() => setTargetChatId(null)}
+            onClearTargetChat={() => {
+              setTargetChatId(null);
+              if (chatOrigin === "marketplace") {
+                setChatOrigin(null);
+                setActiveScreen("marketplace");
+              }
+            }}
           />
         )}
         {activeScreen === "profile" && (
@@ -551,7 +586,12 @@ function AppContent() {
             onDeleteComment={handleDeleteComment}
           />
         )}
-        {isLoggedIn && <BottomNav active={activeScreen} onChange={handleNav} />}
+        {isLoggedIn && (
+          <BottomNav
+            active={activeScreen === "marketplace" ? "pages" : activeScreen}
+            onChange={handleNav}
+          />
+        )}
         </div>
         <SpeedInsights />
       </div>

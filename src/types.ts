@@ -82,6 +82,7 @@ export type Screen = 'login' | 'register' | 'forget' | 'home' | 'search' | 'newP
   | "chat"
   | "profile"
   | "pages"
+  | "marketplace"
   | "admin";
 
 // Admin / RBAC Types
@@ -102,4 +103,58 @@ export interface AdminUser extends User {
   joinedAt: number;
   invitedBy?: string;
   permissions: string[]; // manually selected permission IDs (for custom role)
+}
+
+// Marketplace Types
+export type DeliveryMethod = 'local_meetup' | 'delivery';
+
+export interface Product {
+  id: string;
+  title: string;
+  price: number;
+  description: string;
+  category: string;
+  condition: 'New' | 'Like New' | 'Good' | 'Fair';
+  deliveryMethod: DeliveryMethod;
+  image: string;
+  images?: string[];
+  location: string;
+  sellerId: string;
+  sellerName: string;
+  createdAt: number;
+}
+
+export interface CartItem {
+  productId: string;
+  quantity: number;
+}
+
+export type OrderStatus =
+  | 'Confirmed'
+  | 'Shipped'
+  | 'In Transit'
+  | 'Delivered'
+  | 'Seller Accepted'
+  | 'Meetup Scheduled'
+  | 'Completed'
+  | 'Cancelled';
+
+export interface OrderItem {
+  productId: string;
+  title: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
+export interface Order {
+  id: string;
+  items: OrderItem[];
+  total: number;
+  status: OrderStatus;
+  deliveryMethod: DeliveryMethod;
+  deliveryAddress?: string;
+  createdAt: number;
+  estimatedDelivery: number;
+  trackingNumber: string;
 }

@@ -6,6 +6,8 @@ import {
   X,
   Search,
   User,
+  Store,
+  ChevronRight,
 } from "lucide-react";
 import Avatar from "./Avatar";
 
@@ -16,6 +18,7 @@ interface PageManagementScreenProps {
   users: { id: string; name: string; username: string }[];
   onCreatePage: () => void;
   onViewPage: (pageId: string, initialTab?: "feed" | "members", memberFilter?: 'all' | 'invite') => void;
+  onOpenMarketplace: () => void;
 }
 
 type Tab = "my_pages" | "discover" | "requests" | "invites";
@@ -25,6 +28,7 @@ export default function PageManagementScreen({
   users,
   onCreatePage,
   onViewPage,
+  onOpenMarketplace,
 }: PageManagementScreenProps) {
   const { pages, acceptJoinRequest, rejectJoinRequest, joinPage } = usePages();
 
@@ -285,6 +289,56 @@ export default function PageManagementScreen({
 
       {/* Page Cards */}
       <div style={{ flex: 1, overflowY: "auto", padding: "4px 16px 16px" }}>
+      {activeTab !== "requests" && (
+        <button
+          onClick={onOpenMarketplace}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            background: "var(--bg-elevated)",
+            border: "0.5px solid var(--border-subtle)",
+            borderRadius: 20,
+            padding: "14px 16px",
+            marginBottom: 16,
+            cursor: "pointer",
+            textAlign: "left",
+            color: "var(--text)",
+            fontFamily: "inherit",
+          }}
+        >
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              background: "var(--text)",
+              color: "var(--bg)",
+              display: "grid",
+              placeItems: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Store size={20} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontWeight: 700, fontSize: 15 }}>Marketplace</span>
+            </div>
+            <p
+              style={{
+                margin: "4px 0 0",
+                fontSize: 12,
+                color: "var(--text-muted)",
+              }}
+            >
+              Buy, sell, and connect with sellers
+            </p>
+          </div>
+          <ChevronRight size={18} color="var(--text-tertiary)" />
+        </button>
+      )}
       {(activeTab === "my_pages"
         ? myPages
         : activeTab === "discover"
