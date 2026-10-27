@@ -4,8 +4,8 @@
   "private": true,
   "description": "Monorepo for the Verso social app and its API",
   "workspaces": [
-    "ui",
-    "backend"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "dev": "concurrently -n ui,api -c magenta,cyan \"npm:dev:ui\" \"npm:dev:api\"",

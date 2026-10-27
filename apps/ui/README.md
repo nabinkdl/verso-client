@@ -56,7 +56,7 @@ From the repository root:
 - Lint: `npm run lint`
 - Typecheck: `npm run typecheck`
 
-Or, from this `ui` folder:
+Or, from this `apps/ui` folder:
 
 - Install dependencies: `npm install`
 - Start dev server: `npm run dev`

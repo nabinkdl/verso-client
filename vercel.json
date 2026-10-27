@@ -2,5 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm ci",
   "buildCommand": "npm run build --workspace @mononet/ui",
-  "outputDirectory": "ui/dist"
+  "outputDirectory": "apps/ui/dist"
 }

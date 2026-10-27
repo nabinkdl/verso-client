@@ -6,8 +6,9 @@ Monorepo for the Verso social app and its API.
 
 | Path | Purpose |
 | --- | --- |
-| `ui/` | Verso frontend — React, TypeScript, Vite, Tailwind |
-| `backend/` | Mononet API — NestJS, Prisma, PostgreSQL |
+| `apps/ui/` | Verso frontend — React, TypeScript, Vite, Tailwind |
+| `apps/backend/` | Mononet API — NestJS, Prisma, PostgreSQL |
+| `packages/` | Shared packages used by the apps |
 | `docker-compose.yml` | Local PostgreSQL database |
 
 ## Requirements
@@ -24,7 +25,7 @@ npm install
 
 # Start PostgreSQL and prepare the database
 npm run db:up
-cp backend/.env.example backend/.env
+cp apps/backend/.env.example apps/backend/.env
 npm run db:migrate
 npm run db:seed
 
@@ -73,18 +74,18 @@ The API uses NestJS 12 with Prisma ORM 7 and PostgreSQL. It provides:
 - Swagger documentation at `/docs`
 - Environment validation and Prisma error mapping
 
-See [backend/README.md](backend/README.md) for the API reference, data model, and deployment notes.
+See [apps/backend/README.md](apps/backend/README.md) for the API reference, data model, and deployment notes.
 
 ## Frontend
 
 The UI is currently a front-end prototype with seeded, in-memory data. It is not wired to the API yet; connecting the screens to these endpoints is the next step.
 
-See [ui/README.md](ui/README.md) and [ui/docs/USER_GUIDE.md](ui/docs/USER_GUIDE.md).
+See [apps/ui/README.md](apps/ui/README.md) and [apps/ui/docs/USER_GUIDE.md](apps/ui/docs/USER_GUIDE.md).
 
 ## Environment
 
-Copy `backend/.env.example` to `backend/.env`. Database and JWT settings live there; the file is gitignored.
+Copy `apps/backend/.env.example` to `apps/backend/.env`. Database and JWT settings live there; the file is gitignored.
 
 ## Deployment
 
-The frontend is configured for Vercel in `vercel.json`, with `ui/dist` as the output directory. Deploy the API to a Node host, set `DATABASE_URL` and `JWT_SECRET`, run `npm run db:deploy`, then start it with `npm run start:prod --workspace @mononet/backend`.
+The frontend is configured for Vercel in `vercel.json`, with `apps/ui/dist` as the output directory. Deploy the API to a Node host, set `DATABASE_URL` and `JWT_SECRET`, run `npm run db:deploy`, then start it with `npm run start:prod --workspace @mononet/backend`.

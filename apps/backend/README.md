@@ -24,7 +24,7 @@ From the repository root:
 ```bash
 npm install
 npm run db:up          # start PostgreSQL on localhost:5432
-cp backend/.env.example backend/.env
+cp apps/backend/.env.example apps/backend/.env
 npm run db:migrate     # apply migrations
 npm run db:seed        # load demo users and posts
 ```
@@ -114,7 +114,7 @@ Run from the repository root:
 ## Project layout
 
 ```text
-backend/
+apps/backend/
 ├── prisma/
 │   ├── schema.prisma       # data model
 │   ├── migrations/         # committed migrations
