@@ -13,17 +13,37 @@ Monorepo for the Verso social app and its supporting services.
 
 ### UI
 
+From the repository root:
+
 ```bash
-cd ui
-npm install
+npm ci
 npm run dev
 ```
 
 The Vite development server runs at `http://localhost:5173`.
 
+Other root commands:
+
+```bash
+npm run build      # builds the UI into ui/dist
+npm run lint
+npm run typecheck
+npm run preview
+```
+
+You can also work directly inside `ui/` with `npm install` and `npm run dev`.
+
 ### Backend
 
 The backend will be added in the next stage. Once it exists, its setup and run instructions will be documented here.
+
+## Deployment
+
+Vercel builds from the repository root using `vercel.json`:
+
+- Installs the `ui` workspace with `npm ci`
+- Runs the root `npm run build` script
+- Publishes `ui/dist`
 
 ## Documentation
 

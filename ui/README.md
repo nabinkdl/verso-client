@@ -48,7 +48,15 @@ This UI is designed as a **front-end prototype**: screens, interactions, and sta
 
 ## Run Locally
 
-From the `ui` folder:
+From the repository root:
+
+- Install dependencies: `npm ci`
+- Start dev server: `npm run dev`
+- Build: `npm run build`
+- Lint: `npm run lint`
+- Typecheck: `npm run typecheck`
+
+Or, from this `ui` folder:
 
 - Install dependencies: `npm install`
 - Start dev server: `npm run dev`
