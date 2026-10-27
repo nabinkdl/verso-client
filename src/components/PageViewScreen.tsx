@@ -14,6 +14,7 @@ import {
   X,
   Plus,
   BadgeCheck,
+  Bookmark,
 } from "lucide-react";
 import Avatar from "./Avatar";
 import CommentDialog from "./CommentDialog";
@@ -33,6 +34,8 @@ interface PageViewScreenProps {
   onNewPostClick?: () => void;
   initialTab?: Tab;
   defaultMemberFilter?: 'all' | 'invite';
+  savedPosts: string[];
+  onToggleSave: (postId: string) => void;
   onLike: (postId: string) => void;
   onComment: (postId: string, text: string) => void;
   onEditComment: (postId: string, commentId: string, text: string) => void;
@@ -59,6 +62,8 @@ export default function PageViewScreen({
   onNewPostClick,
   initialTab,
   defaultMemberFilter,
+  savedPosts,
+  onToggleSave,
   onLike,
   onComment,
   onEditComment,
@@ -587,6 +592,7 @@ export default function PageViewScreen({
                     name={
                       users.find((u) => u.id === currentUserId)?.name || "User"
                     }
+                    src={users.find((u) => u.id === currentUserId)?.avatarUrl}
                     size="sm"
                   />
                   <span style={{ flex: 1, fontSize: 13, color: "var(--text-tertiary)" }}>
@@ -617,7 +623,7 @@ export default function PageViewScreen({
                         marginBottom: 12,
                       }}
                     >
-                      <Avatar name={u?.name || "Unknown"} />
+                      <Avatar name={u?.name || "Unknown"} src={u?.avatarUrl} />
                       <div>
                         <h4
                           style={{ margin: 0, fontSize: 14, fontWeight: 600 }}
@@ -687,6 +693,35 @@ export default function PageViewScreen({
                         }}
                       >
                         <MessageCircle size={16} /> {post.comments.length}
+                      </button>
+                      <button
+                        onClick={() => onToggleSave(post.id)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          color: savedPosts.includes(post.id)
+                            ? "var(--accent-amber-soft)"
+                            : "var(--text-muted)",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
+                          marginLeft: "auto",
+                        }}
+                        aria-label={
+                          savedPosts.includes(post.id)
+                            ? "Unsave post"
+                            : "Save post"
+                        }
+                      >
+                        <Bookmark
+                          size={16}
+                          fill={
+                            savedPosts.includes(post.id)
+                              ? "var(--accent-amber-soft)"
+                              : "none"
+                          }
+                        />
                       </button>
                     </div>
                   </div>

@@ -254,6 +254,7 @@ export default function PageTeamManager({
         ...pm,
         name: u?.name || "Unknown User",
         username: u?.username || "unknown",
+        avatarUrl: u?.avatarUrl,
         email: u?.email || "",
         permissions: pm.permissions || TEMPLATES[pm.role as AdminRole] || [],
       };
@@ -571,7 +572,7 @@ export default function PageTeamManager({
                       border: "0.5px solid var(--surface-2)",
                     }}
                   >
-                    <Avatar name={user.name} />
+                    <Avatar name={user.name} src={user.avatarUrl} />
                     <div style={{ flex: 1, minWidth: 150 }}>
                       <div
                         style={{
@@ -628,7 +629,7 @@ export default function PageTeamManager({
                       gap: 16,
                     }}
                   >
-                    <Avatar name={m.name} />
+                    <Avatar name={m.name} src={m.avatarUrl} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
                         style={{

@@ -1,4 +1,4 @@
-import { Home, MessageCircle, User, Clapperboard, Layers, type LucideIcon } from "lucide-react";
+import { Home, MessageCircle, User, PlaySquare, Layers, type LucideIcon } from "lucide-react";
 import { Screen } from "../types";
 
 interface BottomNavProps {
@@ -12,7 +12,7 @@ const ITEMS: {
 }[] = [
     { screen: "home", Icon: Home },
     { screen: "pages", Icon: Layers },
-    { screen: "reels", Icon: Clapperboard },
+    { screen: "reels", Icon: PlaySquare },
     { screen: "chat", Icon: MessageCircle },
     { screen: "profile", Icon: User },
   ];

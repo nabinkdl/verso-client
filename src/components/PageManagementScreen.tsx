@@ -15,10 +15,11 @@ import { usePages } from "../contexts/PageContext";
 
 interface PageManagementScreenProps {
   currentUserId: string;
-  users: { id: string; name: string; username: string }[];
+  users: { id: string; name: string; username: string; avatarUrl?: string }[];
   onCreatePage: () => void;
   onViewPage: (pageId: string, initialTab?: "feed" | "members", memberFilter?: 'all' | 'invite') => void;
   onOpenMarketplace: () => void;
+  marketplaceCartCount?: number;
 }
 
 type Tab = "my_pages" | "discover" | "requests" | "invites";
@@ -29,6 +30,7 @@ export default function PageManagementScreen({
   onCreatePage,
   onViewPage,
   onOpenMarketplace,
+  marketplaceCartCount = 0,
 }: PageManagementScreenProps) {
   const { pages, acceptJoinRequest, rejectJoinRequest, joinPage } = usePages();
 
@@ -318,9 +320,32 @@ export default function PageManagementScreen({
               display: "grid",
               placeItems: "center",
               flexShrink: 0,
+              position: "relative",
             }}
           >
             <Store size={20} />
+            {marketplaceCartCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: -6,
+                  right: -6,
+                  minWidth: 18,
+                  height: 18,
+                  padding: "0 5px",
+                  borderRadius: 999,
+                  background: "#ff4d6d",
+                  color: "#fff",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  display: "grid",
+                  placeItems: "center",
+                  boxShadow: "0 0 0 2px var(--bg-elevated)",
+                }}
+              >
+                {marketplaceCartCount > 9 ? "9+" : marketplaceCartCount}
+              </span>
+            )}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -651,7 +676,7 @@ export default function PageManagementScreen({
                     border: "0.5px solid var(--border-subtle)",
                   }}
                 >
-                  <Avatar name={u.name} />
+                  <Avatar name={u.name} src={u.avatarUrl} />
                   <div style={{ flex: 1 }}>
                     <div
                       style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}

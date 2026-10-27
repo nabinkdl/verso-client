@@ -65,6 +65,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
         ...pm,
         name: u?.name || 'Unknown User',
         username: u?.username || 'unknown',
+        avatarUrl: u?.avatarUrl,
         email: u && 'email' in u ? String((u as { email?: string }).email ?? '') : '',
         permissions: pm.permissions || TEMPLATES[pm.role as AdminRole] || []
       };
@@ -240,7 +241,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
               const hasRequested = page.joinRequests?.includes(user.id);
               return (
                 <div key={user.id} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14, padding: '10px 12px', borderRadius: 14, background: 'var(--bg-elevated-2)', border: '0.5px solid var(--surface-2)' }}>
-                  <Avatar name={user.name.charAt(0)} />
+                  <Avatar name={user.name.charAt(0)} src={user.avatarUrl} />
                   <div style={{ flex: 1, minWidth: 150 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontWeight: 600, fontSize: 14 }}>{user.name}</span>
@@ -304,7 +305,7 @@ export default function PageTeamManager({ page, users, currentUserId, defaultFil
               const canEdit = isSuperAdmin || m.role !== 'admin';
               return (
                 <div key={m.userId} style={{ background: 'var(--bg-elevated-2)', border: '1px solid var(--surface)', borderRadius: 16, padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <Avatar name={m.name} />
+                  <Avatar name={m.name} src={m.avatarUrl} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ fontWeight: 700, fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.name}</div>

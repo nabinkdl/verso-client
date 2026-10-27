@@ -1,4 +1,4 @@
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle, Bookmark } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
 
@@ -6,7 +6,9 @@ interface ReelPostProps {
   post: Post;
   author: User;
   isLiked: boolean;
+  isSaved: boolean;
   onLike: (postId: string) => void;
+  onToggleSave: (postId: string) => void;
   onOpenComments: () => void;
 }
 
@@ -14,7 +16,9 @@ export default function ReelPost({
   post,
   author,
   isLiked,
+  isSaved,
   onLike,
+  onToggleSave,
   onOpenComments,
 }: ReelPostProps) {
   const mediaSource = post.mediaUrl ?? post.imageUrl;
@@ -84,7 +88,7 @@ export default function ReelPost({
           {/* Left side: Avatar, Name, Caption */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: "80%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <Avatar name={author.name} />
+              <Avatar name={author.name} src={author.avatarUrl} />
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <span style={{ fontWeight: 700, fontSize: 16, textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>{author.name}</span>
                 <span style={{ fontSize: 13, color: "var(--text-on-media)", textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>@{author.username}</span>
@@ -138,6 +142,31 @@ export default function ReelPost({
                 <MessageCircle size={22} color="var(--text-on-media)" />
               </button>
               <span style={{ fontSize: 12, fontWeight: 600, textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>{post.comments.length}</span>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <button
+                type="button"
+                onClick={() => onToggleSave(post.id)}
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 999,
+                  background: "rgba(0,0,0,0.2)",
+                  display: "grid",
+                  placeItems: "center",
+                  backdropFilter: "blur(4px)",
+                  border: "none",
+                  cursor: "pointer",
+                  color: isSaved ? "#facc15" : "var(--text-on-media)",
+                }}
+                aria-label={isSaved ? "Unsave post" : "Save post"}
+              >
+                <Bookmark
+                  size={22}
+                  fill={isSaved ? "#facc15" : "none"}
+                />
+              </button>
             </div>
           </div>
         </div>

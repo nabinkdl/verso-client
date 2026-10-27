@@ -95,7 +95,7 @@ export default function ReelCommentModal({
 
             return (
               <div key={i} style={{ display: "flex", gap: 12, position: "relative" }}>
-                <Avatar name={author?.name ?? "U"} size="sm" />
+                <Avatar name={author?.name ?? "U"} src={author?.avatarUrl} size="sm" />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>
                     {author?.username}

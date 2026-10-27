@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Heart, MessageCircle, MoreHorizontal, Play, AlertTriangle, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Heart, MessageCircle, MoreHorizontal, Play, AlertTriangle, Trash2, Bookmark, PenLine, Camera } from "lucide-react";
 import { Post, User } from "../types";
 import Avatar from "./Avatar";
 import CommentDialog from "./CommentDialog";
@@ -9,8 +9,10 @@ interface ProfileScreenProps {
   currentUserId: string;
   users: User[];
   posts: Post[];
+  savedPosts: string[];
+  onToggleSave: (postId: string) => void;
   onNewPost: () => void;
-  onEditName: (newName: string) => void;
+  onEditProfile: (newName: string, newUsername: string, avatarUrl?: string) => void;
   onLogout: () => void;
   onEditPost: (postId: string, caption: string) => void;
   onDeletePost: (postId: string) => void;
@@ -26,8 +28,10 @@ export default function ProfileScreen({
   currentUserId,
   users,
   posts,
+  savedPosts,
+  onToggleSave,
   // onNewPost,
-  onEditName,
+  onEditProfile,
   onLogout,
   onEditPost,
   onDeletePost,
@@ -39,6 +43,9 @@ export default function ProfileScreen({
 }: ProfileScreenProps) {
   const [editing, setEditing] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const [usernameInput, setUsernameInput] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
@@ -46,15 +53,22 @@ export default function ProfileScreen({
   const [activeUserListType, setActiveUserListType] = useState<"followers" | "following" | null>(null);
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const [showCommentDialog, setShowCommentDialog] = useState(false);
+  const [profileTab, setProfileTab] = useState<"posts" | "saved">("posts");
 
   const user = users.find((u) => u.id === profileUserId);
+  const isOwn = profileUserId === currentUserId;
   const userPosts = useMemo(
     () => posts.filter((p) => p.authorId === profileUserId),
     [posts, profileUserId],
   );
+  const savedPostsList = useMemo(
+    () => posts.filter((p) => savedPosts.includes(p.id)),
+    [posts, savedPosts],
+  );
+  const displayedPosts =
+    isOwn && profileTab === "saved" ? savedPostsList : userPosts;
   const selectedPost =
-    userPosts.find((post) => post.id === selectedPostId) ?? null;
-  const isOwn = profileUserId === currentUserId;
+    displayedPosts.find((post) => post.id === selectedPostId) ?? null;
 
   useEffect(() => {
     if (selectedPostId && !selectedPost) {
@@ -83,14 +97,60 @@ export default function ProfileScreen({
 
   if (!user) return null;
 
+  const selectedPostAuthor = selectedPost
+    ? users.find((u) => u.id === selectedPost.authorId) ?? user
+    : null;
+  const canOpenPostMenu =
+    selectedPost !== null &&
+    (selectedPost.authorId === currentUserId || !isOwn);
   const postsCount = userPosts.length;
   const followersCount = user.followers.length;
   const followingCount = user.following.length;
 
+  const startEditing = () => {
+    setNameInput(user.name);
+    setUsernameInput(user.username);
+    setAvatarPreview(null);
+    setEditing(true);
+  };
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setAvatarPreview(String(reader.result));
+    reader.readAsDataURL(file);
+    event.target.value = "";
+  };
+
   const handleEditSave = () => {
-    if (nameInput.trim()) onEditName(nameInput.trim());
+    const nextName = nameInput.trim();
+    const nextUsername = usernameInput.trim().replace(/^@+/, "");
+    if (!nextName || !nextUsername) return;
+    if (!/^[a-zA-Z0-9._]+$/.test(nextUsername)) {
+      window.alert(
+        "Usernames can only contain letters, numbers, dots, and underscores.",
+      );
+      return;
+    }
+    const taken = users.some(
+      (u) =>
+        u.id !== user.id &&
+        u.username.toLowerCase() === nextUsername.toLowerCase(),
+    );
+    if (taken) {
+      window.alert("That username is already taken.");
+      return;
+    }
+    onEditProfile(
+      nextName,
+      nextUsername,
+      avatarPreview === null ? undefined : avatarPreview,
+    );
     setEditing(false);
     setNameInput("");
+    setUsernameInput("");
+    setAvatarPreview(null);
   };
 
   return (
@@ -155,18 +215,30 @@ export default function ProfileScreen({
               }}
             >
               {isOwn ? (
-                <button
-                  onClick={() => {
-                    if (window.confirm("Are you sure you want to request account deletion? This action cannot be undone.")) {
-                      window.alert("Account deletion requested.");
-                    }
-                    setHeaderMenuOpen(false);
-                  }}
-                  style={{ background: "transparent", border: "none", color: "#ff4d4d", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
-                >
-                  <Trash2 size={16} />
-                  Request Delete Account
-                </button>
+                <>
+                  <button
+                    onClick={() => {
+                      startEditing();
+                      setHeaderMenuOpen(false);
+                    }}
+                    style={{ background: "transparent", border: "none", color: "var(--text)", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <PenLine size={16} />
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to request account deletion? This action cannot be undone.")) {
+                        window.alert("Account deletion requested.");
+                      }
+                      setHeaderMenuOpen(false);
+                    }}
+                    style={{ background: "transparent", border: "none", color: "#ff4d4d", textAlign: "left", padding: "8px 12px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    <Trash2 size={16} />
+                    Request Delete Account
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={() => {
@@ -185,19 +257,60 @@ export default function ProfileScreen({
         </div>
 
         <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
-          <Avatar name={user.name} size="lg" />
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <Avatar
+              name={user.name}
+              src={
+                editing ? (avatarPreview ?? user.avatarUrl) : user.avatarUrl
+              }
+              size="lg"
+            />
+            {editing && (
+              <>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  style={{ display: "none" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => avatarInputRef.current?.click()}
+                  aria-label="Change profile photo"
+                  style={{
+                    position: "absolute",
+                    right: -2,
+                    bottom: -2,
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    background: "var(--text)",
+                    color: "var(--bg)",
+                    border: "2px solid var(--bg)",
+                    display: "grid",
+                    placeItems: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Camera size={14} />
+                </button>
+              </>
+            )}
+          </div>
 
           <div style={{ flex: 1, paddingTop: 6 }}>
             {editing ? (
-              <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>
                 <input
                   autoFocus
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleEditSave()}
-                  placeholder={user.name}
+                  placeholder="Profile name"
+                  aria-label="Profile name"
                   style={{
-                    flex: 1,
+                    width: "100%",
                     background: "var(--bg)",
                     border: "0.5px solid var(--surface-2)",
                     borderRadius: 12,
@@ -207,21 +320,71 @@ export default function ProfileScreen({
                     fontFamily: "inherit",
                   }}
                 />
-                <button
-                  onClick={handleEditSave}
-                  style={{
-                    background: "var(--text)",
-                    color: "var(--bg)",
-                    border: "none",
-                    borderRadius: 12,
-                    padding: "0 12px",
-                    fontWeight: 700,
-                    fontSize: 12,
-                    cursor: "pointer",
-                  }}
-                >
-                  save
-                </button>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <div style={{ position: "relative", flex: 1 }}>
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: 12,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "var(--text-tertiary)",
+                        fontSize: 13,
+                      }}
+                    >
+                      @
+                    </span>
+                    <input
+                      value={usernameInput}
+                      onChange={(e) => setUsernameInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleEditSave()}
+                      placeholder="username"
+                      aria-label="Username"
+                      style={{
+                        width: "100%",
+                        background: "var(--bg)",
+                        border: "0.5px solid var(--surface-2)",
+                        borderRadius: 12,
+                        padding: "10px 12px 10px 28px",
+                        color: "var(--text)",
+                        fontSize: 13,
+                        fontFamily: "inherit",
+                      }}
+                    />
+                  </div>
+                  <button
+                    onClick={handleEditSave}
+                    style={{
+                      background: "var(--text)",
+                      color: "var(--bg)",
+                      border: "none",
+                      borderRadius: 12,
+                      padding: "0 12px",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      cursor: "pointer",
+                    }}
+                  >
+                    save
+                  </button>
+                </div>
+                {(avatarPreview ?? user.avatarUrl) && (
+                  <button
+                    type="button"
+                    onClick={() => setAvatarPreview("")}
+                    style={{
+                      alignSelf: "flex-start",
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--text-muted)",
+                      fontSize: 12,
+                      cursor: "pointer",
+                      padding: 0,
+                    }}
+                  >
+                    Remove photo
+                  </button>
+                )}
               </div>
             ) : (
               <>
@@ -240,10 +403,7 @@ export default function ProfileScreen({
               {isOwn ? (
                 <>
                   <button
-                    onClick={() => {
-                      setEditing(true);
-                      setNameInput(user.name);
-                    }}
+                    onClick={startEditing}
                     style={{
                       flex: 1,
                       background: "var(--text)",
@@ -332,6 +492,67 @@ export default function ProfileScreen({
         </div>
       </div>
 
+      {isOwn && (
+        <div
+          style={{
+            display: "flex",
+            margin: "0 16px 12px",
+            border: "0.5px solid var(--border-subtle)",
+            borderRadius: 12,
+            overflow: "hidden",
+            background: "var(--bg-elevated)",
+          }}
+        >
+          {(
+            [
+              { tab: "posts", label: "Posts" },
+              { tab: "saved", label: "Saved" },
+            ] as const
+          ).map(({ tab, label }) => {
+            const active = profileTab === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => {
+                  setProfileTab(tab);
+                  setSelectedPostId(null);
+                  setMenuOpen(false);
+                }}
+                style={{
+                  flex: 1,
+                  background: active ? "var(--surface-hover)" : "transparent",
+                  border: "none",
+                  color: active ? "var(--text)" : "var(--text-muted)",
+                  padding: "9px 0",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  transition: "all 0.15s",
+                }}
+              >
+                {tab === "saved" && (
+                  <Bookmark
+                    size={14}
+                    fill={active ? "var(--accent-amber-soft)" : "none"}
+                    color={
+                      active
+                        ? "var(--accent-amber-soft)"
+                        : "var(--text-muted)"
+                    }
+                  />
+                )}
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div style={{ padding: "0 16px 12px" }}>
         <div
           style={{
@@ -340,7 +561,7 @@ export default function ProfileScreen({
             gap: 2,
           }}
         >
-          {userPosts.map((post) => (
+          {displayedPosts.map((post) => (
             <button
               key={post.id}
               type="button"
@@ -383,7 +604,7 @@ export default function ProfileScreen({
             </button>
           ))}
         </div>
-        {userPosts.length === 0 && (
+        {displayedPosts.length === 0 && (
           <div
             style={{
               padding: "48px 16px 24px",
@@ -392,7 +613,7 @@ export default function ProfileScreen({
               fontSize: 14,
             }}
           >
-            no posts yet
+            {isOwn && profileTab === "saved" ? "no saved posts yet" : "no posts yet"}
           </div>
         )}
       </div>
@@ -480,32 +701,37 @@ export default function ProfileScreen({
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 12 }}
                   >
-                    <Avatar name={user.name} />
+                    <Avatar
+                      name={selectedPostAuthor?.name ?? user.name}
+                      src={selectedPostAuthor?.avatarUrl}
+                    />
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 14 }}>
-                        {user.name}
+                        {selectedPostAuthor?.name ?? user.name}
                       </div>
                       <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                        @{user.username}
+                        @{selectedPostAuthor?.username ?? user.username}
                       </div>
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "var(--text)",
-                      cursor: "pointer",
-                      padding: 4,
-                    }}
-                  >
-                    <MoreHorizontal size={20} />
-                  </button>
+                  {canOpenPostMenu && (
+                    <button
+                      type="button"
+                      onClick={() => setMenuOpen(!menuOpen)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--text)",
+                        cursor: "pointer",
+                        padding: 4,
+                      }}
+                    >
+                      <MoreHorizontal size={20} />
+                    </button>
+                  )}
 
-                  {menuOpen && (
+                  {canOpenPostMenu && menuOpen && (
                     <div
                       style={{
                         position: "absolute",
@@ -523,7 +749,7 @@ export default function ProfileScreen({
                         boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
                       }}
                     >
-                      {isOwn ? (
+                      {selectedPost.authorId === currentUserId ? (
                         <>
                           <button
                             onClick={() => {
@@ -598,6 +824,36 @@ export default function ProfileScreen({
                     <MessageCircle size={20} />
                     {selectedPost.comments.length}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => onToggleSave(selectedPost.id)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      background: "none",
+                      border: "none",
+                      color: savedPosts.includes(selectedPost.id)
+                        ? "var(--accent-amber-soft)"
+                        : "var(--text-soft)",
+                      cursor: "pointer",
+                      padding: 0,
+                      marginLeft: "auto",
+                    }}
+                    aria-label={
+                      savedPosts.includes(selectedPost.id)
+                        ? "Unsave post"
+                        : "Save post"
+                    }
+                  >
+                    <Bookmark
+                      size={20}
+                      fill={
+                        savedPosts.includes(selectedPost.id)
+                          ? "var(--accent-amber-soft)"
+                          : "none"
+                      }
+                    />
+                  </button>
                 </div>
 
                 <div>
@@ -639,7 +895,7 @@ export default function ProfileScreen({
                     </div>
                   ) : (
                     <div style={{ fontSize: 14, lineHeight: 1.5, color: "var(--text)" }}>
-                      <strong style={{ fontWeight: 700 }}>{user.username}</strong>{" "}
+                      <strong style={{ fontWeight: 700 }}>{selectedPostAuthor?.username ?? user.username}</strong>{" "}
                       {selectedPost.caption}
                     </div>
                   )}
@@ -716,7 +972,7 @@ export default function ProfileScreen({
                 if (!listUser) return null;
                 return (
                   <div key={userId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px" }}>
-                    <Avatar name={listUser.name} />
+                    <Avatar name={listUser.name} src={listUser.avatarUrl} />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{listUser.name}</div>
                       <div style={{ fontSize: 12, color: "var(--text-muted)" }}>@{listUser.username}</div>

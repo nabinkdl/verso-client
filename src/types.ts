@@ -2,6 +2,7 @@ export interface User {
   id: string;
   name: string;
   username: string;
+  avatarUrl?: string;
   followers: string[];
   following: string[];
 }

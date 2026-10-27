@@ -58,7 +58,7 @@ export default function SearchScreen({ users, currentUserId, onToggleFollow, onV
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Avatar name={user.name} />
+                <Avatar name={user.name} src={user.avatarUrl} />
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{user.name}</div>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>@{user.username}</div>

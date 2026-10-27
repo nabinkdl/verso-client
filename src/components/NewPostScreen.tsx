@@ -47,12 +47,13 @@ export default function NewPostScreen({ onPublish, onClose, targetPageName }: Ne
   };
 
   return (
-    <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: 0 }}>
       <div
         style={{
+          minHeight: "100%",
           background: "var(--bg-elevated)",
-          borderRadius: 24,
-          padding: 20,
+          borderRadius: 0,
+          padding: 16,
           display: "flex",
           flexDirection: "column",
           gap: 14,

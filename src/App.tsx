@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
-import { Screen, Post, Chat, NotificationItem, AdminUser } from "./types";
+import { Screen, Post, Chat, NotificationItem, AdminUser, CartItem } from "./types";
 import { PageProvider, usePages } from './contexts/PageContext';
 import {
   CURRENT_USER_ID,
@@ -8,9 +8,10 @@ import {
   initialChats,
   initialNotifications,
   initialPages,
+  initialMarketplaceCart,
 } from "./data";
 import { likePost, editPost, deletePost, addComment, editComment, deleteComment } from "./services/postService";
-import { toggleFollow, editName, addUser } from "./services/userService";
+import { toggleFollow, editProfile, addUser } from "./services/userService";
 import { sendMessage, findOrCreateChat } from "./services/chatService";
 import { addNotification } from "./services/notificationService";
 import BottomNav from "./components/BottomNav";
@@ -125,6 +126,9 @@ function AppContent() {
   const [profileUserId, setProfileUserId] = useState(CURRENT_USER_ID);
   const [targetChatId, setTargetChatId] = useState<string | null>(null);
   const [chatOrigin, setChatOrigin] = useState<"marketplace" | null>(null);
+  const [marketplaceCart, setMarketplaceCart] =
+    useState<CartItem[]>(initialMarketplaceCart);
+  const [savedPosts, setSavedPosts] = useState<string[]>([]);
 
   const { pages } = usePages();
   const [activePageId, setActivePageId] = useState<string | null>(null);
@@ -228,6 +232,14 @@ function AppContent() {
     setPosts((prev) => deleteComment(prev, postId, commentId));
   };
 
+  const handleToggleSave = (postId: string) => {
+    setSavedPosts((prev) =>
+      prev.includes(postId)
+        ? prev.filter((id) => id !== postId)
+        : [...prev, postId],
+    );
+  };
+
   const handleToggleFollow = (targetId: string) => {
     setUsers((prev) => toggleFollow(prev, CURRENT_USER_ID, targetId));
     pushNotification({
@@ -272,8 +284,14 @@ function AppContent() {
     );
   };
 
-  const handleEditName = (newName: string) => {
-    setUsers((prev) => editName(prev, CURRENT_USER_ID, newName));
+  const handleEditProfile = (
+    newName: string,
+    newUsername: string,
+    avatarUrl?: string,
+  ) => {
+    setUsers((prev) =>
+      editProfile(prev, CURRENT_USER_ID, newName, newUsername, avatarUrl),
+    );
   };
 
   const handleMessageUser = (userId: string) => {
@@ -422,6 +440,8 @@ function AppContent() {
             posts={posts}
             users={users}
             currentUserId={CURRENT_USER_ID}
+            savedPosts={savedPosts}
+            onToggleSave={handleToggleSave}
             onLike={handleLike}
             onComment={handleComment}
             onEditPost={handleEditPost}
@@ -450,20 +470,21 @@ function AppContent() {
               background: "rgba(0,0,0,0.72)",
               backdropFilter: "blur(14px)",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 16,
+              alignItems: "stretch",
+              justifyContent: "stretch",
+              padding: 0,
             }}
           >
             <div
               style={{
                 width: "100%",
-                maxWidth: 460,
-                maxHeight: "92vh",
-                borderRadius: 28,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                borderRadius: 0,
                 overflow: "hidden",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
-                border: "1px solid var(--surface-hover)",
+                border: "none",
+                boxShadow: "none",
                 background: "var(--bg)",
               }}
             >
@@ -486,6 +507,8 @@ function AppContent() {
             posts={posts}
             users={users}
             currentUserId={CURRENT_USER_ID}
+            savedPosts={savedPosts}
+            onToggleSave={handleToggleSave}
             onLike={handleLike}
             onComment={handleComment}
             onEditComment={handleEditComment}
@@ -501,6 +524,10 @@ function AppContent() {
             users={users}
             onCreatePage={() => setIsCreatingPage(true)}
             onOpenMarketplace={() => setActiveScreen("marketplace")}
+            marketplaceCartCount={marketplaceCart.reduce(
+              (sum, item) => sum + item.quantity,
+              0,
+            )}
             onViewPage={(id, initialTab, memberFilter) => {
               setActivePageId(id);
               setActivePageTab(initialTab || "feed");
@@ -516,6 +543,8 @@ function AppContent() {
             currentUserId={CURRENT_USER_ID}
             initialTab={activePageTab || "feed"}
             defaultMemberFilter={activePageMemberFilter}
+            savedPosts={savedPosts}
+            onToggleSave={handleToggleSave}
             onClose={() => {
               setActivePageId(null);
               setActivePageTab(null);
@@ -549,6 +578,8 @@ function AppContent() {
         )}
         {activeScreen === "marketplace" && (
           <MarketplaceScreen
+            cart={marketplaceCart}
+            setCart={setMarketplaceCart}
             onMessageSeller={handleMessageSeller}
           />
         )}
@@ -574,8 +605,10 @@ function AppContent() {
             currentUserId={CURRENT_USER_ID}
             users={users}
             posts={posts}
+            savedPosts={savedPosts}
+            onToggleSave={handleToggleSave}
             onNewPost={() => setActiveScreen("newPost")}
-            onEditName={handleEditName}
+            onEditProfile={handleEditProfile}
             onLogout={handleLogout}
             onEditPost={handleEditPost}
             onDeletePost={handleDeletePost}

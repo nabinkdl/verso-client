@@ -99,7 +99,7 @@ export default function CommentDialog({
 
             return (
               <div key={comment.id} style={{ display: "flex", gap: 10, position: "relative" }}>
-                <Avatar name={author?.name ?? "U"} size="sm" />
+                <Avatar name={author?.name ?? "U"} src={author?.avatarUrl} size="sm" />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 2 }}>
                     {author?.username || "user"}

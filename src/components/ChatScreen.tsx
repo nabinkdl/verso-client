@@ -52,7 +52,7 @@ export default function ChatScreen({ chats, users, currentUserId, onSendMessage,
           >
             <ArrowLeft size={22} />
           </button>
-          <Avatar name={otherUser.name} />
+          <Avatar name={otherUser.name} src={otherUser.avatarUrl} />
           <div>
             <div style={{ fontWeight: 600, fontSize: 15 }}>{otherUser.name}</div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>@{otherUser.username}</div>
@@ -151,7 +151,7 @@ export default function ChatScreen({ chats, users, currentUserId, onSendMessage,
               cursor: 'pointer',
             }}
           >
-            <Avatar name={otherUser.name} />
+            <Avatar name={otherUser.name} src={otherUser.avatarUrl} />
             <div>
               <div style={{ fontWeight: 600, fontSize: 14 }}>{otherUser.name}</div>
               <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>

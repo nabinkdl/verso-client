@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type Dispatch, type SetStateAction } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, MapPin, ArrowLeft, ShoppingCart, Plus, Minus, Trash2, Filter,
@@ -10,7 +10,8 @@ import { CURRENT_USER_ID, initialProducts } from "../data";
 type View = "browse" | "detail" | "cart" | "sell" | "myListings" | "orderHistory" | "orderDetail";
 
 interface MarketplaceScreenProps {
-  onCartChange?: (count: number) => void;
+  cart: CartItem[];
+  setCart: Dispatch<SetStateAction<CartItem[]>>;
   onMessageSeller?: (sellerId: string, productTitle: string, productId?: string) => void;
   revealProductId?: string | null;
 }
@@ -58,7 +59,7 @@ function formatPrice(price: number) {
   return `$${price.toLocaleString()}`;
 }
 
-export default function MarketplaceScreen({ onCartChange, onMessageSeller, revealProductId }: MarketplaceScreenProps) {
+export default function MarketplaceScreen({ cart, setCart, onMessageSeller, revealProductId }: MarketplaceScreenProps) {
 
   useEffect(() => {
     if (revealProductId) {
@@ -77,7 +78,6 @@ export default function MarketplaceScreen({ onCartChange, onMessageSeller, revea
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [myListingIds, setMyListingIds] = useState<string[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -95,7 +95,6 @@ export default function MarketplaceScreen({ onCartChange, onMessageSeller, revea
   });
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  useEffect(() => { onCartChange?.(cartCount); }, [cartCount, onCartChange]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);

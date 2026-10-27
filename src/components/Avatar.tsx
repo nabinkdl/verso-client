@@ -1,9 +1,10 @@
 interface AvatarProps {
   name: string;
+  src?: string | null;
   size?: 'sm' | 'lg';
 }
 
-export default function Avatar({ name, size = 'sm' }: AvatarProps) {
+export default function Avatar({ name, src, size = 'sm' }: AvatarProps) {
   const dim = size === 'lg' ? 80 : 40;
   const fontSize = size === 'lg' ? 32 : 18;
   return (
@@ -20,9 +21,18 @@ export default function Avatar({ name, size = 'sm' }: AvatarProps) {
         color: 'var(--text-soft-2)',
         fontSize,
         flexShrink: 0,
+        overflow: 'hidden',
       }}
     >
-      {name.charAt(0).toUpperCase()}
+      {src ? (
+        <img
+          src={src}
+          alt={name}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      ) : (
+        name.charAt(0).toUpperCase()
+      )}
     </div>
   );
 }

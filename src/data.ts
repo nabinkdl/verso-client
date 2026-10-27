@@ -1,4 +1,4 @@
-import { User, Post, Chat, NotificationItem, Page, Product } from './types';
+import { User, Post, Chat, NotificationItem, Page, Product, CartItem } from './types';
 
 export const CURRENT_USER_ID = 'u1';
 
@@ -826,4 +826,10 @@ export const initialProducts: Product[] = [
   { id: 'p23', title: 'First Edition Book Collection', price: 340, description: 'First edition hardcovers: "The Road" by McCarthy, "Never Let Me Go" by Ishiguro, "A Visit from the Goon Squad" by Egan. All signed.', category: 'Books', condition: 'Good', deliveryMethod: 'delivery', image: 'BOOKS', location: 'Seattle, WA', sellerId: 'u24', sellerName: 'Nico Valentine', createdAt: Date.now() - 86400000 * 12 },
   { id: 'p24', title: 'NordicTrack Treadmill', price: 600, description: 'NordicTrack Commercial 1750. iFit compatible, 0-12% incline, folding. 14" touchscreen. 150 miles logged.', category: 'Sports', condition: 'Good', deliveryMethod: 'delivery', image: 'TREAD', location: 'Dallas, TX', sellerId: 'u25', sellerName: 'Oakley Frost', createdAt: Date.now() - 86400000 * 3 },
   { id: 'p25', title: 'Taylor GS Mini Acoustic Guitar', price: 400, description: 'Taylor GS Mini in Natural. Spruce top, sapele body. Gig bag included. Perfect travel guitar, sounds huge for its size.', category: 'Music', condition: 'Like New', deliveryMethod: 'delivery', image: 'TAYLOR', location: 'Nashville, TN', sellerId: 'u26', sellerName: 'Parker Snow', createdAt: Date.now() - 86400000 * 2 },
+];
+
+export const initialMarketplaceCart: CartItem[] = [
+  { productId: 'p1', quantity: 1 },
+  { productId: 'p2', quantity: 1 },
+  { productId: 'p3', quantity: 1 },
 ];

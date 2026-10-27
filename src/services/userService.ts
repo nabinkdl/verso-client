@@ -17,13 +17,22 @@ export function toggleFollow(
   });
 }
 
-export function editName(
+export function editProfile(
   users: AdminUser[],
   userId: string,
   newName: string,
+  newUsername: string,
+  avatarUrl?: string,
 ): AdminUser[] {
   return users.map((u) =>
-    u.id !== userId ? u : { ...u, name: newName },
+    u.id !== userId
+      ? u
+      : {
+          ...u,
+          name: newName,
+          username: newUsername,
+          ...(avatarUrl !== undefined ? { avatarUrl } : {}),
+        },
   );
 }
 
