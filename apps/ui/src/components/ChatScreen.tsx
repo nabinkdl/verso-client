@@ -11,6 +11,9 @@ interface ChatScreenProps {
   targetConversationId?: string | null;
   onClearTarget?: () => void;
   onRefresh: () => void;
+  demoMode?: boolean;
+  demoMessages?: Record<string, ChatMessage[]>;
+  onDemoSend?: (conversationId: string, message: ChatMessage) => void;
 }
 
 function timeAgo(iso: string): string {
@@ -33,6 +36,9 @@ export default function ChatScreen({
   targetConversationId,
   onClearTarget,
   onRefresh,
+  demoMode = false,
+  demoMessages,
+  onDemoSend,
 }: ChatScreenProps) {
   const [activeId, setActiveId] = useState<string | null>(targetConversationId ?? null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -55,6 +61,14 @@ export default function ChatScreen({
   useEffect(() => {
     if (!activeId) {
       setMessages([]);
+      return;
+    }
+
+    if (demoMode) {
+      setMessages(demoMessages?.[activeId] ?? []);
+      setLoading(false);
+      setError(null);
+      setTypingUsers([]);
       return;
     }
 
@@ -121,7 +135,7 @@ export default function ChatScreen({
       socket?.off('message:created', onMessage);
       socket?.off('typing', onTyping);
     };
-  }, [activeId, currentUserId, onRefresh]);
+  }, [activeId, currentUserId, demoMessages, demoMode, onRefresh]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -134,6 +148,7 @@ export default function ChatScreen({
   const otherName = otherUser?.name ?? 'conversation';
 
   const emitTyping = (isTyping: boolean) => {
+    if (demoMode) return;
     const socket = getChatSocket();
     if (!socket?.connected || !activeId) return;
 
@@ -172,6 +187,23 @@ export default function ChatScreen({
     setInputText('');
     emitTyping(false);
     window.clearTimeout(typingStopRef.current);
+
+    if (demoMode) {
+      const message: ChatMessage = {
+        id: `demo-msg-${Date.now()}`,
+        conversationId,
+        senderId: currentUserId,
+        text,
+        editedAt: null,
+        deleted: false,
+        createdAt: new Date().toISOString(),
+        sender: { id: currentUserId, username: 'you', name: 'You' },
+        replyTo: null,
+      };
+      appendMessage(message);
+      onDemoSend?.(conversationId, message);
+      return;
+    }
 
     const socket = getChatSocket();
     if (!socket?.connected) {

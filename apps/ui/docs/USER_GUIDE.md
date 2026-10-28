@@ -4,7 +4,7 @@ Verso is a mobile-style social app for sharing posts and short-form reels, joini
 
 This guide is written for people using the app. It explains where each feature lives and how to complete common tasks.
 
-> **Demo note:** This build uses sample data. You can sign in with any email and password. Most changes are kept for the current browser session and reset when you reload the page. The cart starts with a few sample items, and your light/dark theme choice is remembered.
+> **Demo note:** This build includes a UI-only demo account. The login form is prefilled with `alex@mononet.dev / Password123!` — select **Sign In** or **Continue with demo account**. Demo mode uses local sample data, so no API or database is required. Most changes stay in the current browser session and reset when you reload; the cart starts with a few sample items, and your light/dark theme choice is remembered.
 
 ---
 
@@ -36,7 +36,7 @@ This guide is written for people using the app. It explains where each feature l
 3. Enter your password.
 4. Select **Sign In**.
 
-In this demo, any email and password will sign you in.
+In demo mode the prefilled account signs you in locally, without contacting the API.
 
 ### Create an account
 
@@ -397,7 +397,7 @@ The mobile-style app frame stays centered in the browser window on larger screen
 
 ### Can I sign in without creating an account?
 
-Yes. In this demo, enter any email and password and select **Sign In**.
+Yes. Use the prefilled demo account and select **Sign In** (or **Continue with demo account**) — no account creation is required.
 
 ### Why did my posts, saves, or listings disappear?
 

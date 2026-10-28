@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
-import { Screen, Post, Conversation, NotificationItem, AdminUser, CartItem, User } from "./types";
+import { Screen, Post, Conversation, NotificationItem, AdminUser, CartItem, User, ChatMessage } from "./types";
 import { PageProvider, usePages } from './contexts/PageContext';
 import {
   CURRENT_USER_ID,
@@ -8,6 +8,16 @@ import {
   initialPages,
   initialMarketplaceCart,
 } from "./data";
+import {
+  DEMO_EMAIL,
+  DEMO_PASSWORD,
+  DEMO_USER,
+  initialDemoConversations,
+  initialDemoMessages,
+  initialPosts as initialDemoPosts,
+} from "./demoData";
+
+const DEMO_SESSION_KEY = "verso-demo";
 import { likePost, editPost, deletePost, addComment, editComment, deleteComment } from "./services/postService";
 import { api, getToken, setToken, toUiComment, toUiPost, toUiUser } from "./services/api";
 import { connectChatSocket, disconnectChatSocket } from "./services/chatSocket";
@@ -33,6 +43,13 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 function AppContent() {
   const resetToken = new URLSearchParams(window.location.search).get("resetToken");
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
+  const [demoMode, setDemoMode] = useState(() => {
+    try {
+      return localStorage.getItem(DEMO_SESSION_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [activeScreen, setActiveScreen] = useState<Screen>(() =>
@@ -103,6 +120,8 @@ function AppContent() {
   ]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [demoMessages, setDemoMessages] =
+    useState<Record<string, ChatMessage[]>>(initialDemoMessages);
   const [notifications, setNotifications] =
     useState<NotificationItem[]>(initialNotifications);
   const [profileUserId, setProfileUserId] = useState(CURRENT_USER_ID);
@@ -128,7 +147,7 @@ function AppContent() {
   const currentUserId = currentUser?.id ?? CURRENT_USER_ID;
 
   const refreshConversations = useCallback(async () => {
-    if (!getToken()) return;
+    if (demoMode || !getToken()) return;
 
     try {
       const page = await api.listConversations({ limit: 30 });
@@ -136,10 +155,10 @@ function AppContent() {
     } catch {
       // Chat is optional; ignore transient failures and keep the last list.
     }
-  }, []);
+  }, [demoMode]);
 
   useEffect(() => {
-    if (!currentUser || !getToken()) return;
+    if (demoMode || !currentUser || !getToken()) return;
 
     const socket = connectChatSocket(getToken()!);
     const onConversationUpdated = () => {
@@ -152,7 +171,7 @@ function AppContent() {
     return () => {
       socket.off("conversation:updated", onConversationUpdated);
     };
-  }, [currentUser, refreshConversations]);
+  }, [currentUser, demoMode, refreshConversations]);
 
   const mergeUsers = useCallback((incoming: AdminUser[]) => {
     setUsers((prev) => {
@@ -178,6 +197,7 @@ function AppContent() {
 
   const loadFeed = useCallback(
     async (me: AdminUser) => {
+      if (demoMode) return;
       const page = await api.listPosts({ limit: 20 });
       const commentLists = await Promise.all(
         page.data.map((post) => api.comments(post.id).catch(() => [])),
@@ -194,10 +214,39 @@ function AppContent() {
         ...commentLists.flat().map((comment) => toUiUser(comment.author)),
       ]);
     },
-    [mergeUsers],
+    [demoMode, mergeUsers],
   );
 
+  const enterDemoMode = useCallback(() => {
+    setDemoMode(true);
+    try {
+      localStorage.setItem(DEMO_SESSION_KEY, "1");
+    } catch {
+      // Storage unavailable — keep the demo session in memory only.
+    }
+    setToken(null);
+    setAuthLoading(false);
+    setAuthError(null);
+    setCurrentUser(DEMO_USER);
+    mergeUsers([DEMO_USER]);
+    setPosts(initialDemoPosts);
+    setConversations(initialDemoConversations);
+    setDemoMessages(initialDemoMessages);
+    setActiveScreen("home");
+  }, [mergeUsers]);
+
   useEffect(() => {
+    if (demoMode) {
+      setToken(null);
+      setCurrentUser(DEMO_USER);
+      mergeUsers([DEMO_USER]);
+      setPosts(initialDemoPosts);
+      setConversations(initialDemoConversations);
+      setDemoMessages(initialDemoMessages);
+      if (!resetToken) setActiveScreen("home");
+      return;
+    }
+
     if (!getToken()) return;
     let active = true;
     (async () => {
@@ -215,9 +264,18 @@ function AppContent() {
     return () => {
       active = false;
     };
-  }, [loadFeed, mergeUsers, resetToken]);
+  }, [demoMode, loadFeed, mergeUsers, resetToken]);
 
   const handleLogin = async (identifier: string, password: string) => {
+    const isDemoLogin =
+      identifier.trim().toLowerCase() === DEMO_EMAIL.toLowerCase() &&
+      password === DEMO_PASSWORD;
+
+    if (isDemoLogin) {
+      enterDemoMode();
+      return;
+    }
+
     setAuthLoading(true);
     setAuthError(null);
     try {
@@ -281,11 +339,18 @@ function AppContent() {
   };
 
   const handleLogout = () => {
+    setDemoMode(false);
+    try {
+      localStorage.removeItem(DEMO_SESSION_KEY);
+    } catch {
+      // Storage unavailable — nothing to clear.
+    }
     setToken(null);
     disconnectChatSocket();
     setCurrentUser(null);
     setPosts([]);
     setConversations([]);
+    setDemoMessages(initialDemoMessages);
     setTargetConversationId(null);
     setProfileUserId(CURRENT_USER_ID);
     setAuthError(null);
@@ -301,6 +366,15 @@ function AppContent() {
     const wasLiked = target.likes.includes(uid);
 
     setPosts((prev) => likePost(prev, postId, uid));
+
+    if (demoMode) {
+      pushNotification({
+        title: "Like updated",
+        message: "You reacted to a post from the feed.",
+        kind: "like",
+      });
+      return;
+    }
 
     try {
       const result = wasLiked
@@ -330,6 +404,7 @@ function AppContent() {
   const handleEditPost = async (postId: string, caption: string) => {
     const previous = posts;
     setPosts((prev) => editPost(prev, postId, caption));
+    if (demoMode) return;
     try {
       await api.updatePost(postId, { caption });
     } catch (error) {
@@ -343,6 +418,7 @@ function AppContent() {
   const handleDeletePost = async (postId: string) => {
     const previous = posts;
     setPosts((prev) => deletePost(prev, postId));
+    if (demoMode) return;
     try {
       await api.deletePost(postId);
     } catch (error) {
@@ -354,6 +430,21 @@ function AppContent() {
   };
 
   const handleComment = async (postId: string, text: string) => {
+    if (demoMode) {
+      const comment = {
+        id: `demo-comment-${Date.now()}`,
+        userId: currentUserId,
+        text,
+      };
+      setPosts((prev) => addComment(prev, postId, comment));
+      pushNotification({
+        title: "Comment posted",
+        message: text,
+        kind: "comment",
+      });
+      return;
+    }
+
     try {
       const comment = await api.addComment(postId, text);
       setPosts((prev) => addComment(prev, postId, toUiComment(comment)));
@@ -382,6 +473,7 @@ function AppContent() {
   const handleDeleteComment = async (postId: string, commentId: string) => {
     const previous = posts;
     setPosts((prev) => deleteComment(prev, postId, commentId));
+    if (demoMode) return;
     try {
       await api.deleteComment(postId, commentId);
     } catch (error) {
@@ -403,6 +495,42 @@ function AppContent() {
   const handleToggleFollow = async (target: User) => {
     if (!currentUser || target.id === currentUser.id) return;
     const wasFollowing = currentUser.following.includes(target.id);
+
+    if (demoMode) {
+      const nextFollowing = wasFollowing
+        ? currentUser.following.filter((id) => id !== target.id)
+        : [...currentUser.following, target.id];
+
+      setCurrentUser((prev) =>
+        prev ? { ...prev, following: nextFollowing } : prev,
+      );
+      setUsers((prev) =>
+        prev.map((user) => {
+          if (user.id === currentUser.id) {
+            return { ...user, following: nextFollowing };
+          }
+          if (
+            user.id === target.id &&
+            typeof user.followerCount === "number"
+          ) {
+            return {
+              ...user,
+              followerCount: Math.max(
+                user.followerCount + (wasFollowing ? -1 : 1),
+                0,
+              ),
+            };
+          }
+          return user;
+        }),
+      );
+      pushNotification({
+        title: "Following updated",
+        message: "You changed who you follow.",
+        kind: "follow",
+      });
+      return;
+    }
 
     try {
       const result = wasFollowing
@@ -460,6 +588,30 @@ function AppContent() {
         ? media.url
         : undefined;
 
+    if (demoMode) {
+      const newPost: Post = {
+        id: `demo-post-${Date.now()}`,
+        authorId: currentUserId,
+        pageId,
+        caption,
+        imageUrl: usableMediaUrl && !isVideo ? usableMediaUrl : undefined,
+        imageAlt: caption || "New post image",
+        mediaUrl: usableMediaUrl,
+        mediaType: usableMediaUrl ? (isVideo ? "video" : "image") : undefined,
+        likes: [],
+        comments: [],
+        createdAt: Date.now(),
+      };
+      setPosts((prev) => [newPost, ...prev]);
+      pushNotification({
+        title: isVideo ? "Reel uploaded" : "Post uploaded",
+        message: media?.name ?? (caption || "New content is now live."),
+        kind: isVideo ? "reel" : "post",
+      });
+      setActiveScreen("home");
+      return;
+    }
+
     try {
       const created = await api.createPost({
         caption,
@@ -505,6 +657,18 @@ function AppContent() {
       payload.avatarUrl = avatarUrl;
     }
 
+    if (demoMode) {
+      const merged: AdminUser = {
+        ...currentUser,
+        name: newName,
+        username: newUsername || currentUser.username,
+        ...(payload.avatarUrl ? { avatarUrl: payload.avatarUrl } : {}),
+      };
+      setCurrentUser(merged);
+      mergeUsers([merged]);
+      return;
+    }
+
     try {
       const updated = toUiUser(await api.updateProfile(payload));
       const merged: AdminUser = {
@@ -529,6 +693,8 @@ function AppContent() {
     const local = users.find((user) => user.id === userId);
     if (!local) return null;
 
+    if (demoMode) return local.username;
+
     // Demo profiles use ids like "u2"; resolve them to a real account by name.
     if (!local.id.startsWith("u")) return local.username;
 
@@ -542,9 +708,75 @@ function AppContent() {
     }
   };
 
+  const handleDemoSend = useCallback(
+    (conversationId: string, message: ChatMessage) => {
+      setDemoMessages((prev) => ({
+        ...prev,
+        [conversationId]: [...(prev[conversationId] ?? []), message],
+      }));
+      setConversations((prev) =>
+        prev.map((conversation) =>
+          conversation.id === conversationId
+            ? {
+                ...conversation,
+                lastMessage: message,
+                lastMessageAt: message.createdAt,
+              }
+            : conversation,
+        ),
+      );
+    },
+    [],
+  );
+
   const openConversationWith = async (
     username: string,
   ): Promise<Conversation | null> => {
+    if (demoMode) {
+      if (!currentUser) return null;
+      const other = users.find((user) => user.username === username);
+      if (!other) return null;
+
+      const existing = conversations.find((conversation) =>
+        conversation.participants.some(
+          (participant) => participant.id === other.id,
+        ),
+      );
+      if (existing) {
+        setTargetConversationId(existing.id);
+        setActiveScreen("chat");
+        return existing;
+      }
+
+      const conversation: Conversation = {
+        id: `demo-chat-${other.id}`,
+        type: "DIRECT",
+        participants: [
+          {
+            id: currentUser.id,
+            username: currentUser.username,
+            name: currentUser.name,
+            avatarUrl: currentUser.avatarUrl ?? null,
+          },
+          {
+            id: other.id,
+            username: other.username,
+            name: other.name,
+            avatarUrl: other.avatarUrl ?? null,
+          },
+        ],
+        lastMessage: null,
+        lastMessageAt: new Date().toISOString(),
+        unreadCount: 0,
+        createdAt: new Date().toISOString(),
+      };
+      setConversations((prev) => [conversation, ...prev]);
+      setDemoMessages((prev) => ({ ...prev, [conversation.id]: [] }));
+      setTargetConversationId(conversation.id);
+      setActiveScreen("chat");
+      return conversation;
+    }
+
     try {
       const conversation = await api.createConversation({ username });
       setConversations((prev) =>
@@ -585,6 +817,28 @@ function AppContent() {
     const conversation = await openConversationWith(username);
     if (!conversation) return;
 
+    if (demoMode) {
+      if (currentUser) {
+        handleDemoSend(conversation.id, {
+          id: `demo-msg-${Date.now()}`,
+          conversationId: conversation.id,
+          senderId: currentUser.id,
+          text: `Hi, I'm interested in "${productTitle}"`,
+          editedAt: null,
+          deleted: false,
+          createdAt: new Date().toISOString(),
+          sender: {
+            id: currentUser.id,
+            username: currentUser.username,
+            name: currentUser.name,
+            avatarUrl: currentUser.avatarUrl ?? null,
+          },
+          replyTo: null,
+        });
+      }
+      return;
+    }
+
     try {
       await api.sendMessage(
         conversation.id,
@@ -611,6 +865,7 @@ function AppContent() {
 
     const target = users.find((user) => user.id === userId);
     if (!target) return;
+    if (demoMode) return;
 
     api
       .profile(target.username)
@@ -632,11 +887,21 @@ function AppContent() {
 
   const handleSearchUsers = useCallback(
     async (query: string): Promise<User[]> => {
+      if (demoMode) {
+        const needle = query.trim().toLowerCase();
+        if (!needle) return users;
+        return users.filter(
+          (user) =>
+            user.name.toLowerCase().includes(needle) ||
+            user.username.toLowerCase().includes(needle),
+        );
+      }
+
       const results = (await api.searchUsers(query)).map(toUiUser);
       mergeUsers(results);
       return results;
     },
-    [mergeUsers],
+    [demoMode, mergeUsers, users],
   );
 
   return (
@@ -911,6 +1176,9 @@ function AppContent() {
             currentUserId={currentUserId}
             targetConversationId={targetConversationId}
             onRefresh={refreshConversations}
+            demoMode={demoMode}
+            demoMessages={demoMessages}
+            onDemoSend={handleDemoSend}
             onClearTarget={() => {
               setTargetConversationId(null);
               if (chatOrigin === "marketplace") {

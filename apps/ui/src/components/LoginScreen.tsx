@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { LogIn } from "lucide-react";
+import { DEMO_EMAIL, DEMO_PASSWORD } from "../demoData";
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => void | Promise<void>;
@@ -8,9 +9,6 @@ interface LoginScreenProps {
   error?: string | null;
   submitting?: boolean;
 }
-
-export const DEMO_EMAIL = "alex@mononet.dev";
-export const DEMO_PASSWORD = "Password123!";
 
 export default function LoginScreen({
   onLogin,
@@ -186,7 +184,7 @@ export default function LoginScreen({
             marginBottom: 12,
           }}
         >
-          Demo account is pre-filled — press “Sign In” or “Continue with demo account”.
+          Demo mode uses mock data only — press “Sign In” or “Continue with demo account”.
         </p>
         <button
           type="button"

@@ -43,6 +43,8 @@ npm run dev
 
 The seeded demo account is `alex@mononet.dev` with password `Password123!`. All six seeded accounts share that password.
 
+On the login screen, those credentials also open a **UI-only demo session** backed by local mock data — no API or database required. Any other credentials use the real API.
+
 See [docs/RUNNING.md](docs/RUNNING.md) for the local dev run state, ports, and how to start/stop the app.
 
 ## Scripts
