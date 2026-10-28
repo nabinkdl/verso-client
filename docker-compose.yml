@@ -9,10 +9,11 @@ services:
       - path: apps/backend/.env
         required: false
     # Neon's pooler hostname can resolve to an edge that is unreachable from
-    # Docker's bridge network on some hosts. Pin it to a reachable IPv4.
-    # Override NEON_DB_HOST / NEON_DB_IP when the project or IP changes.
+    # Docker's bridge network on some hosts. Pin it to a reachable IPv4 by
+    # setting NEON_DB_HOST and NEON_DB_IP in the root .env file. Remove this
+    # block entirely if your host does not need the workaround.
     extra_hosts:
-      - "${NEON_DB_HOST:-ep-misty-bonus-b4db8c0d-pooler.c-6.us-east-2.aws.neon.tech}:${NEON_DB_IP:-52.95.251.153}"
+      - "${NEON_DB_HOST:?set NEON_DB_HOST in .env}:${NEON_DB_IP:?set NEON_DB_IP in .env}"
     environment:
       NODE_ENV: production
       PORT: '3000'

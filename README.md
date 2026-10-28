@@ -139,12 +139,15 @@ This builds the UI with `VITE_API_URL=/api`, builds the API, copies the UI into 
 The `Dockerfile` builds the UI into the API image. Node serves both on **port 3000** — one container, one port.
 
 ```bash
-npm run db:deploy   # apply migrations to DATABASE_URL first
-npm run docker:up   # build + start
+cp .env.example .env   # set NEON_DB_HOST / NEON_DB_IP (and PUBLIC_URL if needed)
+npm run db:deploy      # apply migrations to DATABASE_URL first
+npm run docker:up      # build + start
 npm run docker:ps
 npm run docker:logs
 npm run docker:down
 ```
+
+Keep `apps/backend/.env` (database URL, JWT secret, Resend key) and `.neon` (Neon org/project IDs) local. Both are gitignored; never commit or `git add -f` them.
 
 | Service | URL |
 | --- | --- |
@@ -155,7 +158,7 @@ npm run docker:down
 
 The container reads `apps/backend/.env` for `DATABASE_URL` (Neon), `JWT_SECRET`, and Resend settings. The UI is built with `VITE_API_URL=/api`, so browser requests are same-origin.
 
-> Docker's bridge network can resolve Neon's pooler hostname to an edge it cannot reach. Compose pins that hostname to a working IPv4 via `extra_hosts`; if the host or IP changes, override `NEON_DB_HOST` / `NEON_DB_IP`.
+> Docker's bridge network can resolve Neon's pooler hostname to an edge it cannot reach. Compose pins that hostname to a working IPv4 via `extra_hosts`, using `NEON_DB_HOST` / `NEON_DB_IP` from the root `.env`. If your host does not need this workaround, remove the `extra_hosts` block from `docker-compose.yml`.
 
 Override the public origin when deploying:
 

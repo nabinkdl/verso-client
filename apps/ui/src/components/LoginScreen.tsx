@@ -9,6 +9,9 @@ interface LoginScreenProps {
   submitting?: boolean;
 }
 
+export const DEMO_EMAIL = "alex@mononet.dev";
+export const DEMO_PASSWORD = "Password123!";
+
 export default function LoginScreen({
   onLogin,
   onNavigateToRegister,
@@ -16,12 +19,20 @@ export default function LoginScreen({
   error,
   submitting = false,
 }: LoginScreenProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState(DEMO_EMAIL);
+  const [password, setPassword] = useState(DEMO_PASSWORD);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(email, password);
+    if (submitting) return;
+    onLogin(email.trim() || DEMO_EMAIL, password || DEMO_PASSWORD);
+  };
+
+  const handleDemoLogin = () => {
+    if (submitting) return;
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+    onLogin(DEMO_EMAIL, DEMO_PASSWORD);
   };
 
   return (
@@ -144,6 +155,26 @@ export default function LoginScreen({
         >
           {submitting ? "Signing in..." : "Sign In"}
         </button>
+
+        <button
+          type="button"
+          onClick={handleDemoLogin}
+          disabled={submitting}
+          style={{
+            width: "100%",
+            padding: "12px 16px",
+            backgroundColor: "transparent",
+            border: "1px solid var(--border)",
+            borderRadius: 8,
+            color: "var(--text)",
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: submitting ? "wait" : "pointer",
+            opacity: submitting ? 0.6 : 1,
+          }}
+        >
+          Continue with demo account
+        </button>
       </form>
 
       <div style={{ marginTop: 16, textAlign: "center" }}>
@@ -155,7 +186,7 @@ export default function LoginScreen({
             marginBottom: 12,
           }}
         >
-          Demo: alex@mononet.dev / Password123!
+          Demo account is pre-filled — press “Sign In” or “Continue with demo account”.
         </p>
         <button
           type="button"

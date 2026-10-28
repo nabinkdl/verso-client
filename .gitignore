@@ -7,10 +7,16 @@ build/
 coverage/
 *.tsbuildinfo
 
-# Environment
+# Environment and secrets
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
 
 # Logs
 logs/
