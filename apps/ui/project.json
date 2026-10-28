@@ -1,0 +1,34 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "@mononet/ui",
+  "projectType": "application",
+  "sourceRoot": "apps/ui/src",
+  "tags": ["type:app", "scope:ui"],
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": { "command": "vite", "cwd": "apps/ui" }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
+      "inputs": ["production", "^production", { "env": "VITE_API_URL" }],
+      "options": { "command": "vite build", "cwd": "apps/ui" }
+    },
+    "preview": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "dependsOn": ["build"],
+      "options": { "command": "vite preview", "cwd": "apps/ui" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": { "command": "eslint .", "cwd": "apps/ui" }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": { "command": "tsc --noEmit -p tsconfig.app.json", "cwd": "apps/ui" }
+    }
+  }
+}

@@ -9,6 +9,9 @@ How the app was started locally, what is currently serving, and how to reproduce
 | UI (Vite, hot reload) | <http://localhost:5173> | ✅ 200 |
 | API | <http://localhost:3000/api> | ✅ healthy, DB up |
 | Swagger docs | <http://localhost:3000/docs> | ✅ |
+| Chat socket | `ws://localhost:3000/chat` (namespace) | ✅ JWT handshake |
+
+Chat history is REST (`/api/conversations`); live messages, typing, and read receipts use Socket.IO on the `/chat` namespace. The UI connects with the stored access token, so no extra port or service is needed.
 
 Health check used to confirm the API:
 
@@ -37,6 +40,10 @@ Equivalent targeted commands:
 ```bash
 npm run dev:ui    # UI only (5173)
 npm run dev:api   # API only, watch mode (3000)
+
+# or through Nx
+npx nx run @mononet/ui:dev
+npx nx run @mononet/backend:dev
 ```
 
 ## Demo login

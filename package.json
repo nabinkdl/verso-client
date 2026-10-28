@@ -30,10 +30,16 @@
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
-    "docker:ps": "docker compose ps"
+    "docker:ps": "docker compose ps",
+    "graph": "nx graph",
+    "affected": "nx affected -t lint typecheck test build",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "concurrently": "^9.2.5"
+    "concurrently": "^9.2.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "nx": "24.0.2"
   },
   "engines": {
     "node": ">=22"

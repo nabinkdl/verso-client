@@ -58,11 +58,42 @@ Run these from the repository root.
 | `npm run lint` | Lint every workspace |
 | `npm run typecheck` | Typecheck every workspace |
 | `npm run test` | Run every workspace's tests |
+| `npm run graph` | Open the Nx project graph |
+| `npm run affected` | Lint, typecheck, test, and build only what changed |
 | `npm run db:migrate` | Create/apply a development migration |
 | `npm run db:deploy` | Apply committed migrations (production) |
 | `npm run db:seed` | Reset and seed demo data |
 | `npm run db:studio` | Open Prisma Studio |
 | `npm run db:generate` | Regenerate the Prisma client |
+
+## Monorepo tooling
+
+The workspace is driven by **Nx 24** over npm workspaces. Task targets live in `apps/*/project.json` and caching/inputs in `nx.json`.
+
+```bash
+npx nx graph                          # visualize projects and targets
+npx nx run-many -t lint typecheck test # run a target across both apps
+npx nx affected -t typecheck test     # only projects changed vs. main
+npx nx run @mononet/ui:build          # one target
+npx nx run @mononet/backend:dev       # NestJS in watch mode
+```
+
+| Project | Targets |
+| --- | --- |
+| `@mononet/ui` | `dev`, `build`, `preview`, `lint`, `typecheck` |
+| `@mononet/backend` | `dev`, `build`, `start`, `start:prod`, `lint`, `typecheck`, `test`, `test:e2e`, `format`, `db:*` |
+
+`build`, `lint`, `typecheck`, `test`, and `db:generate` are cached locally under `.nx/cache`. `db:generate` is a dependency of the backend build, lint, typecheck, and test targets, so a clean checkout works without a separate generate step. The existing `npm run …` scripts are unchanged and still work.
+
+## Git hooks
+
+**Husky** is installed by the root `prepare` script on `npm install`.
+
+- `pre-commit` → `lint-staged`: ESLint `--fix` for staged UI files, type-aware `oxlint` for staged API files.
+- `pre-push` → `nx run-many -t typecheck test`.
+
+Bypass a hook when needed with `git commit --no-verify` or `git push --no-verify`.
+
 
 ## Backend
 
@@ -75,6 +106,7 @@ The API uses NestJS 12 with Prisma ORM 7 and PostgreSQL. It provides:
 - Swagger documentation at `/docs`
 - Environment validation and Prisma error mapping
 - Password reset emails via Resend with single-use, expiring tokens
+- Real-time chat over Socket.IO (`/chat` namespace) with REST history
 
 See [apps/backend/README.md](apps/backend/README.md) for the API reference, data model, and deployment notes.
 

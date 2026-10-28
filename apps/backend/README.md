@@ -8,6 +8,7 @@ NestJS REST API for the Mononet (Verso) social app, backed by Prisma ORM and Pos
 - Prisma ORM 7 with the PostgreSQL driver adapter
 - PostgreSQL 16
 - JWT authentication (Passport)
+- Socket.IO for real-time chat
 - Resend for transactional email (password reset)
 - Swagger / OpenAPI docs
 - Vitest for tests
@@ -93,6 +94,20 @@ All routes use the `/api` prefix.
 | `GET` | `/posts/:id/comments` | List comments |
 | `POST` | `/posts/:id/comments` | Add a comment |
 | `DELETE` | `/posts/:id/comments/:commentId` | Delete a comment |
+
+### Chat
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/conversations` | List your conversations (`cursor`, `limit`) |
+| `GET` | `/conversations/unread-count` | Unread messages and conversations |
+| `POST` | `/conversations` | Get or create a direct conversation (`username` or `userId`) |
+| `GET` | `/conversations/:id` | One conversation |
+| `GET` | `/conversations/:id/messages` | Page history (`cursor`, `limit`) |
+| `POST` | `/conversations/:id/messages` | Send over HTTP (also broadcasts) |
+| `POST` | `/conversations/:id/read` | Mark read (`messageId` optional) |
+
+Real-time: connect to Socket.IO at `<origin>/chat` with `{ auth: { token } }` (the same JWT). Events: `conversation:join`, `message:send`, `message:read`, `typing:start`/`typing:stop` from the client; `message:created`, `conversation:updated`, `conversation:read`, `typing`, `chat:error` from the server. See [docs/API-DESIGN.md](../../docs/API-DESIGN.md) for payloads.
 
 Authenticated routes expect `Authorization: Bearer <accessToken>`.
 

@@ -38,17 +38,38 @@ export interface NotificationItem {
   createdAt: number;
 }
 
-export interface Message {
-  from: string;
-  text: string;
-  timestamp: number;
+export interface ChatUser {
+  id: string;
+  username: string;
+  name: string;
+  avatarUrl?: string | null;
 }
 
-export interface Chat {
+export interface ChatMessage {
   id: string;
-  participants: string[];
-  messages: Message[];
-  lastUpdated: number;
+  conversationId: string;
+  senderId: string;
+  text: string | null;
+  mediaUrl?: string | null;
+  editedAt?: string | null;
+  deleted: boolean;
+  createdAt: string;
+  sender: ChatUser;
+  replyTo?: {
+    id: string;
+    senderId: string;
+    text: string | null;
+  } | null;
+}
+
+export interface Conversation {
+  id: string;
+  type: "DIRECT" | "GROUP";
+  participants: ChatUser[];
+  lastMessage: ChatMessage | null;
+  lastMessageAt: string;
+  unreadCount: number;
+  createdAt: string;
 }
 
 export interface PageMember {

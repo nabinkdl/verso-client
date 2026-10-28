@@ -1,0 +1,112 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "@mononet/backend",
+  "projectType": "application",
+  "sourceRoot": "apps/backend/src",
+  "tags": ["type:app", "scope:api"],
+  "targets": {
+    "db:generate": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/prisma/schema.prisma",
+        "{projectRoot}/prisma.config.ts",
+        "{projectRoot}/package.json"
+      ],
+      "outputs": ["{projectRoot}/src/generated/prisma"],
+      "options": { "command": "prisma generate", "cwd": "apps/backend" }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["db:generate"],
+      "outputs": ["{projectRoot}/dist"],
+      "options": { "command": "nest build", "cwd": "apps/backend" }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": { "command": "nest start --watch", "cwd": "apps/backend" }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": { "command": "nest start", "cwd": "apps/backend" }
+    },
+    "start:prod": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": { "command": "node dist/main.js", "cwd": "apps/backend" }
+    },
+    "start:debug": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": { "command": "nest start --debug --watch", "cwd": "apps/backend" }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["db:generate"],
+      "options": { "command": "oxlint --type-aware src/ test/", "cwd": "apps/backend" }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["db:generate"],
+      "options": { "command": "tsc --noEmit", "cwd": "apps/backend" }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["db:generate"],
+      "options": { "command": "vitest run", "cwd": "apps/backend" }
+    },
+    "test:watch": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "dependsOn": ["db:generate"],
+      "options": { "command": "vitest", "cwd": "apps/backend" }
+    },
+    "test:cov": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["db:generate"],
+      "outputs": ["{projectRoot}/coverage"],
+      "options": { "command": "vitest run --coverage", "cwd": "apps/backend" }
+    },
+    "test:debug": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "dependsOn": ["db:generate"],
+      "options": { "command": "vitest --inspect-brk --no-file-parallelism", "cwd": "apps/backend" }
+    },
+    "test:e2e": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["db:generate"],
+      "options": { "command": "vitest run --config ./vitest.config.e2e.ts", "cwd": "apps/backend" }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"prisma/**/*.ts\"",
+        "cwd": "apps/backend"
+      }
+    },
+    "db:migrate": {
+      "executor": "nx:run-commands",
+      "options": { "command": "prisma migrate dev", "cwd": "apps/backend" }
+    },
+    "db:deploy": {
+      "executor": "nx:run-commands",
+      "options": { "command": "prisma migrate deploy", "cwd": "apps/backend" }
+    },
+    "db:seed": {
+      "executor": "nx:run-commands",
+      "options": { "command": "prisma db seed", "cwd": "apps/backend" }
+    },
+    "db:reset": {
+      "executor": "nx:run-commands",
+      "options": { "command": "prisma migrate reset", "cwd": "apps/backend" }
+    },
+    "db:studio": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": { "command": "prisma studio", "cwd": "apps/backend" }
+    }
+  }
+}

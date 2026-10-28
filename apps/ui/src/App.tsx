@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
-import { Screen, Post, Chat, NotificationItem, AdminUser, CartItem, User } from "./types";
+import { Screen, Post, Conversation, NotificationItem, AdminUser, CartItem, User } from "./types";
 import { PageProvider, usePages } from './contexts/PageContext';
 import {
   CURRENT_USER_ID,
-  initialChats,
   initialNotifications,
   initialPages,
   initialMarketplaceCart,
 } from "./data";
 import { likePost, editPost, deletePost, addComment, editComment, deleteComment } from "./services/postService";
 import { api, getToken, setToken, toUiComment, toUiPost, toUiUser } from "./services/api";
-import { sendMessage, findOrCreateChat } from "./services/chatService";
+import { connectChatSocket, disconnectChatSocket } from "./services/chatSocket";
 import { addNotification } from "./services/notificationService";
 import BottomNav from "./components/BottomNav";
 import HomeScreen from "./components/HomeScreen";
@@ -103,11 +102,11 @@ function AppContent() {
     { id: 'u42', name: 'Nova Reyes', username: 'nreyes', email: 'nova@verso.app', role: 'member', status: 'active', joinedAt: Date.now(), followers: [], following: [], permissions: memberPerms },
   ]);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [chats, setChats] = useState<Chat[]>(initialChats);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [notifications, setNotifications] =
     useState<NotificationItem[]>(initialNotifications);
   const [profileUserId, setProfileUserId] = useState(CURRENT_USER_ID);
-  const [targetChatId, setTargetChatId] = useState<string | null>(null);
+  const [targetConversationId, setTargetConversationId] = useState<string | null>(null);
   const [chatOrigin, setChatOrigin] = useState<"marketplace" | null>(null);
   const [marketplaceCart, setMarketplaceCart] =
     useState<CartItem[]>(initialMarketplaceCart);
@@ -127,6 +126,33 @@ function AppContent() {
   };
 
   const currentUserId = currentUser?.id ?? CURRENT_USER_ID;
+
+  const refreshConversations = useCallback(async () => {
+    if (!getToken()) return;
+
+    try {
+      const page = await api.listConversations({ limit: 30 });
+      setConversations(page.data);
+    } catch {
+      // Chat is optional; ignore transient failures and keep the last list.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser || !getToken()) return;
+
+    const socket = connectChatSocket(getToken()!);
+    const onConversationUpdated = () => {
+      void refreshConversations();
+    };
+
+    socket.on("conversation:updated", onConversationUpdated);
+    void refreshConversations();
+
+    return () => {
+      socket.off("conversation:updated", onConversationUpdated);
+    };
+  }, [currentUser, refreshConversations]);
 
   const mergeUsers = useCallback((incoming: AdminUser[]) => {
     setUsers((prev) => {
@@ -256,8 +282,11 @@ function AppContent() {
 
   const handleLogout = () => {
     setToken(null);
+    disconnectChatSocket();
     setCurrentUser(null);
     setPosts([]);
+    setConversations([]);
+    setTargetConversationId(null);
     setProfileUserId(CURRENT_USER_ID);
     setAuthError(null);
     setActiveScreen("login");
@@ -460,12 +489,6 @@ function AppContent() {
     }
   };
 
-  const handleSendMessage = (chatId: string, text: string) => {
-    setChats((prev) =>
-      sendMessage(prev, chatId, { from: CURRENT_USER_ID, text, timestamp: Date.now() }),
-    );
-  };
-
   const handleEditProfile = async (
     newName: string,
     newUsername: string,
@@ -502,35 +525,81 @@ function AppContent() {
     }
   };
 
-  const handleMessageUser = (userId: string) => {
-    const { chats: updatedChats, chatId } = findOrCreateChat(chats, CURRENT_USER_ID, userId);
-    setChats(updatedChats);
-    setTargetChatId(chatId);
-    setActiveScreen("chat");
+  const resolveChatUsername = async (userId: string): Promise<string | null> => {
+    const local = users.find((user) => user.id === userId);
+    if (!local) return null;
+
+    // Demo profiles use ids like "u2"; resolve them to a real account by name.
+    if (!local.id.startsWith("u")) return local.username;
+
+    try {
+      const matches = await api.searchUsers(local.name);
+      const match =
+        matches.find((candidate) => candidate.name === local.name) ?? matches[0];
+      return match?.username ?? null;
+    } catch {
+      return null;
+    }
   };
 
-  const handleMessageSeller = (sellerId: string, productTitle: string) => {
-    const { chats: updatedChats, chatId } = findOrCreateChat(
-      chats,
-      CURRENT_USER_ID,
-      sellerId,
-    );
-    setChats(
-      sendMessage(updatedChats, chatId, {
-        from: CURRENT_USER_ID,
-        text: `Hi, I'm interested in "${productTitle}"`,
-        timestamp: Date.now(),
-      }),
-    );
-    setTargetChatId(chatId);
+  const openConversationWith = async (
+    username: string,
+  ): Promise<Conversation | null> => {
+    try {
+      const conversation = await api.createConversation({ username });
+      setConversations((prev) =>
+        prev.some((item) => item.id === conversation.id)
+          ? prev
+          : [conversation, ...prev],
+      );
+      setTargetConversationId(conversation.id);
+      setActiveScreen("chat");
+      void refreshConversations();
+      return conversation;
+    } catch (error) {
+      window.alert(
+        error instanceof Error ? error.message : "Could not start conversation",
+      );
+      return null;
+    }
+  };
+
+  const handleMessageUser = async (userId: string) => {
+    const username = await resolveChatUsername(userId);
+    if (!username) {
+      window.alert("This account is not available for chat yet.");
+      return;
+    }
+
+    await openConversationWith(username);
+  };
+
+  const handleMessageSeller = async (sellerId: string, productTitle: string) => {
+    const username = await resolveChatUsername(sellerId);
+    if (!username) {
+      window.alert("This seller is not available for chat yet.");
+      return;
+    }
+
     setChatOrigin("marketplace");
-    setActiveScreen("chat");
+    const conversation = await openConversationWith(username);
+    if (!conversation) return;
+
+    try {
+      await api.sendMessage(
+        conversation.id,
+        `Hi, I'm interested in "${productTitle}"`,
+      );
+      await refreshConversations();
+    } catch {
+      // Keep the conversation open even if the intro message fails.
+    }
   };
 
   const handleNav = (screen: Screen) => {
     if (screen === "profile") setProfileUserId(currentUserId);
     if (screen !== "chat") {
-      setTargetChatId(null);
+      setTargetConversationId(null);
       setChatOrigin(null);
     }
     setActiveScreen(screen);
@@ -838,13 +907,12 @@ function AppContent() {
         )}
         {activeScreen === "chat" && (
           <ChatScreen
-            chats={chats}
-            users={users}
-            currentUserId={CURRENT_USER_ID}
-            onSendMessage={handleSendMessage}
-            targetChatId={targetChatId}
-            onClearTargetChat={() => {
-              setTargetChatId(null);
+            conversations={conversations}
+            currentUserId={currentUserId}
+            targetConversationId={targetConversationId}
+            onRefresh={refreshConversations}
+            onClearTarget={() => {
+              setTargetConversationId(null);
               if (chatOrigin === "marketplace") {
                 setChatOrigin(null);
                 setActiveScreen("marketplace");

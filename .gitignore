@@ -35,3 +35,8 @@ pnpm-debug.log*
 .cache/
 .graphify-cache/
 .neon
+
+# Nx
+.nx/cache
+.nx/workspace-data
+.nx/migrate-runs

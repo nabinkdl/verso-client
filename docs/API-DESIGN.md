@@ -92,7 +92,7 @@ User ──< Post ──< Comment
 
 1. **Reels are posts.** A reel is a `Post` with `mediaType = VIDEO`; it reuses comments, likes, saves, and moderation. Only discovery and counters are new.
 2. **Notifications are stored, not computed.** A row is written by the domain action that causes it (like, comment, follow, mention, page/marketplace events). This makes unread counts cheap and survives offline periods.
-3. **Chat is REST-first, realtime-optional.** Messages persist over HTTP; an SSE stream (`GET /events`) pushes notification/message hints. WebSocket is a later upgrade, not a v2 requirement.
+3. **Chat is Socket.IO for delivery, REST for history.** Messages persist over HTTP endpoints and live updates flow through a `/chat` Socket.IO namespace authenticated with the same JWT. No SSE. Servers broadcast to conversation rooms and per-user rooms; multi-instance deployments need a Redis adapter.
 4. **Pages own posts.** Add nullable `Post.pageId`; when set, the page (not the personal feed) is the author surface, and page role gates publishing.
 5. **Marketplace is order-first, payment-free.** No card processing in v2: buyers and sellers coordinate payment; the API models listing lifecycle, cart, order state machine, and meetup/delivery choice.
 6. **Everything the UI renders must be addressable.** Each prototype screen maps to at least one read endpoint so no module blocks another.
@@ -245,21 +245,50 @@ Rules:
 
 ---
 
-## 7. Chat 🆕
+## 7. Chat ✅ (Socket.IO)
 
-Two shapes: `DIRECT` (1:1, unique per participant pair) and `GROUP` (v2.1, no requirement yet but the model supports it).
+History is REST; live delivery is **Socket.IO** on the `/chat` namespace. There is no SSE endpoint and no polling requirement.
 
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
-| `GET` | `/conversations?cursor=&limit=` | bearer | Threads for the viewer, newest activity first |
-| `POST` | `/conversations` | bearer | `{ participantIds: ["<userId>"] }` — idempotent for direct chats |
+| `GET` | `/conversations?cursor=&limit=` | bearer | Threads for the viewer, newest activity first, with `unreadCount` |
+| `POST` | `/conversations` | bearer | `{ username }` or `{ userId }` — idempotent for direct chats (`200`) |
+| `GET` | `/conversations/unread-count` | bearer | `{ count, conversations }` (messages, threads) |
 | `GET` | `/conversations/:id` | bearer (member) | Thread metadata + participant profiles |
-| `GET` | `/conversations/:id/messages?before=&limit=` | bearer (member) | Reverse-chronological page, oldest-last |
-| `POST` | `/conversations/:id/messages` | bearer (member) | `{ text?, mediaUrl?, replyToId? }` |
-| `PATCH` | `/conversations/:id/messages/:messageId` | bearer (author) | Edit text within 15 min |
-| `DELETE` | `/conversations/:id/messages/:messageId` | bearer (author) | Soft delete → tombstone `"message deleted"` |
-| `POST` | `/conversations/:id/read` | bearer (member) | `{ lastMessageId }` → updates `lastReadAt` |
-| `GET` | `/conversations/unread-count` | bearer | `{ count }` total unread threads |
+| `GET` | `/conversations/:id/messages?cursor=&limit=` | bearer (member) | Reverse-chronological page returned oldest-last |
+| `POST` | `/conversations/:id/messages` | bearer (member) | HTTP fallback for sending (broadcasts the same event) |
+| `POST` | `/conversations/:id/read` | bearer (member) | `{ messageId? }` → updates `lastReadAt` |
+
+### 7.1 Socket connection
+
+- URL: `<API origin>/chat` (derive from `VITE_API_URL` by stripping `/api`; override with `VITE_SOCKET_URL`).
+- Auth: `io(url, { auth: { token: accessToken } })`. The gateway verifies the JWT in `handleConnection`, attaches `{ id, username }` to `socket.data`, joins `user:<id>`, and disconnects invalid tokens with a `chat:error` event.
+- CORS: handled by a custom `SocketIoAdapter` that mirrors `CORS_ORIGIN` (the default Nest adapter ignores `enableCors`).
+- Rooms: `user:<userId>` on connect; `conversation:<conversationId>` after a successful `conversation:join`.
+
+| Direction | Event | Payload | Notes |
+| --- | --- | --- | --- |
+| C→S | `conversation:join` | `{ conversationId }` | Ack `{ conversation }`; verifies membership |
+| C→S | `message:send` | `{ conversationId, text?, mediaUrl?, replyToId?, clientId? }` | Ack `{ message, clientId }` |
+| C→S | `message:read` | `{ conversationId, messageId? }` | Broadcasts `conversation:read` |
+| C→S | `typing:start` / `typing:stop` | `{ conversationId }` | Requires the conversation room |
+| S→C | `message:created` | full message | Conversation room |
+| S→C | `conversation:updated` | `{ conversationId, lastMessage? }` | Per-user room, so closed threads update badges |
+| S→C | `conversation:read` | `{ conversationId, userId, lastReadAt }` | Conversation room |
+| S→C | `typing` | `{ conversationId, userId, isTyping }` | Conversation room, sender excluded |
+| S→C | `chat:error` | `{ message }` | Sent before an unauthorized disconnect |
+
+### 7.2 Rules and constraints
+
+- Text ≤ 4000 chars; `text` or `mediaUrl` required; URL ≤ 2048; `replyToId` must belong to the same conversation.
+- Direct conversations use a sorted `directKey` (`userIdA:userIdB`) with a unique index; concurrent creates race-safely return the winner (`P2002` recovery).
+- Membership is checked on every REST call and on `conversation:join`; handler-level events rely on the joined room plus `socket.data.user`. Unauthorized REST calls get `404` so conversation existence does not leak.
+- Any member can read history; there is no per-message ACL beyond membership.
+- Rate limit: 30 messages/minute/user (`429` for REST; the gateway should mirror this before public launch).
+- The API persists `lastMessageAt` in the same transaction as the message and emits `conversation:updated` to every participant's user room, so unread badges update without opening the thread.
+- Clients send with an ack and a 15s timeout. **Do not retry over HTTP on ack timeout** — the message may already be persisted; refresh history or wait for `message:created` instead. Only fall back to `POST /conversations/:id/messages` when the socket is disconnected.
+- Scaling: Socket.IO rooms are in-process. Multiple API instances require `@socket.io/redis-adapter` (not implemented).
+- Not built yet: edit/delete message endpoints (`Message.deletedAt` exists), group conversations (`type = GROUP` is modelled), attachments beyond URL strings, presence.
 
 ```jsonc
 // GET /conversations
@@ -267,23 +296,14 @@ Two shapes: `DIRECT` (1:1, unique per participant pair) and `GROUP` (v2.1, no re
   "data": [{
     "id": "cm...",
     "type": "DIRECT",
-    "participants": [{ "id": "…", "username": "jamiel", "name": "Jamie Lee", "avatarUrl": "…" }],
+    "participants": [{ "id": "…", "username": "jamiel", "name": "Jamie Lin", "avatarUrl": "…" }],
     "lastMessage": { "id": "…", "senderId": "…", "text": "See you at 6", "createdAt": "…" },
-    "unreadCount": 2,
-    "lastMessageAt": "…"
+    "lastMessageAt": "…",
+    "unreadCount": 2
   }],
   "meta": { "nextCursor": null, "hasMore": false, "limit": 20 }
 }
 ```
-
-Rules and constraints:
-
-- Text ≤ 4000 chars; message must have `text` or `mediaUrl`; URL ≤ 2048.
-- Sender must be an active participant; leaving a group keeps history but blocks new sends.
-- Direct conversation lookup: `ConversationParticipant` composite index on `(userId, conversationId)`; creating a duplicate direct thread returns the existing one (`200` instead of `201`).
-- Editing/deleting is author-only; no admin override in v2.
-- Rate limit: 30 messages/minute/user (`429` beyond).
-- Realtime: `GET /events` (SSE) emits `{ type: "message.created", conversationId, messageId }` plus notification and unread-count events. Clients refetch over REST; no message payload duplication in the stream keeps auth and ordering simple.
 
 ---
 
@@ -818,9 +838,9 @@ Existing `User`/`Post` gain relations (`savedPosts`, `notifications`, `messages`
 | **0. Hardening** | Refresh/logout, comment pagination, saved posts, reels counters, media uploads | Closes existing gaps and unblocks the UI's save/reel screens |
 | **1. Social graph** | Followers/following lists, unified search, notification storage + unread | Cheap, high-visibility, no new aggregates |
 | **2. Pages** | Page CRUD, membership, invites, roles, events, analytics | Largest RBAC surface; depends on media + notifications |
-| **3. Chat** | Conversations, messages, read state, SSE hints | Depends on notifications for "new message" badges |
+| **3. Chat** ✅ | Conversations, messages, read state, Socket.IO delivery, typing | Built end-to-end (REST history + `/chat` namespace) |
 | **4. Marketplace** | Products, cart, orders, state machine | Most complex invariants; benefits from stable media + notifications |
-| **5. Realtime polish** | SSE → WebSocket, typing indicators, presence | Optional; REST polling is the fallback |
+| **5. Realtime polish** | Redis adapter for multi-instance rooms, presence, chat moderation | Optional; single-instance chat is live |
 
 Each phase ships with: Prisma migration, module + DTOs + Swagger annotations, service unit tests for authorization and state transitions, and a Vitest e2e path in `apps/backend/test`.
 

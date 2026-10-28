@@ -30,6 +30,8 @@ model User {
   following           Follow[]             @relation("follower")
   followers           Follow[]             @relation("following")
   passwordResetTokens PasswordResetToken[]
+  conversationParticipants ConversationParticipant[]
+  messages            Message[]               @relation("messageSender")
 
   @@map("users")
 }
@@ -107,6 +109,62 @@ model Comment {
 
   @@index([postId, createdAt])
   @@map("comments")
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+model Conversation {
+  id            String           @id @default(cuid())
+  type          ConversationType @default(DIRECT)
+  directKey     String?          @unique
+  lastMessageAt DateTime         @default(now())
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([lastMessageAt(sort: Desc)])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  conversationId String
+  userId         String
+  lastReadAt     DateTime?
+  joinedAt       DateTime  @default(now())
+  leftAt         DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String    @id @default(cuid())
+  conversationId String
+  senderId       String
+  text           String?
+  mediaUrl       String?
+  replyToId      String?
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("messageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo      Message?     @relation("messageReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies      Message[]    @relation("messageReply")
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([senderId])
+  @@map("messages")
 }
 
 

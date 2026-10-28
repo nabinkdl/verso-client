@@ -1,6 +1,6 @@
-import type { AdminUser, Comment, Post } from "../types";
+import type { AdminUser, ChatMessage, Comment, Conversation, Post } from "../types";
 
-const API_URL =
+export const API_URL =
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ??
   "http://localhost:3000/api";
 
@@ -226,6 +226,60 @@ export const api = {
     request<{ following: boolean }>(
       `/users/${encodeURIComponent(username)}/follow`,
       { method: "DELETE" },
+    ),
+
+  listConversations: (params: { cursor?: string; limit?: number } = {}) => {
+    const search = new URLSearchParams();
+    if (params.cursor) search.set("cursor", params.cursor);
+    if (params.limit) search.set("limit", String(params.limit));
+    const query = search.toString();
+    return request<Paginated<Conversation>>(
+      `/conversations${query ? `?${query}` : ""}`,
+    );
+  },
+
+  conversation: (conversationId: string) =>
+    request<Conversation>(`/conversations/${conversationId}`),
+
+  createConversation: (input: { username?: string; userId?: string }) =>
+    request<Conversation>("/conversations", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  messages: (
+    conversationId: string,
+    params: { cursor?: string; limit?: number } = {},
+  ) => {
+    const search = new URLSearchParams();
+    if (params.cursor) search.set("cursor", params.cursor);
+    if (params.limit) search.set("limit", String(params.limit));
+    const query = search.toString();
+    return request<Paginated<ChatMessage>>(
+      `/conversations/${conversationId}/messages${query ? `?${query}` : ""}`,
+    );
+  },
+
+  sendMessage: (conversationId: string, text: string) =>
+    request<ChatMessage>(`/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    }),
+
+  markConversationRead: (conversationId: string, messageId?: string) =>
+    request<{
+      conversationId: string;
+      userId: string;
+      lastReadAt: string;
+      unreadCount: number;
+    }>(`/conversations/${conversationId}/read`, {
+      method: "POST",
+      body: JSON.stringify(messageId ? { messageId } : {}),
+    }),
+
+  unreadMessages: () =>
+    request<{ count: number; conversations: number }>(
+      "/conversations/unread-count",
     ),
 };
 

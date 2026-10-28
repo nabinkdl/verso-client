@@ -7,6 +7,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module.js';
+import { SocketIoAdapter } from './common/adapters/socket-io.adapter.js';
 import { PrismaExceptionFilter } from './common/filters/prisma-exception.filter.js';
 
 async function bootstrap() {
@@ -35,6 +36,8 @@ async function bootstrap() {
     origin: corsOrigin === '*' ? true : corsOrigin.split(',').map((origin) => origin.trim()),
     credentials: true,
   });
+
+  app.useWebSocketAdapter(new SocketIoAdapter(app, corsOrigin));
 
   const publicDir = join(process.cwd(), 'public');
   if (existsSync(publicDir)) {
